@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ローマ字タイピング（1もじとっくん）</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #ec407a;
+            --accent-color: #ffca28;
+            --bg-color: #fce4ec;
+            --key-bg: #fff;
+            --key-shadow: #cfd8dc;
+            --text-color: #444;
+            --text-dark: #37474f;
+            --timer-color: #3e2723;
+        }
+        body { 
+            font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', 'Rounded Mplus 1c', 'Meiryo', sans-serif; 
+            text-align: center; background-color: var(--bg-color); margin: 0; padding: 0;
+            color: var(--text-color); overflow: hidden; user-select: none;
+            height: 100vh; display: flex; justify-content: center; align-items: center;
+        }
+        body.order-mode { --primary-color: #0ea5e9; --bg-color: #e0f2fe; }
+        
+        #game-wrapper {
+            width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        #game-container { 
+            background: white; 
+            width: 96%; max-width: 1100px;
+            /* WXGA等の縦が短い画面に対応するため、高さの制限を緩和 */
+            height: 96vh; max-height: 720px;
+            padding: 15px; 
+            border: 8px solid #f8bbd0; border-radius: 20px; box-shadow: 0 10px 0 rgba(0,0,0,0.1);
+            position: relative; box-sizing: border-box;
+            display: flex; flex-direction: column; justify-content: space-between; align-items: center;
+            transform: translate3d(0, 0, 0);
+        }
+        body.order-mode #game-container { border-color: #bae6fd; }
+
+        /* --- ゲーム画面（プレイ中） --- */
+        .info-bar { 
+            display: flex; justify-content: center; 
+            width: 100%; font-size: 1.4rem; font-weight: bold; color: #555; 
+            margin-bottom: 5px; height: 40px; align-items: center;
+            position: relative;
+        }
+        
+        .remain-box { position: absolute; left: 10px; font-size: 1.2rem; }
+        .timer-box { color: var(--timer-color); font-size: 1.8rem; z-index: 5; }
+
+        /* アイコン群（右上） */
+        .top-icons {
+            position: absolute; top: 5px; right: 10px; 
+            display: flex; gap: 8px; z-index: 20;
+        }
+        .icon-btn {
+            font-size: 1.3rem; cursor: pointer;
+            background: rgba(255,255,255,0.9);
+            border: 2px solid #eee;
+            border-radius: 50%; width: 38px; height: 38px;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: 0.2s; user-select: none; color: #555;
+        }
+        .icon-btn:hover { transform: scale(1.1); background: #fff; }
+        .icon-btn:active { transform: scale(0.95); }
+        
+        #display-area {
+            flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            width: 100%; background: #fff5f8; border-radius: 16px; margin-bottom: 10px;
+            border: 4px dashed #f48fb1;
+            min-height: 150px;
+        }
+        body.order-mode #display-area { background: #f0f9ff; border-color: #81d4fa; }
+
+        #target-kana { font-size: 8rem; font-weight: bold; line-height: 1; margin: -10px 0 10px; color: #333; }
+        #target-roma { 
+            font-size: 5rem; font-weight: bold; letter-spacing: 6px; 
+            color: #b0bec5; font-family: 'Courier New', monospace; 
+            min-height: 80px; line-height: 1;
+        }
+        .typed { color: var(--primary-color); }
+        .next-char { color: #0288d1; text-decoration: underline; background-color: rgba(2, 136, 209, 0.1); border-radius: 5px; }
+
+        #keyboard { 
+            display: flex; flex-direction: column; gap: 8px; 
+            width: 100%; padding: 15px 10px; 
+            background: #eceff1; border-radius: 16px; 
+            box-sizing: border-box; flex-shrink: 0;
+        }
+        .kb-row { display: flex; justify-content: center; gap: 8px; width: 100%; }
+        
+        .key { 
+            width: 8%; max-width: 60px; aspect-ratio: 1/1;
+            display: flex; justify-content: center; align-items: center;
+            background: var(--key-bg); border-radius: 8px; 
+            font-weight: bold; font-size: 1.4rem; 
+            color: var(--text-dark); 
+            box-shadow: 0 4px 0 var(--key-shadow);
+            position: relative; transition: all 0.1s;
+        }
+        .key.active { 
+            background: #ffeb3b !important; color: #212121; 
+            box-shadow: 0 2px 0 #f9a825; transform: translateY(4px); 
+        }
+        .key.home { border: 2px solid #ff4081; }
+        
+        /* --- メニュー画面 --- */
+        #overlay { 
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.98); border-radius: 12px; z-index: 10; 
+            display: flex; flex-direction: column; align-items: center;
+            padding: 10px; overflow-y: auto;
+        }
+
+        /* タイトルエリア調整：アイコンと被らないようマージン確保しつつ、全体を少し小さく */
+        #title-area { 
+            margin: 35px 0 5px; /* 上マージンを調整 */
+            text-align: center; flex-shrink: 0;
+        }
+        #title-text { 
+            margin: 0; font-size: 2.0rem; color: #333; /* フォントサイズ微調整 */
+            text-shadow: 2px 2px 0 #eee; line-height: 1.2;
+        }
+        .subtitle { font-size: 1.1rem; color: #ec407a; font-weight: bold; margin-left: 8px; white-space: nowrap; }
+
+        .btn-howto {
+            background: #81d4fa; color: #01579b; border: none;
+            padding: 6px 18px; border-radius: 20px; font-weight: bold;
+            cursor: pointer; margin-top: 5px; font-family: inherit; font-size: 0.9rem;
+            box-shadow: 0 3px 0 #4fc3f7; transition: 0.2s;
+        }
+        .btn-howto:hover { transform: translateY(-2px); filter: brightness(1.05); }
+        .btn-howto:active { transform: translateY(2px); box-shadow: 0 1px 0 #4fc3f7; }
+
+        .menu-wrapper {
+            display: flex; width: 100%; max-width: 850px; gap: 15px;
+            justify-content: center; align-items: stretch; flex-grow: 1;
+            min-height: 0; 
+            margin-top: 8px; margin-bottom: 5px;
+        }
+
+        /* 設定パネル：縦幅を抑える調整 */
+        .settings-panel {
+            flex: 1; background: #fff; 
+            border: 3px solid #eee; border-radius: 16px;
+            padding: 10px 15px; display: flex; flex-direction: column; 
+            justify-content: space-evenly; /* 均等配置だが間隔を詰める */
+            gap: 5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .panel-label { 
+            font-size: 1.0rem; font-weight: bold; color: #555; 
+            border-left: 5px solid var(--primary-color); padding-left: 8px; margin-bottom: 4px;
+            display: flex; align-items: center;
+        }
+
+        /* レベル選択ボタン：コンパクト化 */
+        .level-selector { display: flex; gap: 5px; }
+        .lvl-btn {
+            flex: 1; border: 2px solid #ddd; border-radius: 10px; padding: 4px 2px;
+            cursor: pointer; background: #fff; transition: 0.2s;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #777;
+        }
+        .lvl-btn:hover { background: #fdfdfd; transform: translateY(-2px); }
+        .lvl-btn.selected { 
+            border-color: var(--primary-color); background: #fff5f8; 
+            color: var(--primary-color); font-weight: bold;
+            box-shadow: 0 3px 0 #f8bbd0; transform: translateY(-2px);
+        }
+        .lvl-btn#lvl-btn-0.selected {
+            border-color: #66bb6a; background: #e8f5e9; color: #2e7d32; box-shadow: 0 3px 0 #a5d6a7;
+        }
+        .lvl-icon { font-size: 1.3rem; margin-bottom: 0px; }
+        .lvl-name { font-size: 0.75rem; line-height: 1.1; }
+        
+        /* スイッチ類：パディング調整 */
+        .case-selector {
+            display: flex; gap: 10px; align-items: center; background: #f5f5f5;
+            padding: 6px; border-radius: 10px; justify-content: center;
+        }
+        .switch-label { font-weight: bold; font-size: 1.0rem; cursor: pointer; color: #aaa; transition: 0.2s;}
+        .switch-label.active { color: #333; transform: scale(1.05); }
+        
+        .toggle-switch {
+            position: relative; width: 50px; height: 26px; background: #ddd;
+            border-radius: 30px; cursor: pointer; transition: 0.3s;
+        }
+        .toggle-switch::after {
+            content: ''; position: absolute; top: 3px; left: 3px;
+            width: 20px; height: 20px; background: white; border-radius: 50%;
+            transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .toggle-switch.on { background: var(--primary-color); }
+        .toggle-switch.on::after { left: 27px; }
+
+        .reset-btn {
+            background: transparent; border: none; border-left: 2px solid #ddd;
+            padding-left: 10px; margin-left: 5px;
+            cursor: pointer; font-size: 1.2rem; color: #ef5350;
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.2s;
+        }
+        
+        /* 音設定パネル */
+        .sound-panel {
+            background: #f5f5f5; padding: 6px 12px; border-radius: 10px; 
+            display:flex; align-items:center;
+        }
+
+        /* 目標タイム選択：高さを抑える */
+        #target-time-select {
+            font-size: 1.0rem; padding: 6px; width: 100%; border-radius: 8px; border: 2px solid #ddd;
+        }
+
+        .modes-panel {
+            flex: 1; display: flex; flex-direction: column; gap: 12px;
+        }
+
+        .mode-card {
+            flex: 1; border-radius: 16px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; 
+            gap: 10px; 
+            transition: 0.2s; position: relative; overflow: hidden;
+            box-shadow: 0 5px 0 rgba(0,0,0,0.1); color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+            border: none; width: 100%; padding: 0;
+        }
+        .mode-card:hover { transform: translateY(-3px); box-shadow: 0 8px 0 rgba(0,0,0,0.1); filter: brightness(1.05); }
+        .mode-card:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,0.1); }
+
+        .mode-card.random { background: linear-gradient(135deg, #ec407a, #d81b60); }
+        .mode-card.order  { background: linear-gradient(135deg, #42a5f5, #1e88e5); }
+
+        .mode-icon { font-size: 3.0rem; background: rgba(255,255,255,0.2); border-radius: 50%; width: 70px; height: 70px; display: flex; justify-content: center; align-items: center; }
+        .mode-text { text-align: left; }
+        
+        .mode-title { font-size: 1.4rem; font-weight: bold; display: block; white-space: nowrap; }
+        .mode-desc { font-size: 0.85rem; opacity: 0.9; margin-top: 4px; display: block; }
+
+        #footer-area { width: 100%; max-width: 850px; display: flex; justify-content: space-between; align-items: end; margin-top: 8px; flex-shrink: 0;}
+        .mini-rank { background: #fff; border: 2px solid #ddd; border-radius: 10px; padding: 6px 12px; font-size: 0.85rem; color: #666; width: 48%; }
+        .mini-rank strong { color: var(--primary-color); }
+
+        .stamp { font-size: 3rem; color: #e91e63; border: 5px solid #e91e63; padding: 10px 30px; border-radius: 20px; transform: rotate(-5deg); margin: 20px 0; display: inline-block; animation: pop 0.4s; background: rgba(255,255,255,0.9); }
+        @keyframes pop { 0%{transform: scale(0);} 80%{transform: scale(1.1);} 100%{transform: scale(1) rotate(-5deg);} }
+
+        .shake { animation: shake 0.2s; }
+        @keyframes shake { 0%,100% {transform:translateX(0)} 25% {transform:translateX(8px)} 75% {transform:translateX(-8px)} }
+
+        #result-content { display: none; flex-direction: column; align-items: center; width: 100%; height: 100%; justify-content: center; }
+        .btn-retry { font-size: 1.5rem; padding: 15px 40px; color: white; background: #757575; border:none; border-radius: 50px; box-shadow: 0 6px #424242; cursor:pointer; font-weight:bold; margin-top: 30px; transition: 0.2s; }
+        .btn-retry:hover { background: #888; transform: translateY(-2px); }
+        .btn-retry:active { transform: translateY(4px); box-shadow: 0 2px #424242; }
+
+        .copyright-link {
+            margin-top: 8px; font-size: 0.75rem; color: #aaa; cursor: pointer; text-decoration: underline;
+        }
+        .copyright-link:hover { color: #ec407a; }
+
+        /* --- モーダル (遊び方・コンセプト) --- */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 100;
+            justify-content: center; align-items: center;
+        }
+        .modal-box {
+            background: #fff; width: 90%; max-width: 650px; max-height: 85vh;
+            border-radius: 20px; border: 6px solid #81d4fa;
+            padding: 25px; overflow-y: auto; text-align: left;
+            position: relative; animation: pop 0.2s ease-out;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        .modal-box.concept-mode { border-color: #ec407a; }
+
+        .modal-close {
+            position: absolute; top: 10px; right: 15px; font-size: 2rem;
+            color: #ccc; cursor: pointer; line-height: 1; font-weight: bold;
+        }
+        .modal-close:hover { color: #ec407a; }
+
+        .howto-h2 { 
+            text-align: center; color: #fff; background: #0277bd; border-radius: 30px;
+            padding: 10px 20px; margin: 0 auto 20px auto; width: fit-content;
+            box-shadow: 0 4px 0 #01579b; font-size: 1.5rem; border-bottom: none;
+        }
+        .concept-h2 { text-align: center; color: #c2185b; border-bottom: 3px dashed #f8bbd0; padding-bottom: 10px; margin-top: 0; }
+
+        .howto-section { background: #e1f5fe; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 0 rgba(0,0,0,0.05); }
+        .howto-section h3 { 
+            margin: 0 0 15px 0; color: #0277bd; font-size: 1.3rem; 
+            display: flex; align-items: center; gap: 8px;
+            border-bottom: 2px solid rgba(2, 119, 189, 0.2); padding-bottom: 8px;
+        }
+
+        .howto-item { display: flex; align-items: flex-start; gap: 15px; margin-bottom: 15px; line-height: 1.6; }
+        .howto-item:last-child { margin-bottom: 0; }
+        .howto-icon { 
+            font-size: 1.8rem; width: 50px; text-align: center; flex-shrink: 0; 
+            background: #fff; border-radius: 50%; height: 50px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .howto-text { flex-grow: 1; font-size: 0.95rem; color: #444; }
+        .badge-param {
+            display: inline-block; background: #0288d1; color: #fff;
+            padding: 3px 10px; border-radius: 15px; font-weight: bold;
+            font-size: 0.9rem; margin-bottom: 5px; box-shadow: 0 2px 0 #01579b;
+        }
+        .level-detail {
+            display: block; margin-top: 5px; background: rgba(255,255,255,0.6);
+            padding: 10px; border-radius: 8px; font-size: 0.9rem; color: #555; line-height: 1.8;
+        }
+        .concept-list { font-size: 0.95rem; line-height: 1.6; color: #444; }
+        .concept-list li { margin-bottom: 8px; }
+        .license-box { background: #fce4ec; padding: 15px; border-radius: 10px; text-align: center; margin-top: 20px; font-weight: bold; color: #c2185b; border: 2px dashed #f48fb1; }
+
+    </style>
+</head>
+<body>
+
+    <div id="game-wrapper">
+        <div id="game-container">
+            <div id="modal-howto-overlay" class="modal-overlay" onclick="closeModal(event)">
+                <div class="modal-box">
+                    <span class="modal-close" onclick="closeModalBtn()">×</span>
+                    <h2 class="howto-h2">📖 あそびかた・せつめい</h2>
+                    
+                    <div class="howto-section">
+                        <h3>メニューの せってい</h3>
+                        <div class="howto-item">
+                            <span class="howto-icon">⭐</span>
+                            <div class="howto-text">
+                                <span class="badge-param">むずかしさ (Lv)</span><br>
+                                れんしゅうする もじを えらべるよ。
+                                <span class="level-detail">
+                                    ・Lv0：<strong>あいうえお</strong> だけ<br>
+                                    ・Lv1：<strong>あ～ん</strong> (きほん)<br>
+                                    ・Lv2：Lv1 ＋ <strong>だくおん</strong> ( が ～ ぽ )<br>
+                                    ・Lv3：Lv2 ＋ <strong>ようおん</strong> (きゃ～りょ)
+                                </span>
+                            </div>
+                        </div>
+                        <div class="howto-item">
+                            <span class="howto-icon">🅰️</span>
+                            <div class="howto-text">
+                                <span class="badge-param">ひょうじ</span><br>
+                                「abc (こもじ)」と「ABC (おおもじ)」を かえられるよ。
+                            </div>
+                        </div>
+                        <div class="howto-item">
+                            <span class="howto-icon">⏰</span>
+                            <div class="howto-text">
+                                <span class="badge-param">もくひょう タイム</span><br>
+                                なんびょうで クリアできるか チャレンジ！<br>
+                                「なし」なら れんしゅう モードだよ。
+                            </div>
+                        </div>
+                        <div class="howto-item">
+                            <span class="howto-icon">🗑️</span>
+                            <div class="howto-text">
+                                <span class="badge-param">きろくを けす</span><br>
+                                「ごみばこ」ボタンを おすと、すべての ランキングが きえるよ。
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="howto-section" style="background:#fff3e0;">
+                        <h3 style="color:#ef6c00;">ゲームの モード</h3>
+                        <div class="howto-item">
+                            <span class="howto-icon">🎲</span>
+                            <div class="howto-text">
+                                <span class="badge-param" style="background:#ef6c00; box-shadow:0 2px 0 #e65100;">バラバラ</span><br>
+                                もんだいが ランダム(バラバラ)に でるよ。<br>
+                                おわったら、スペースキーで なんども あそべるよ。
+                            </div>
+                        </div>
+                        <div class="howto-item">
+                            <span class="howto-icon">📝</span>
+                            <div class="howto-text">
+                                <span class="badge-param" style="background:#ef6c00; box-shadow:0 2px 0 #e65100;">あいうえお じゅん</span><br>
+                                「あいうえお…」の じゅんばんで ぜんぶ うつよ。<br>
+                                キーの ばしょを おぼえるのに ピッタリ！
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="howto-section" style="background:#e8f5e9;">
+                        <h3 style="color:#2e7d32;">プレイがめんの みかた・きのう</h3>
+                        <div class="howto-item">
+                            <span class="howto-icon">⌨️</span>
+                            <div class="howto-text">
+                                <span class="badge-param" style="background:#43a047; box-shadow:0 2px 0 #2e7d32;">キーボード</span><br>
+                                つぎに おす キーが ひかって おしえて くれるよ。
+                            </div>
+                        </div>
+                        <div class="howto-item">
+                            <span class="howto-icon">👀</span>
+                            <div class="howto-text">
+                                <span class="badge-param" style="background:#43a047; box-shadow:0 2px 0 #2e7d32;">ローマじ</span><br>
+                                まんなかの おおきな もじを みて タイピングしよう！
+                            </div>
+                        </div>
+                        <div class="howto-item">
+                            <span class="howto-icon">🔊</span>
+                            <div class="howto-text">
+                                <span class="badge-param" style="background:#43a047; box-shadow:0 2px 0 #2e7d32;">おと (ON/OFF)</span><br>
+                                右上の ボタンで おとを けしたり つけたり できるよ。
+                            </div>
+                        </div>
+                        <div class="howto-item">
+                            <span class="howto-icon">⛶</span>
+                            <div class="howto-text">
+                                <span class="badge-param" style="background:#43a047; box-shadow:0 2px 0 #2e7d32;">全画面 (ぜんがめん)</span><br>
+                                がめん いっぱいに おおきく できるよ。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="modal-concept-overlay" class="modal-overlay" onclick="closeModal(event)">
+                <div class="modal-box concept-mode">
+                    <span class="modal-close" onclick="closeModalBtn()">×</span>
+                    <h2 class="concept-h2">💡 このツールについて</h2>
+                    
+                    <ul class="concept-list">
+                        <li><strong>🏫 楽しく習得</strong><br>小学校低学年から、遊び感覚でローマ字入力を覚えられます。タイムアタックやランキング表示などのゲーム要素を取り入れ、楽しく継続できるように設計しました。</li>
+                        <li><strong>💻 学校の端末に対応</strong><br>GIGAスクール構想の端末（Windows / Chromebook）のブラウザで動作します。</li>
+                        <li><strong>🛜 ネット不要</strong><br>このHTMLファイルをダウンロードすれば、インターネットがない環境でも家庭や学校で遊べます。</li>
+                        <li><strong>🦄 ユニコード絵文字とシンプル・互換性</strong><br>イラストやアイコンは画像素材を使わず、Unicode絵文字のみを使用しているため動作が軽く、異なるデバイスやOS間でも高い互換性があり、ファイルの破損も起きにくい設計です。</li>
+                        <li style="color:#d32f2f;"><strong>⚠️ 注意点</strong><br>本ツールはタイピング練習用のため、物理キーボードでの操作を前提としています。画面上のキーボード（ソフトウェアキーボード）には対応していません。</li>
+                    </ul>
+
+                    <div class="license-box">
+                        商用利用は不可ですが、配布・利用・改変は自由です。<br>
+                        (Non-commercial use only. Free to distribute, use, and modify)
+                    </div>
+                </div>
+            </div>
+
+            <div id="overlay">
+                <div id="title-area">
+                    <h1 id="title-text">ローマ字タイピング<span class="subtitle">（1もじとっくん）</span></h1>
+                    <button class="btn-howto" onclick="showHowto()">📖 あそびかた・せつめい</button>
+                </div>
+                
+                <div id="menu-content" class="menu-wrapper">
+                    <div class="settings-panel">
+                        <div>
+                            <div class="panel-label">⭐ むずかしさ (Lv)</div>
+                            <div class="level-selector">
+                                <div class="lvl-btn" onclick="selectLevel(0)" id="lvl-btn-0">
+                                    <span class="lvl-icon">🔰</span>
+                                    <span class="lvl-name">Lv0<br>あいうえお</span>
+                                </div>
+                                <div class="lvl-btn selected" onclick="selectLevel(1)" id="lvl-btn-1">
+                                    <span class="lvl-icon">🐣</span>
+                                    <span class="lvl-name">Lv1<br>あ〜ん</span>
+                                </div>
+                                <div class="lvl-btn" onclick="selectLevel(2)" id="lvl-btn-2">
+                                    <span class="lvl-icon">🐥</span>
+                                    <span class="lvl-name">Lv2<br>＋だくおん</span>
+                                </div>
+                                <div class="lvl-btn" onclick="selectLevel(3)" id="lvl-btn-3">
+                                    <span class="lvl-icon">🦅</span>
+                                    <span class="lvl-name">Lv3<br>＋ちいさい字</span>
+                                </div>
+                            </div>
+                            <input type="hidden" id="level-slider" value="1">
+                        </div>
+
+                        <div>
+                            <div class="panel-label">🅰️ ひょうじする もじ</div>
+                            <div class="case-selector">
+                                <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="toggleCase()">
+                                    <span class="switch-label" id="label-lower">abc</span>
+                                    <div class="toggle-switch" id="case-switch-ui"></div>
+                                    <span class="switch-label" id="label-upper">ABC</span>
+                                    <input type="checkbox" id="case-switch" style="display:none">
+                                </div>
+                                <button class="reset-btn" onclick="resetRankings(event)" title="きろくをけす">🗑️</button>
+                            </div>
+                        </div>
+
+                        <div class="sound-panel">
+                            <label style="flex:1; display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
+                                <span style="font-weight:bold; color:#555; font-size:1.0rem; display:flex; align-items:center;">
+                                    <span style="font-size:1.3rem; margin-right:5px;">🔊</span> おと
+                                </span>
+                                <input type="checkbox" id="sound-switch" checked style="transform:scale(1.4); accent-color:var(--primary-color); cursor:pointer;" onchange="toggleSoundMenu()">
+                            </label>
+                        </div>
+
+                        <div>
+                            <div class="panel-label">⏰ もくひょうタイム</div>
+                            <select id="target-time-select" onchange="saveTargetSetting()">
+                                <option value="9999">なし (れんしゅう)</option>
+                                <option value="180">3ふん (ゆっくり)</option>
+                                <option value="120">2ふん (ふつう)</option>
+                                <option value="90">1ふん30びょう (やるね)</option>
+                                <option value="60">1ふん (はやい！)</option>
+                                <option value="40">40びょう (かなりすごい)</option>
+                                <option value="30">30びょう (めっちゃ！すごい！)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="modes-panel">
+                        <button class="mode-card random" onclick="startGame(this, 'random')">
+                            <span class="mode-icon">🎲</span>
+                            <div class="mode-text">
+                                <span class="mode-title">バラバラ</span>
+                                <span class="mode-desc">もんだいが バラバラに でるよ！<br>(スペースキー)</span>
+                            </div>
+                        </button>
+                        <button class="mode-card order" onclick="startGame(this, 'order')">
+                            <span class="mode-icon">📝</span>
+                            <div class="mode-text">
+                                <span class="mode-title">あいうえお じゅん</span>
+                                <span class="mode-desc">じゅんばんに タイピングしよう！<br>(マウスでおしてね)</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="footer-area">
+                    <div class="mini-rank">
+                        <strong>🎲 バラバラ ベスト3:</strong> <span id="rank-random">ー</span>
+                    </div>
+                    <div class="mini-rank" style="border-color:#bae6fd;">
+                        <strong style="color:#0288d1">📝 あいうえお ベスト3:</strong> <span id="rank-order">ー</span>
+                    </div>
+                </div>
+                
+                <div class="copyright-link" onclick="showConcept()">© 2026 [A.K] (クリックで詳細)</div>
+
+                <div id="result-content">
+                    <div id="result-message"></div>
+                    <button class="btn-retry" onclick="resetToMenu()">メニューにもどる</button>
+                    <div style="margin-top:15px; color:#888; font-size:1.1rem;">(スペースキーで もういちど)</div>
+                </div>
+            </div>
+
+            <div class="info-bar">
+                <div class="remain-box">のこり: <span id="remain">0</span></div>
+                <div class="timer-box" id="timer">0.0びょう</div>
+                <div class="top-icons">
+                    <div class="icon-btn" onclick="toggleSoundGame()" id="icon-sound" title="おとのON/OFF">🔊</div>
+                    <div class="icon-btn" onclick="toggleFullscreen()" id="icon-fullscreen" title="全画面">⛶</div>
+                </div>
+            </div>
+
+            <div id="display-area">
+                <div id="target-kana">あ</div>
+                <div id="target-roma">A</div>
+            </div>
+
+            <div id="keyboard"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- データ定義 ---
+        const baseKana = {
+            "あ": ["A"], "い": ["I"], "う": ["U"], "え": ["E"], "お": ["O"],
+            "か": ["KA"], "き": ["KI"], "く": ["KU"], "け": ["KE"], "こ": ["KO"],
+            "さ": ["SA"], "し": ["SI", "SHI"], "す": ["SU"], "せ": ["SE"], "そ": ["SO"],
+            "た": ["TA"], "ち": ["TI", "CHI"], "つ": ["TU", "TSU"], "て": ["TE"], "と": ["TO"],
+            "な": ["NA"], "に": ["NI"], "ぬ": ["NU"], "ね": ["NE"], "の": ["NO"],
+            "は": ["HA"], "ひ": ["HI"], "ふ": ["HU", "FU"], "へ": ["HE"], "ほ": ["HO"],
+            "ま": ["MA"], "み": ["MI"], "む": ["MU"], "め": ["ME"], "も": ["MO"],
+            "や": ["YA"], "ゆ": ["YU"], "よ": ["YO"],
+            "ら": ["RA"], "り": ["RI"], "る": ["RU"], "れ": ["RE"], "ろ": ["RO"],
+            "わ": ["WA"], "を": ["WO"], "ん": ["NN"]
+        };
+        const dakutenKana = {
+            "が": ["GA"], "ぎ": ["GI"], "ぐ": ["GU"], "げ": ["GE"], "ご": ["GO"],
+            "ざ": ["ZA"], "じ": ["ZI", "JI"], "ず": ["ZU"], "ぜ": ["ZE"], "ぞ": ["ZO"],
+            "だ": ["DA"], "ぢ": ["DI", "JI"], "づ": ["DU", "ZU"], "で": ["DE"], "ど": ["DO"],
+            "ば": ["BA"], "び": ["BI"], "ぶ": ["BU"], "べ": ["BE"], "ぼ": ["BO"],
+            "ぱ": ["PA"], "ぴ": ["PI"], "ぷ": ["PU"], "ぺ": ["PE"], "ぽ": ["PO"]
+        };
+        const yoonKana = {
+            "きゃ": ["KYA"], "きゅ": ["KYU"], "きょ": ["KYO"], "しゃ": ["SYA", "SHA"], "しゅ": ["SYU", "SHU"], "しょ": ["SYO", "SHO"],
+            "ちゃ": ["TYA", "CHA"], "ちゅ": ["TYU", "CHU"], "ちょ": ["TYO", "CHO"], "にゃ": ["NYA"], "にゅ": ["NYU"], "にょ": ["NYO"],
+            "ひゃ": ["HYA"], "ひゅ": ["HYU"], "ひょ": ["HYO"], "みゃ": ["MYA"], "みゅ": ["MYU"], "みょ": ["MYO"],
+            "りゃ": ["RYA"], "りゅ": ["RYU"], "りょ": ["RYO"], "ぎゃ": ["GYA"], "ぎゅ": ["GYU"], "ぎょ": ["GYO"],
+            "じゃ": ["JA", "JYA", "ZYA"], "じゅ": ["JU", "JYU", "ZYU"], "じょ": ["JO", "JYO", "ZYO"],
+            "びゃ": ["BYA"], "びゅ": ["BYU"], "びょ": ["BYU"], "ぴゃ": ["PYA"], "ぴゅ": ["PYU"], "ぴょ": ["PYO"]
+        };
+
+        // --- 変数 ---
+        let currentDict = {};
+        let questions = [];
+        let curIdx = 0;
+        let typedString = ""; 
+        let startTime, isPlaying = false, gameMode = '';
+        let timerInterval;
+        let targetTime = 9999;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let isSoundOn = true; // 音のデフォルト
+
+        // --- 初期化: キーボード生成 ---
+        const kb = document.getElementById('keyboard');
+        const rows = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
+        rows.forEach(rowString => {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'kb-row';
+            rowString.split("").forEach(k => {
+                const div = document.createElement('div');
+                div.className = 'key' + (k==='F'||k==='J' ? ' home' : '');
+                div.id = `key-${k}`;
+                div.innerText = k;
+                rowDiv.appendChild(div);
+            });
+            kb.appendChild(rowDiv);
+        });
+
+        // 設定読み込み
+        if(localStorage.getItem('typing_target_time')) {
+            document.getElementById('target-time-select').value = localStorage.getItem('typing_target_time');
+        }
+        
+        // 音設定の読み込み
+        if(localStorage.getItem('typing_sound_config') !== null) {
+            isSoundOn = (localStorage.getItem('typing_sound_config') === 'true');
+        }
+        updateSoundUI(); // UI反映
+
+        // --- UI操作関数 ---
+        // モーダル操作
+        function showHowto() {
+            document.getElementById('modal-howto-overlay').style.display = 'flex';
+        }
+        function showConcept() {
+            document.getElementById('modal-concept-overlay').style.display = 'flex';
+        }
+        function closeModalBtn() {
+            document.querySelectorAll('.modal-overlay').forEach(e => e.style.display = 'none');
+        }
+        function closeModal(e) {
+            if (e.target.classList.contains('modal-overlay')) {
+                e.target.style.display = 'none';
+            }
+        }
+
+        function selectLevel(lv) {
+            document.getElementById('level-slider').value = lv;
+            
+            // ビジュアル更新
+            for(let i=0; i<=3; i++){
+                const btn = document.getElementById(`lvl-btn-${i}`);
+                if(btn) {
+                    if(i === lv) btn.classList.add('selected');
+                    else btn.classList.remove('selected');
+                }
+            }
+            
+            // Lv0の場合の特別処理（目標タイム固定・無効化）
+            const timeSelect = document.getElementById('target-time-select');
+            if (lv === 0) {
+                // 一時的に保存
+                if(!timeSelect.disabled) localStorage.setItem('typing_target_time_temp', timeSelect.value);
+                
+                timeSelect.value = "9999"; 
+                timeSelect.disabled = true;
+            } else {
+                if (timeSelect.disabled) {
+                    timeSelect.disabled = false;
+                    // 復元またはローカルストレージから
+                    const temp = localStorage.getItem('typing_target_time_temp');
+                    const saved = localStorage.getItem('typing_target_time');
+                    if(temp) timeSelect.value = temp;
+                    else if(saved) timeSelect.value = saved;
+                }
+            }
+
+            showRankings(); 
+        }
+
+        function toggleCase() {
+            const chk = document.getElementById('case-switch');
+            chk.checked = !chk.checked;
+            applyCaseUI();
+        }
+
+        function applyCaseUI() {
+            const chk = document.getElementById('case-switch');
+            const ui = document.getElementById('case-switch-ui');
+            const lblL = document.getElementById('label-lower');
+            const lblU = document.getElementById('label-upper');
+
+            if(chk.checked) {
+                ui.classList.add('on');
+                lblU.classList.add('active');
+                lblL.classList.remove('active');
+            } else {
+                ui.classList.remove('on');
+                lblL.classList.add('active');
+                lblU.classList.remove('active');
+            }
+            updateKeyLabels();
+        }
+
+        // 音設定の切り替え（メニュー用：チェックボックスイベント）
+        function toggleSoundMenu() {
+            const chk = document.getElementById('sound-switch');
+            isSoundOn = chk.checked;
+            localStorage.setItem('typing_sound_config', isSoundOn);
+            updateSoundUI();
+        }
+        
+        // 音設定の切り替え（ゲーム内アイコン用）
+        function toggleSoundGame() {
+            isSoundOn = !isSoundOn;
+            localStorage.setItem('typing_sound_config', isSoundOn);
+            updateSoundUI();
+        }
+
+        // 音UIの同期更新
+        function updateSoundUI() {
+            // メニュー側 (チェックボックス)
+            const chk = document.getElementById('sound-switch');
+            if(chk) chk.checked = isSoundOn;
+
+            // ゲーム画面アイコン側
+            const icon = document.getElementById('icon-sound');
+            if (isSoundOn) {
+                icon.innerText = "🔊";
+                icon.style.opacity = "1";
+            } else {
+                icon.innerText = "🔇";
+                icon.style.opacity = "0.6";
+            }
+        }
+
+        // 全画面切り替え
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(e => {
+                    console.log("Fullscreen failed", e);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        // 初期表示用
+        applyCaseUI();
+        selectLevel(1);
+
+        function saveTargetSetting() {
+            const val = document.getElementById('target-time-select').value;
+            localStorage.setItem('typing_target_time', val);
+        }
+
+        function playTone(freq, type, duration) {
+            if (!isSoundOn) return; // 音OFFなら再生しない
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type; osc.frequency.value = freq;
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function startGame(btn, mode) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            if(btn) btn.blur(); 
+
+            isPlaying = true; gameMode = mode;
+            curIdx = 0; typedString = ""; startTime = Date.now();
+            
+            const level = parseInt(document.getElementById('level-slider').value);
+            targetTime = parseInt(document.getElementById('target-time-select').value);
+
+            currentDict = { ...baseKana };
+            
+            if (level === 0) {
+                // Lv0: あいうえお固定 (5種)
+                const aiueo = ["あ", "い", "う", "え", "お"];
+                
+                if (mode === 'order') {
+                     // 順番通り5セット
+                    let qList = [];
+                    for(let i=0; i<5; i++) qList.push(...aiueo);
+                    questions = qList;
+                } else {
+                    // ランダム: 直前と同じ文字が出ないように25問生成
+                    questions = [];
+                    let lastChar = "";
+                    for(let i=0; i<25; i++) {
+                        // 直前と違う文字の候補リストを作成
+                        const candidates = aiueo.filter(c => c !== lastChar);
+                        // そこからランダムに1つ選ぶ
+                        const nextChar = candidates[Math.floor(Math.random() * candidates.length)];
+                        questions.push(nextChar);
+                        lastChar = nextChar;
+                    }
+                }
+            } else {
+                // Lv1以上
+                if (level >= 2) Object.assign(currentDict, dakutenKana);
+                if (level >= 3) Object.assign(currentDict, yoonKana);
+
+                const keysArr = Object.keys(currentDict);
+                
+                if (mode === 'order') {
+                    questions = keysArr; 
+                } else {
+                    // ランダム: まずシャッフル
+                    let qList = [...keysArr].sort(() => Math.random() - 0.5).slice(0, 50);
+                    
+                    // 連続チェックと修正（念のため）
+                    for(let i=1; i<qList.length; i++) {
+                        if(qList[i] === qList[i-1]) {
+                            // もし被ったら、配列の別の場所と入れ替えてみる（簡易対処）
+                            const swapIdx = (i + 1) % qList.length;
+                            [qList[i], qList[swapIdx]] = [qList[swapIdx], qList[i]];
+                        }
+                    }
+                    questions = qList;
+                }
+            }
+            
+            document.body.className = mode === 'order' ? 'order-mode' : '';
+            // メニュー非表示
+            document.getElementById('menu-content').style.display = "none";
+            document.getElementById('footer-area').style.display = "none";
+            document.getElementById('title-area').style.display = "none";
+            
+            // オーバーレイ全体を非表示
+            document.getElementById('overlay').style.display = "none";
+            document.getElementById('result-content').style.display = "none";
+            
+            updateKeyLabels();
+            nextQuestion();
+            
+            timerInterval = setInterval(() => {
+                const elapsed = (Date.now() - startTime) / 1000;
+                document.getElementById('timer').innerText = elapsed.toFixed(1) + "びょう";
+            }, 100);
+        }
+
+        function nextQuestion() {
+            if (curIdx >= questions.length) return endGame();
+            typedString = "";
+            updateDisplay();
+        }
+
+        function updateKeyLabels() {
+            const isUpper = document.getElementById('case-switch').checked;
+            document.querySelectorAll('.key').forEach(k => {
+                const base = k.id.split('-')[1];
+                k.innerText = isUpper ? base : base.toLowerCase();
+            });
+            if(isPlaying) updateDisplay();
+        }
+
+        function updateDisplay() {
+            const currentKana = questions[curIdx];
+            const validSpellings = currentDict[currentKana];
+            const isUpper = document.getElementById('case-switch').checked;
+            
+            const candidates = validSpellings.filter(roma => roma.startsWith(typedString));
+            const targetRoma = candidates.length > 0 ? candidates[0] : validSpellings[0];
+
+            document.getElementById('target-kana').innerText = currentKana;
+            document.getElementById('remain').innerText = questions.length - curIdx;
+
+            let html = "";
+            for(let i=0; i < targetRoma.length; i++) {
+                let char = isUpper ? targetRoma[i] : targetRoma[i].toLowerCase();
+                if(i < typedString.length) {
+                    html += `<span class="typed">${char}</span>`;
+                } else if(i === typedString.length) {
+                    html += `<span class="next-char">${char}</span>`;
+                } else {
+                    html += `<span>${char}</span>`;
+                }
+            }
+            document.getElementById('target-roma').innerHTML = html;
+
+            document.querySelectorAll('.key').forEach(k => k.classList.remove('active'));
+            if(targetRoma[typedString.length]) {
+                const nextKeyChar = targetRoma[typedString.length];
+                document.getElementById(`key-${nextKeyChar}`).classList.add('active');
+            }
+        }
+
+        function resetToMenu() {
+            document.getElementById('overlay').style.display = "flex";
+            document.getElementById('menu-content').style.display = "flex";
+            document.getElementById('footer-area').style.display = "flex";
+            document.getElementById('title-area').style.display = "block";
+            document.getElementById('result-content').style.display = "none";
+            showRankings();
+        }
+
+        function quitGame() {
+            clearInterval(timerInterval);
+            isPlaying = false;
+            resetToMenu();
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === "Escape") { 
+                const howto = document.getElementById('modal-howto-overlay');
+                const concept = document.getElementById('modal-concept-overlay');
+                
+                // モーダルが表示されているかチェック
+                if (howto.style.display === 'flex' || concept.style.display === 'flex') {
+                    closeModalBtn(); // 閉じる
+                } else {
+                    quitGame(); // ゲーム中断
+                }
+                return; 
+            }
+
+            if (e.code === "Space" || e.key === " ") {
+                e.preventDefault();
+                if (!isPlaying) {
+                    if (document.getElementById('result-content').style.display === "flex") {
+                        startGame(null, gameMode);
+                    } else if(document.getElementById('menu-content').style.display !== "none") {
+                        startGame(null, 'random');
+                    }
+                }
+                return;
+            }
+
+            if (!isPlaying || e.key === "Shift" || e.ctrlKey || e.altKey || e.metaKey) return;
+            
+            // IME入力中でも反応するように e.code もチェック
+            let inputKey = null;
+
+            // 1. 通常の英数字入力
+            if (/^[a-zA-Z0-9-]$/.test(e.key)) {
+                inputKey = e.key.toUpperCase();
+            } 
+            // 2. IME入力中など (e.keyが 'Process' や 'あ' になる場合)
+            else if (e.code.startsWith('Key')) {
+                // KeyA -> A, KeyZ -> Z のように取得
+                inputKey = e.code.slice(3).toUpperCase();
+            }
+            else if (e.code === 'Minus') {
+                inputKey = '-';
+            }
+
+            if (!inputKey) return; // 判定できないキーは無視
+
+            const currentKana = questions[curIdx];
+            const validSpellings = currentDict[currentKana];
+            const nextString = typedString + inputKey;
+            
+            if (validSpellings.some(roma => roma.startsWith(nextString))) {
+                typedString = nextString;
+                playTone(880, 'sine', 0.05);
+
+                if (validSpellings.includes(typedString)) {
+                    curIdx++;
+                    playTone(523, 'sine', 0.1);
+                    nextQuestion();
+                } else {
+                    updateDisplay();
+                }
+            } else {
+                playTone(150, 'sawtooth', 0.2);
+                const container = document.getElementById('game-container');
+                container.classList.remove('shake');
+                void container.offsetWidth;
+                container.classList.add('shake');
+            }
+        });
+
+        function saveRecord(mode, time) {
+            const level = document.getElementById('level-slider').value;
+            // Lv0は保存しない
+            if (level == 0) return;
+
+            const key = `typing_rank_${mode}_lv${level}`;
+            let scores = JSON.parse(localStorage.getItem(key)) || [];
+            scores.push(time);
+            scores.sort((a, b) => a - b);
+            localStorage.setItem(key, JSON.stringify(scores.slice(0, 3)));
+        }
+
+        function showRankings() {
+            const level = document.getElementById('level-slider').value;
+            ['random', 'order'].forEach(mode => {
+                if (level == 0) {
+                    document.getElementById(`rank-${mode}`).innerHTML = 
+                        "<span style='margin-left:8px; color:#aaa; font-size:0.8em'>Lv0はランキングなし</span>";
+                } else {
+                    const key = `typing_rank_${mode}_lv${level}`;
+                    const scores = JSON.parse(localStorage.getItem(key)) || [];
+                    const html = scores.length ? scores.map((s, i) => 
+                        `<span style="margin-left:8px; font-weight:normal;">${i+1}い ${s.toFixed(1)}びょう</span>`
+                    ).join('') : "<span style='margin-left:8px; color:#aaa;'>まだないよ</span>";
+                    document.getElementById(`rank-${mode}`).innerHTML = html;
+                }
+            });
+        }
+        
+        // ランキングリセット機能
+        function resetRankings(e) {
+            e.stopPropagation(); // 親要素のクリックイベント（toggleCase）を止める
+            if(confirm("すべての レベルの きろくを\nリセット（さくじょ）しても いいですか？")) {
+                const modes = ['random', 'order'];
+                const levels = [1, 2, 3]; // Lv0は保存されないので対象外
+                modes.forEach(m => {
+                    levels.forEach(lv => {
+                        localStorage.removeItem(`typing_rank_${m}_lv${lv}`);
+                    });
+                });
+                showRankings();
+                alert("きろくを リセットしました。");
+            }
+        }
+        
+        function endGame() {
+            clearInterval(timerInterval);
+            isPlaying = false;
+            const finalTime = (Date.now() - startTime) / 1000;
+            saveRecord(gameMode, finalTime);
+
+            document.getElementById('overlay').style.display = "flex";
+            document.getElementById('result-content').style.display = "flex";
+
+            let msg = `<div>タイム: <span style="font-size:4rem; font-weight:bold; color:var(--primary-color)\">${finalTime.toFixed(1)}びょう</span></div>`;
+            
+            // Lv0の場合は目標タイム判定を行わない
+            const level = document.getElementById('level-slider').value;
+            if (level == 0) {
+                 msg += `<div class="stamp" style="border-color:#66bb6a; color:#2e7d32;">Practice Finish!</div>`;
+            } else if (targetTime !== 9999) {
+                if (finalTime <= targetTime) {
+                    playTone(600, 'sine', 0.1); setTimeout(()=>playTone(800, 'sine', 0.2), 150);
+                    msg += `<div class="stamp">💮 もくひょう クリア！</div>`;
+                } else {
+                    msg += `<div style=\"margin-top:10px; color:#555; font-size:1.4rem\\\">あと ${(finalTime - targetTime).toFixed(1)}びょうで クリア！</div>`;
+                }
+            } else {
+                msg += `<div class="stamp" style="border-color:orange; color:orange;">FINISH!</div>`;
+            }
+            document.getElementById('result-message').innerHTML = msg;
+        }
+
+        showRankings();
+    </script>
+</body>
+</html>

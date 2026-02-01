@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>タイピング・マスター（ゲーム）</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { 
+            --main-color: #fb923c; --sub-color: #ffedd5; --text-color: #9a3412; 
+            --accent-blue: #2563eb; --miss-red: #ef4444;
+            --howto-accent: #4ECDC4;
+            --concept-accent: #ff5252;
+        }
+        body { 
+            font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', sans-serif; 
+            text-align: center; background-color: #fff7ed; color: var(--text-color); 
+            margin: 0; overflow: hidden; user-select: none;
+            display: flex; flex-direction: column; justify-content: center; height: 100vh;
+        }
+        
+        /* レイヤー順序 */
+        #fireworks-canvas { 
+            position: fixed; top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            pointer-events: none; 
+            z-index: 15000; 
+        }
+        
+        #game-container { 
+            background-color: rgba(255,255,255,0.96);
+            width: 92%; max-width: 1100px; 
+            height: 85vh; 
+            max-height: 680px; margin: 0 auto; 
+            padding: 15px 20px; border-radius: 30px; 
+            border: 8px solid var(--sub-color); box-shadow: 0 8px 0 var(--main-color); 
+            position: relative; z-index: 10;
+            display: none; /* 初期状態は非表示 */
+            flex-direction: column; justify-content: space-between; align-items: center;
+            box-sizing: border-box;
+            transition: background-color 0.3s ease-out, border-color 0.3s;
+        }
+
+        #game-container.miss-effect { 
+            background-color: #ff5252 !important; 
+            border-color: #d32f2f !important;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.5) !important;
+            transition: none !important;
+        }
+
+        #visual-icon { 
+            font-size: 7rem; line-height: 1; margin: 10px 0; 
+            filter: drop-shadow(0 4px 0 rgba(0,0,0,0.1));
+            transition: transform 0.2s;
+        }
+
+        #kana-display { 
+            font-size: 4.5rem; color: #c2410c; font-weight: 900; margin: 0; line-height: 1.1; 
+            white-space: nowrap; text-shadow: 2px 2px 0 #fff;
+        }
+        
+        #word-display { 
+            font-size: 3.5rem; font-weight: bold; letter-spacing: 2px; color: #475569; 
+            margin: 0 0 15px 0; background: #f8fafc; padding: 5px 30px; border-radius: 20px; 
+            min-height: 1.2em; display: inline-block; white-space: nowrap;
+            border: 4px solid #e2e8f0; font-family: 'Courier New', monospace;
+        }
+
+        .typed { color: #cbd5e1; } 
+        .current { color: var(--accent-blue); border-bottom: 4px solid var(--accent-blue); background: #e0f2fe; border-radius: 4px;} 
+        
+        #timer-bar { 
+            width: 100%; height: 20px; background: #e2e8f0; border-radius: 10px; 
+            border: 3px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 5px; overflow: hidden; flex-shrink: 0;
+            position: relative; z-index: 5;
+        }
+        #timer-fill { width: 100%; height: 100%; background: #4ade80; transition: width 0.1s linear; }
+        .timer-low { animation: blink 0.5s infinite; background-color: #ef4444 !important; }
+        
+        #score-info { 
+            display: flex; justify-content: space-between; width: 100%;
+            font-size: 1.4rem; font-weight: bold; padding: 10px 20px; 
+            background: var(--sub-color); border-radius: 16px; 
+            color: #7c2d12; box-sizing: border-box; flex-shrink: 0;
+            align-items: center;
+        }
+        
+        #start-screen { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: var(--main-color); 
+            display: flex; align-items: center; justify-content: center; flex-direction: column; 
+            z-index: 5000; color: white;
+            overflow-y: auto; padding: 10px;
+            transition: background-color 0.3s;
+        }
+        
+        .start-title { font-size: 3.2rem; margin: 5px 0 10px; text-shadow: 3px 3px 0 rgba(0,0,0,0.15); line-height: 1.2; }
+        
+        .mode-grid { 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; 
+            width: 95%; max-width: 700px; margin-bottom: 10px; 
+        }
+        
+        .mode-btn-container { display: flex; flex-direction: column; align-items: center; width: 100%; }
+        .mode-btn { 
+            padding: 12px; font-size: 1.3rem; cursor: pointer; border-radius: 16px; 
+            border: 3px solid white; font-weight: bold; color: white; 
+            transition: 0.2s; box-shadow: 0 5px 0 rgba(0,0,0,0.2); 
+            width: 100%; font-family: 'Zen Maru Gothic', sans-serif;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            opacity: 0.8; transform: scale(0.98);
+        }
+        .mode-btn:hover { opacity: 1; transform: translateY(-2px) scale(1); }
+        .mode-btn.selected {
+            opacity: 1; transform: scale(1.05);
+            box-shadow: 0 0 0 4px rgba(255,255,255,0.5), 0 8px 0 rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+        
+        /* ランキングボックス：メニュー画面用 */
+        .menu-ranking-box {
+            margin-top: 5px; width: 95%; 
+            background: rgba(0,0,0,0.2); border-radius: 12px;
+            padding: 6px 10px; box-sizing: border-box;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+            max-height: 140px; 
+            overflow-y: auto;
+            scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.5) transparent;
+        }
+        .menu-ranking-box::-webkit-scrollbar { width: 6px; }
+        .menu-ranking-box::-webkit-scrollbar-thumb { background-color: rgba(255,255,255,0.5); border-radius: 3px; }
+
+        .rank-label { font-size: 0.8rem; font-weight: bold; color: rgba(255,255,255,0.8); margin-bottom: 4px; text-align: left; border-bottom: 1px dashed rgba(255,255,255,0.3); padding-bottom: 2px; position: sticky; top:0; background:rgba(0,0,0,0.0); backdrop-filter:blur(2px);}
+        
+        .menu-rank-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: rgba(255,255,255,0.95); margin-bottom: 2px; padding-right: 2px;}
+        .menu-rank-row.top { color: #fff; font-weight: bold; text-shadow: 0 0 5px rgba(255,215,0,0.5); }
+        .time-display { font-size: 0.9em; opacity: 0.8; margin-left: 5px; }
+        .speed-icon { font-size: 0.9em; margin-left: 3px; filter: grayscale(0.2); }
+        
+        .settings-area {
+            display: flex; gap: 12px; margin-top: 5px; background: rgba(255,255,255,0.2); 
+            padding: 8px 20px; border-radius: 50px; backdrop-filter: blur(5px);
+            align-items: center; flex-wrap: wrap; justify-content: center;
+        }
+        .toggle-wrap { display: flex; align-items: center; cursor: pointer; color: #fff; user-select: none; }
+        .toggle-label { font-size: 1rem; margin-left: 5px; font-weight: bold; white-space: nowrap; }
+        input[type="checkbox"] { transform: scale(1.2); cursor: pointer; accent-color: #fff; margin: 0; }
+
+        .styled-select {
+            font-size: 0.95rem; padding: 4px 8px; border-radius: 20px; border: 2px solid #fff;
+            background: rgba(255,255,255,0.9); color: var(--text-color); font-weight: bold;
+            font-family: 'Zen Maru Gothic', sans-serif; cursor: pointer;
+        }
+
+        .reset-btn {
+            background: rgba(255,255,255,0.8); border: none; border-radius: 50%;
+            width: 32px; height: 32px; cursor: pointer; font-size: 1.1rem;
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.2s; color: #d32f2f; margin-left: 8px;
+        }
+        .reset-btn:hover { background: #fff; transform: scale(1.1); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+        /* モーダル */
+        #modal-overlay { 
+            position:fixed; top:0; left:0; width:100%; height:100%; 
+            background:rgba(0,0,0,0.6); 
+            display:none; align-items:center; justify-content:center; 
+            z-index: 20000; 
+        }
+        .modal-content { 
+            background:white; padding:25px; border-radius: 30px; 
+            border: 8px solid var(--main-color); text-align:center; 
+            min-width: 450px; max-width: 90%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative; z-index: 24000;
+        }
+
+        /* 結果画面のランキングリスト */
+        #ranking-area { 
+            max-height: 300px; overflow-y: auto; 
+            margin-top: 10px; border-top: 2px dashed #eee; padding-top: 10px;
+            scrollbar-width: thin;
+        }
+        .ranking-list { list-style: none; padding: 0; margin: 0 auto; font-size: 1.1rem; text-align: left; display: inline-block; width: 95%; }
+        .ranking-item { display: flex; justify-content: space-between; margin: 6px 0; padding: 8px 15px; border-radius: 8px; border-bottom: 1px dashed #ddd; background: #fff7ed; color: #555;}
+        
+        .rank-1 { background: #fffde7; border: 2px solid #ffd700; color: #d97706; font-weight: bold; box-shadow: 0 2px 5px rgba(255,215,0,0.3); }
+        .rank-2 { background: #f5f5f5; border: 2px solid #c0c0c0; color: #757575; }
+        .rank-3 { background: #fff8e1; border: 2px solid #cd7f32; color: #8d6e63; }
+        
+        /* 自分の順位を目立たせる */
+        .my-rank { 
+            background: #fff0f5 !important; 
+            border: 3px solid #ff4081 !important; 
+            color: #d81b60 !important;
+            transform: scale(1.02);
+            box-shadow: 0 4px 10px rgba(255, 64, 129, 0.2);
+            font-weight: 900;
+        }
+        .my-rank::after { content: " 👈 あなた"; font-size: 0.8em; margin-left: 5px; background:#ff4081; color:#fff; padding:2px 6px; border-radius:10px; }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            60% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            15% { transform: translateX(-6px) rotate(-2deg); }
+            30% { transform: translateX(5px) rotate(2deg); }
+            45% { transform: translateX(-4px) rotate(-1deg); }
+            60% { transform: translateX(3px) rotate(1deg); }
+            75% { transform: translateX(-2px); }
+        }
+        .shake-anim { animation: shake 0.4s ease-in-out; }
+
+        .top-right-btns { 
+            position: fixed; 
+            top: 15px; right: 20px; 
+            display: flex; gap: 12px; 
+            z-index: 22000; 
+        }
+        .icon-btn { 
+            font-size: 1.5rem; cursor: pointer; opacity: 1; user-select: none; transition: 0.2s; 
+            width: 44px; height: 44px; display: flex; justify-content: center; align-items: center; 
+            background: #fff; border-radius: 50%; 
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2); 
+            border: 2px solid #ccc; 
+            color: #555; 
+        }
+        .icon-btn:hover { transform: scale(1.1); border-color: var(--main-color); color: var(--main-color); box-shadow: 0 5px 12px rgba(0,0,0,0.3); }
+
+        .paused-overlay { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(255,255,255,0.95); z-index: 23000; display: none; 
+            align-items: center; justify-content: center; flex-direction: column;
+            font-size: 1.5rem; font-weight: bold; border-radius: 16px; color: var(--text-color);
+            cursor: pointer;
+        }
+        
+        .btn-howto {
+            background: var(--howto-accent); color: white; border: none;
+            padding: 8px 24px; border-radius: 20px; font-weight: bold; font-size: 1.1rem;
+            cursor: pointer; margin-bottom: 10px; font-family: inherit;
+            box-shadow: 0 3px 0 #26a69a; transition: 0.2s;
+        }
+        .btn-howto:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn-howto:active { transform: translateY(2px); box-shadow: 0 1px 0 #26a69a; }
+
+        .start-action-btn {
+            background: #ef4444; color: white; border: 4px solid #fff;
+            padding: 8px 50px; border-radius: 50px; font-weight: 900; font-size: 1.6rem;
+            cursor: pointer; margin-top: 10px; font-family: 'Zen Maru Gothic', sans-serif;
+            box-shadow: 0 6px 0 #b91c1c, 0 10px 10px rgba(0,0,0,0.2); 
+            transition: 0.2s; text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+            animation: pulse 2s infinite;
+        }
+        .start-action-btn:hover { transform: scale(1.05); filter: brightness(1.1); }
+        .start-action-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #b91c1c; }
+        
+        @keyframes pulse { 0%{transform:scale(1);} 50%{transform:scale(1.03);} 100%{transform:scale(1);} }
+
+        .copyright-link { 
+            margin-top: 10px; font-size: 0.75rem; color: rgba(255,255,255,0.7); 
+            text-align: center; cursor: pointer; text-decoration: underline; 
+        }
+        .copyright-link:hover { color: #fff; font-weight:bold; }
+
+        .modal-overlay-info {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 24000;
+            justify-content: center; align-items: center;
+        }
+        .modal-box-info {
+            background: #fff; width: 90%; max-width: 650px; max-height: 85vh;
+            border-radius: 20px; border: 6px solid var(--howto-accent);
+            padding: 25px; overflow-y: auto; text-align: left;
+            position: relative; 
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3); color: #444;
+            word-wrap: break-word; overflow-wrap: break-word;
+        }
+        .modal-box-info.concept-mode { border-color: var(--concept-accent); }
+
+        .modal-close-btn {
+            position: absolute; top: 10px; right: 15px; font-size: 2rem;
+            color: #ccc; cursor: pointer; line-height: 1; font-weight: bold;
+        }
+        .modal-close-btn:hover { color: var(--main-color); }
+
+        .howto-h2 { text-align: center; color: #00897b; border-bottom: 3px dashed #b2dfdb; padding-bottom: 10px; margin-top: 0; }
+        .concept-h2 { text-align: center; color: #c62828; border-bottom: 3px dashed #ffcdd2; padding-bottom: 10px; margin-top: 0; }
+        
+        .howto-section { background: #e0f2f1; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+        .howto-section h3 { margin: 0 0 10px 0; color: #00695c; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
+        .howto-item { display: flex; align-items: start; gap: 10px; margin-bottom: 8px; font-size: 1rem; line-height: 1.6;}
+        .howto-icon { font-size: 1.4rem; width: 30px; text-align: center; flex-shrink: 0; }
+        
+        .concept-list { font-size: 0.95rem; line-height: 1.6; color: #444; margin-left: 20px; padding-left: 0; }
+        .concept-list li { margin-bottom: 8px; }
+        .license-box { background: #fff8e1; padding: 15px; border-radius: 10px; text-align: center; margin-top: 20px; font-weight: bold; color: #ef6c00; border: 2px dashed #ffb74d; }
+        
+        .result-btn-row { display: flex; justify-content: center; gap: 15px; margin-top: 15px; }
+
+        /* WXGA (1280x800) 以下の調整 */
+        @media (max-height: 800px) {
+            #game-container { height: 82vh; max-height: 600px; padding: 10px; }
+            .start-title { font-size: 2.2rem; margin: 2px 0 5px; }
+            .mode-grid { margin-bottom: 5px; gap: 8px; }
+            .mode-btn { padding: 6px; font-size: 1rem; }
+            .settings-area { padding: 4px 15px; margin-top: 3px; }
+            .start-action-btn { padding: 6px 30px; font-size: 1.3rem; margin-top: 5px;}
+            .menu-ranking-box { max-height: 90px; margin-top: 3px; }
+            .copyright-link { margin-top: 5px; font-size: 0.7rem; }
+            .btn-howto { padding: 4px 15px; font-size: 0.9rem; margin-bottom: 5px; }
+        }
+    </style>
+</head>
+<body onload="initMenu()">
+
+<canvas id="fireworks-canvas"></canvas>
+
+<div class="top-right-btns">
+    <div class="icon-btn" onclick="toggleFullScreen()" title="ぜんがめん">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:24px; height:24px;">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+        </svg>
+    </div>
+    <div class="icon-btn" id="mute-btn" onclick="toggleMute()" title="音のオン/オフ">🔊</div>
+</div>
+
+<div id="start-screen">
+    <div style="flex-shrink: 0; display: flex; flex-direction: column; align-items: center; width:100%;">
+        <div style="font-size: 3.5rem; margin-bottom: 0px; line-height: 1;">🎮</div>
+        <h1 class="start-title">タイピング・マスター<br>（ゲーム）</h1>
+        
+        <button class="btn-howto" onclick="openInfoModal('modal-howto')">📖 あそびかた・せつめい</button>
+
+        <div class="mode-grid">
+            <div class="mode-btn-container">
+                <button id="btn-creature" class="mode-btn" style="background:#fb923c" onclick="selectMode('creature','#fb923c','🦁','いきもの')">🦁 いきもの</button>
+                <div class="menu-ranking-box">
+                    <div class="rank-label">🏆 ベストスコア</div>
+                    <div id="best-list-creature"></div>
+                </div>
+            </div>
+            <div class="mode-btn-container">
+                <button id="btn-vehicle" class="mode-btn" style="background:#4ade80" onclick="selectMode('vehicle','#4ade80','🚀','のりもの')">🚀 のりもの</button>
+                <div class="menu-ranking-box">
+                    <div class="rank-label">🏆 ベストスコア</div>
+                    <div id="best-list-vehicle"></div>
+                </div>
+            </div>
+            <div class="mode-btn-container">
+                <button id="btn-food" class="mode-btn" style="background:#f87171" onclick="selectMode('food','#f87171','🍔','たべもの')">🍔 たべもの</button>
+                <div class="menu-ranking-box">
+                    <div class="rank-label">🏆 ベストスコア</div>
+                    <div id="best-list-food"></div>
+                </div>
+            </div>
+            <div class="mode-btn-container">
+                <button id="btn-school" class="mode-btn" style="background:#60a5fa" onclick="selectMode('school','#60a5fa','🏫','がっこう')">🏫 がっこう</button>
+                <div class="menu-ranking-box">
+                    <div class="rank-label">🏆 ベストスコア</div>
+                    <div id="best-list-school"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-area">
+            <label class="toggle-wrap" title="打鍵音や正解音などの効果音">
+                <input type="checkbox" id="se-toggle" checked>
+                <span class="toggle-label">🔊 おと</span>
+            </label>
+            <label class="toggle-wrap" style="margin-left:10px;" title="大文字・小文字の切り替え">
+                <input type="checkbox" id="case-toggle">
+                <span class="toggle-label">ABC (おおもじ)</span>
+            </label>
+            <div class="toggle-wrap" style="margin-left:10px;">
+                <select id="speed-select" class="styled-select">
+                    <option value="slow">🐢 のんびり</option>
+                    <option value="normal" selected>🐇 ふつう</option>
+                    <option value="fast">🐆 はやい</option>
+                </select>
+            </div>
+            <button class="reset-btn" onclick="resetRankings()" title="すべてのきろくをけす">🗑️</button>
+        </div>
+
+        <button class="start-action-btn" onclick="startGame()">GAME START</button>
+        <div style="font-size:0.9rem; color:#fff; margin-top:5px; font-weight:bold;">[ スペース ] キーでも スタートできます</div>
+
+        <div class="copyright-link" onclick="openInfoModal('modal-concept')">
+            © 2026 [A.K] (クリックで詳細)
+        </div>
+    </div>
+</div>
+
+<div id="game-container">
+    <div id="timer-bar"><div id="timer-fill"></div></div>
+    
+    <div id="focus-overlay" class="paused-overlay" onclick="refocusGame()">
+        <div style="font-size: 4rem; margin-bottom: 10px;">👆</div>
+        <div>クリックして つづける</div>
+    </div>
+
+    <div style="flex-grow:1; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%;">
+        <div id="visual-icon">✨</div>
+        <div id="kana-display">Ready...</div>
+        <div id="word-display"></div>
+    </div>
+
+    <div id="score-info">
+        <div>のこり: <span id="remain" style="color:var(--main-color); font-size:1.8rem;">30</span></div>
+        <div id="mode-label" style="color: #666; font-size:1.2rem;">いきものコース</div>
+        <div>スコア: <span id="points" style="color:var(--accent-blue); font-size:1.8rem;">0</span></div>
+    </div>
+    <div style="position:absolute; bottom:5px; right:15px; font-size:0.9rem; color:#aaa; font-weight:bold;">[ESC: やめる]</div>
+</div>
+
+<div id="modal-overlay">
+    <div class="modal-content">
+        <h2 id="modal-title" style="font-size: 2.5rem; margin:0; color:var(--main-color);">FINISH!</h2>
+        <div id="ranking-area">
+            <p id="modal-text" style="font-size: 1.5rem; margin: 10px 0; color: #e11d48; font-weight: bold;"></p>
+            <div style="font-size:1.2rem; margin-bottom:10px; color:#666;">タイム: <span id="time-result" style="font-weight:bold; color:#0284c7">--</span> 秒</div>
+            <p style="font-weight: bold; margin: 10px 0; font-size: 1.2rem; color:#555;">🏆 <span id="rank-mode-name"></span> ランキング</p>
+            <ul id="ranking-list" class="ranking-list"></ul>
+        </div>
+        <div class="result-btn-row">
+            <button class="mode-btn" style="background:#9ca3af; border-color:#fff; padding: 10px 20px; font-size:1.2rem; flex:1;" onclick="backToMenu()">🏠 メニューへ</button>
+            <button class="mode-btn" style="background:var(--main-color); border-color:#fff; padding: 10px 30px; font-size:1.2rem; flex:2; box-shadow: 0 5px 0 #c2410c;" onclick="location.reload()">もういちど</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-howto" class="modal-overlay-info" onclick="closeInfoModal(event)">
+    <div class="modal-box-info">
+        <span class="modal-close-btn" onclick="closeInfoModalBtn('modal-howto')">×</span>
+        <h2 class="howto-h2">📖 あそびかた・せつめい</h2>
+        
+        <div class="howto-section">
+            <h3>🎮 4つの コース</h3>
+            <div class="howto-item">
+                <span class="howto-icon">🦁</span>
+                <div><strong>すきなものを えらぼう</strong><br>「いきもの」「のりもの」「たべもの」「がっこう」から すきなコースをえらんでね。</div>
+            </div>
+            <div class="howto-item">
+                <span class="howto-icon">🏆</span>
+                <div><strong>ランキング</strong><br>30もんの 早打ちに ちょうせん！<br>コースごとに たくさん きろくがのこるよ。</div>
+            </div>
+        </div>
+
+        <div class="howto-section" style="background:#fffde7;">
+            <h3 style="color:#f57f17;">せっていと ルール</h3>
+            <div class="howto-item">
+                <span class="howto-icon">⚙️</span>
+                <div><strong>せってい</strong><br><strong>スピード</strong>（のんびり・ふつう・はやい）、<strong>もじ</strong>（ABC・abc）、<strong>おと</strong>（なる・ならない）を かえられるよ。</div>
+            </div>
+            <div class="howto-item">
+                <span class="howto-icon">✨</span>
+                <div><strong>ボーナス</strong><br>1つの ことばを ぜんぶ うてると、じかんが すこし ふえるよ！</div>
+            </div>
+             <div class="howto-item">
+                <span class="howto-icon">💯</span>
+                <div><strong>フルコンボ</strong><br>いちども まちがえずに 30もん クリアすると、とくべつな ボーナスてんが もらえるよ！</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-concept" class="modal-overlay-info" onclick="closeInfoModal(event)">
+    <div class="modal-box-info concept-mode">
+        <span class="modal-close-btn" onclick="closeInfoModalBtn('modal-concept')">×</span>
+        <h2 class="concept-h2">💡 このツールについて</h2>
+        
+        <ul class="concept-list">
+            <li><strong>🎮 ゲーム感覚で楽しく習得</strong><br>小学校低学年から、遊び感覚でローマ字入力を覚えられます。花火のエフェクトや効果音、スコアランキングなどのゲーム要素を取り入れ、楽しく継続できるように設計しました。</li>
+            <li><strong>🏫 学校の端末に対応</strong><br>GIGAスクール構想の端末（Windows / Chromebook）のブラウザで動作します。</li>
+            <li><strong>🛜 ネット不要</strong><br>このHTMLファイルをダウンロードすれば、インターネットがない環境でも家庭や学校で遊べます。</li>
+            <li><strong>✨ 柔軟な入力対応</strong><br>「し (SI/SHI)」「つ (TU/TSU)」「ん (N/NN)」など、訓令式・ヘボン式の両方に対応した入力判定機能を搭載しています。</li>
+            <li><strong>🔄 豊富な問題とランダム出題</strong><br>各コースごとに50問程度の中から毎回ランダムに出題されるため、飽きずに繰り返し練習できます。</li>
+            <li><strong>🦄 ユニコード絵文字とシンプル・互換性</strong><br>イラストやアイコンは画像素材を使わず、Unicode絵文字のみを使用しているため動作が軽く、異なるデバイスやOS間でも高い互換性があり、ファイルの破損も起きにくい設計です。</li>
+            <li><strong>🏆 成長を可視化</strong><br>コースごとに上位50位までのスコアとタイムを記録。メニュー画面ではTOP5を表示し、プレイ後には自分の順位を確認できます。<br>
+            <li style="color:#d32f2f;"><strong>⚠️ 注意点</strong><br>本ツールはタイピング練習用のため、物理キーボードでの操作を前提としています。画面上のキーボード（ソフトウェアキーボード）には対応していません。</li>
+        </ul>
+
+        <div class="license-box">
+            商用利用は不可ですが、配布・利用・改変は自由です。<br>
+            (Non-commercial use only. Free to distribute, use, and modify)
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- モーダル制御 ---
+    function openInfoModal(id) {
+        const overlay = document.getElementById(id);
+        const content = overlay.querySelector('.modal-box-info');
+        overlay.style.display = 'flex';
+        
+        if(content) {
+            content.classList.remove('shake-anim');
+            content.style.animation = 'none';
+            content.offsetHeight; /* リフロー */
+            content.style.animation = 'popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        }
+        playSound(600, 'sine', 0.1);
+    }
+
+    function closeInfoModal(e) {
+        if (e.target.classList.contains('modal-overlay-info')) {
+            const content = e.target.querySelector('.modal-box-info');
+            if(content) {
+                content.classList.remove('shake-anim');
+                void content.offsetWidth;
+                content.classList.add('shake-anim');
+                playSound(150, 'sawtooth', 0.1);
+            }
+        }
+    }
+
+    function closeInfoModalBtn(id) {
+        document.getElementById(id).style.display = 'none';
+        playSound(400, 'triangle', 0.1);
+    }
+
+    // --- ゲームロジック ---
+
+    const romanMap = {
+        'あ':['a'],'い':['i'],'う':['u'],'え':['e'],'お':['o'],
+        'か':['ka'],'き':['ki'],'く':['ku'],'け':['ke'],'こ':['ko'],
+        'さ':['sa'],'し':['si','shi'],'す':['su'],'せ':['se'],'そ':['so'],
+        'た':['ta'],'ち':['ti','chi'],'つ':['tu','tsu'],'て':['te'],'と':['to'],
+        'な':['na'],'に':['ni'],'ぬ':['nu'],'ね':['ne'],'の':['no'],
+        'は':['ha'],'ひ':['hi'],'ふ':['hu','fu'],'へ':['he'],'ほ':['ho'],
+        'ま':['ma'],'み':['mi'],'む':['mu'],'め':['me'],'も':['mo'],
+        'や':['ya'],'ゆ':['yu'],'よ':['yo'],
+        'ら':['ra'],'り':['ri'],'る':['ru'],'れ':['re'],'ろ':['ro'],
+        'わ':['wa'],'を':['wo'],'ん':['nn','n','xn'],'ー':['-'],
+        'が':['ga'],'ぎ':['gi'],'ぐ':['gu'],'げ':['ge'],'ご':['go'],
+        'ざ':['za'],'じ':['zi','ji'],'ず':['zu'],'ぜ':['ze'],'ぞ':['zo'],
+        'だ':['da'],'ぢ':['di'],'づ':['du'],'で':['de'],'ど':['do'],
+        'ば':['ba'],'び':['bi'],'ぶ':['bu'],'べ':['be'],'ぼ':['bo'],
+        'ぱ':['pa'],'ぴ':['pi'],'ぷ':['pu'],'ぺ':['pe'],'ぽ':['po'],
+        'きゃ':['kya'],'きゅ':['kyu'],'きょ':['kyo'],
+        'しゃ':['sya','sha'],'しゅ':['syu','shu'],'しょ':['syo','sho'],
+        'ちゃ':['tya','cha'],'ちゅ':['tyu','chu'],'ちょ':['tyo','cho'],
+        'にゃ':['nya'],'にゅ':['nyu'],'にょ':['nyo'],
+        'ひゃ':['hya'],'ひゅ':['hyu'],'ひょ':['hyo'],
+        'みゃ':['mya'],'みゅ':['myu'],'みょ':['myo'],
+        'りゃ':['rya'],'りゅ':['ryu'],'りょ':['ryo'],
+        'ぎゃ':['gya'],'ぎゅ':['gyu'],'ぎょ':['gyo'],
+        'じゃ':['zya','ja'],'じゅ':['zyu','ju'],'じょ':['zyo','jo'],
+        'びゃ':['bya'],'びゅ':['byu'],'びょ':['byo'],
+        'ぴゃ':['pya'],'ぴゅ':['pyu'],'ぴょ':['pyo'],
+        'ぁ':['xa','la'],'ぃ':['xi','li'],'ぅ':['xu','lu'],'ぇ':['xe','le'],'ぉ':['xo','lo'],
+        'ゃ':['xya','lya'],'ゅ':['xyu','lyu'],'ょ':['xyo','lyo'],
+        'てぃ':['thi','texi','teli','ti'], 'でぃ':['dhi','dexi','deli','di'],
+        'とぅ':['twu','toxu','tolu'], 'どぅ':['dwu','doxu','dolu'],
+        'ふぁ':['fa','fua','huxa'], 'ふぃ':['fi','fui','huxi'],
+        'ふぇ':['fe','fue','huxe'], 'ふぉ':['fo','fuo','huxo'],
+        'うぃ':['wi','whi','uxi'], 'うぇ':['we','whe','uxe'], 'うぉ':['who','uxo'],
+        'ゔ':['vu'],
+        'ちぇ':['che','tye','tie'], 'しぇ':['she','sye','sie'], 'じぇ':['je','zye','zie'],
+        'っ':['ltu','xtu','ltsu','xtsu']
+    };
+
+    const questions = {
+        'creature': [
+            {k:'いぬ',i:'🐶'},{k:'ねこ',i:'🐱'},{k:'うさぎ',i:'🐰'},{k:'ぱんだ',i:'🐼'},{k:'らいおん',i:'🦁'},
+            {k:'とら',i:'🐯'},{k:'きりん',i:'🦒'},{k:'ぞう',i:'🐘'},{k:'さる',i:'🐵'},{k:'くま',i:'🐻'},
+            {k:'ねずみ',i:'🐭'},{k:'うし',i:'🐮'},{k:'うま',i:'🐴'},{k:'ひつじ',i:'🐑'},{k:'とり',i:'🐦'},
+            {k:'ぺんぎん',i:'🐧'},{k:'かえる',i:'🐸'},{k:'かめ',i:'🐢'},{k:'さかな',i:'🐟'},{k:'たこ',i:'🐙'},
+            {k:'いか',i:'🦑'},{k:'えび',i:'🦐'},{k:'かに',i:'🦀'},{k:'くじら',i:'🐳'},{k:'いるか',i:'🐬'},
+            {k:'さめ',i:'🦈'},{k:'わに',i:'🐊'},{k:'へび',i:'🐍'},{k:'ちょうちょ',i:'🦋'},{k:'はち',i:'🐝'},
+            {k:'かぶとむし',i:'🪲'},{k:'てんとうむし',i:'🐞'},{k:'あり',i:'🐜'},{k:'くも',i:'🕷️'},{k:'さそり',i:'🦂'},
+            {k:'きつね',i:'🦊'},{k:'たぬき',i:'🦝'},{k:'いのしし',i:'🐗'},{k:'しか',i:'🦌'},{k:'しまうま',i:'🦓'},
+            {k:'ごりら',i:'🦍'},{k:'かば',i:'🦛'},{k:'さい',i:'🦏'},{k:'らくだ',i:'🐪'},{k:'なまけもの',i:'🦥'},
+            {k:'かわうそ',i:'🦦'},{k:'あざらし',i:'🦭'},{k:'にわとり',i:'🐔'},{k:'ひよこ',i:'🐤'},
+            {k:'こあら',i:'🐨'},{k:'はむすたー',i:'🐹'},{k:'おおかみ',i:'🐺'},{k:'ぶた',i:'🐷'},{k:'いのしし',i:'🐗'},
+            {k:'こうもり',i:'🦇'},{k:'ふくろう',i:'🦉'},{k:'かも',i:'🦆'},{k:'わし',i:'🦅'},{k:'ふらみんご',i:'🦩'},
+            {k:'おうむ',i:'🦜'},{k:'はくちょう',i:'🦢'},{k:'とかげ',i:'🦎'},{k:'きょうりゅう',i:'🦖'},{k:'ふぐ',i:'🐡'},
+            {k:'ねったいぎょ',i:'🐠'},{k:'かい',i:'🐚'},{k:'かたつむり',i:'🐌'},{k:'あおむし',i:'🐛'},{k:'か',i:'🦟'}
+        ],
+        'vehicle': [
+            {k:'くるま',i:'🚗'},{k:'たくしー',i:'🚕'},{k:'ばす',i:'🚌'},{k:'とらっく',i:'🚚'},{k:'ぱとかー',i:'🚓'},
+            {k:'きゅうきゅうしゃ',i:'🚑'},{k:'しょうぼうしゃ',i:'🚒'},{k:'でんしゃ',i:'🚃'},{k:'しんかんせん',i:'🚅'},{k:'きしゃ',i:'🚂'},
+            {k:'ひこうき',i:'✈️'},{k:'へりこぷたー',i:'🚁'},{k:'ろけっと',i:'🚀'},{k:'ふね',i:'🚢'},{k:'ぼーと',i:'🚤'},
+            {k:'じてんしゃ',i:'🚲'},{k:'ばいく',i:'🛵'},{k:'すくーたー',i:'🛴'},{k:'とらくたー',i:'🚜'},{k:'いちりんしゃ',i:'🚲'},
+            {k:'きゃんぴんぐかー',i:'🚐'},{k:'だんぷかー',i:'🚚'},{k:'たんかー',i:'🚢'},{k:'よっと',i:'⛵'},{k:'せんすいかん',i:'🚤'},
+            {k:'ききゅう',i:'🎈'},{k:'ゆうふぉー',i:'🛸'},{k:'ろーぷうぇい',i:'🚠'},{k:'ものれーる',i:'🚝'},{k:'ちかてつ',i:'🚇'},
+            {k:'えすゆーぶい',i:'🚙'},{k:'おーぷんかー',i:'🏎️'},{k:'みにばす',i:'🚐'},{k:'とれーらー',i:'🚛'},{k:'すくーたー',i:'🛵'},
+            {k:'きっくぼーど',i:'🛴'},{k:'じぇっとこーすたー',i:'🎢'},{k:'かんらんしゃ',i:'🎡'},{k:'めりーごーらんど',i:'🎠'},{k:'すけーとぼーど',i:'🛹'},
+            {k:'ろーらーすけーと',i:'🛼'},{k:'くるまいす',i:'🦽'},{k:'じんこうえいせい',i:'🛰️'},{k:'ぱらしゅーと',i:'🪂'},{k:'かぬー',i:'🛶'},
+            {k:'きゃくせん',i:'🛳️'},{k:'ふぇりー',i:'⛴️'},{k:'ごんどら',i:'🚡'},{k:'とざんでんしゃ',i:'🚞'},{k:'ろめんでんしゃ',i:'🚋'},{k:'えき',i:'🚉'}
+        ],
+        'food': [
+            {k:'りんご',i:'🍎'},{k:'みかん',i:'🍊'},{k:'ぶどう',i:'🍇'},{k:'いちご',i:'🍓'},{k:'めろん',i:'🍈'},
+            {k:'すいか',i:'🍉'},{k:'ばなな',i:'🍌'},{k:'ぱいなっぷる',i:'🍍'},{k:'もも',i:'🍑'},{k:'さくらんぼ',i:'🍒'},
+            {k:'とまと',i:'🍅'},{k:'なす',i:'🍆'},{k:'にんじん',i:'🥕'},{k:'とうもろこし',i:'🌽'},{k:'ぴーまん',i:'🫑'},
+            {k:'ぱん',i:'🍞'},{k:'おにぎり',i:'🍙'},{k:'ごはん',i:'🍚'},{k:'かれー',i:'🍛'},{k:'らーめん',i:'🍜'},
+            {k:'すぱげってぃ',i:'🍝'},{k:'ぴざ',i:'🍕'},{k:'はんばーがー',i:'🍔'},{k:'ぽてと',i:'🍟'},{k:'ほっとどっぐ',i:'🌭'},
+            {k:'さんどいっち',i:'🥪'},{k:'たこやき',i:'🐙'},{k:'すし',i:'🍣'},{k:'てんぷら',i:'🍤'},{k:'だんご',i:'🍡'},
+            {k:'けーき',i:'🍰'},{k:'ぷりん',i:'🍮'},{k:'あいす',i:'🍨'},{k:'ちょこ',i:'🍫'},{k:'あめ',i:'🍬'},
+            {k:'くっきー',i:'🍪'},{k:'どーなつ',i:'🍩'},{k:'ぎゅうにゅう',i:'🥛'},{k:'おちゃ',i:'🍵'},{k:'じゅーす',i:'🍹'},
+            {k:'なし',i:'🍐'},{k:'れもん',i:'🍋'},{k:'きうい',i:'🥝'},{k:'ここなっつ',i:'🥥'},{k:'まんごー',i:'🥭'},
+            {k:'きのこ',i:'🍄'},{k:'くり',i:'🌰'},{k:'さつまいも',i:'🍠'},{k:'ぱんけーき',i:'🥞'},{k:'わっふる',i:'🧇'},
+            {k:'ちーず',i:'🧀'},{k:'にく',i:'🍖'},{k:'ちきん',i:'🍗'},{k:'すてーき',i:'🥩'},{k:'べーこん',i:'🥓'},
+            {k:'たまご',i:'🥚'},{k:'めだまやき',i:'🍳'},{k:'おべんとう',i:'🍱'},{k:'おでん',i:'🍢'},{k:'せんべい',i:'🍘'},
+            {k:'そふとくりーむ',i:'🍦'},{k:'かきごおり',i:'🍧'},{k:'ばーすでーけーき',i:'🎂'},{k:'かっぷけーき',i:'🧁'},{k:'ぱい',i:'🥧'},
+            {k:'ろりぽっぷ',i:'🍭'},{k:'ぽっぷこーん',i:'🍿'},{k:'びーる',i:'🍺'},{k:'そーだ',i:'🥤'},{k:'たぴおか',i:'🧋'}
+        ],
+        'school': [
+            {k:'がっこう',i:'🏫'},{k:'いす',i:'🪑'},
+            {k:'えんぴつ',i:'✏️'},{k:'けしごむ',i:'🟦'},{k:'のーと',i:'📓'},{k:'ほん',i:'📖'},{k:'ふでばこ',i:'👝'},
+            {k:'じょうぎ',i:'📏'},{k:'はさみ',i:'✂️'},{k:'のり',i:'🧴'},{k:'かばん',i:'🎒'},{k:'ぼうし',i:'🧢'},
+            {k:'うわばき',i:'👟'},{k:'たいそうふく',i:'👕'},{k:'きゅうしょく',i:'🍛'},{k:'せんせい',i:'👩‍🏫'},{k:'ともだち',i:'👫'},
+            {k:'べんきょう',i:'📝'},{k:'てすと',i:'💯'},{k:'おんがく',i:'🎵'},{k:'たいいく',i:'🏃'},{k:'ずこう',i:'🎨'},
+            {k:'りか',i:'🔬'},{k:'さんすう',i:'➗'},{k:'こくご',i:'🇯🇵'},{k:'えいご',i:'🇺🇸'},{k:'やすみじかん',i:'⏰'},
+            {k:'そうじ',i:'🧹'},{k:'とじまり',i:'🔒'},{k:'えんそく',i:'🚌'},{k:'うんどうかい',i:'🏃'},{k:'そつぎょう',i:'🎓'},
+            {k:'こくばん',i:'🧑‍🏫'},{k:'くれよん',i:'🖍️'},{k:'まんねんひつ',i:'✒️'},{k:'えふで',i:'🖌️'},{k:'ぱれっと',i:'🎨'},
+            {k:'けんびきょう',i:'🔬'},{k:'ぼうえんきょう',i:'🔭'},{k:'じしゃく',i:'🧲'},{k:'しけんかん',i:'🧪'},{k:'そろばん',i:'🧮'},
+            {k:'ちきゅうぎ',i:'🌍'},{k:'ちず',i:'🗺️'},{k:'とけい',i:'⏰'},{k:'かれんだー',i:'📅'},{k:'とろふぃー',i:'🏆'},
+            {k:'めだる',i:'🥇'},{k:'ぼーる',i:'⚽'},{k:'ぴあの',i:'🎹'},{k:'とらんぺっと',i:'🎺'},{k:'ばいおりん',i:'🎻'},
+            {k:'ぱそこん',i:'💻'},{k:'たぶれっと',i:'📱'},{k:'でんたく',i:'🖩'},{k:'くりっぷ',i:'📎'},{k:'てがみ',i:'✉️'}
+        ]
+    };
+
+    let selectedMode = '';
+    let currentQuestions = [];
+    let qIndex = 0;
+    let score = 0;
+    let timeLeft = 100;
+    let gameActive = false;
+    let gameStartTime = 0;
+    let timerInterval = null; 
+    let audioCtx = null;
+    let isMuted = false;
+    let isFocused = true;
+    let seEnabled = true; 
+    let missCount = 0; 
+    let isIgnoringBlur = false; 
+    
+    let rawKana = "";
+    let currentSyllables = []; 
+    let sIdx = 0; 
+    let cIdx = 0; 
+    let currentSpeed = 'normal';
+
+    function initMenu() {
+        const ranks = ['creature','vehicle','food','school'];
+        ranks.forEach(r => {
+            const list = document.getElementById(`best-list-${r}`);
+            const data = getRanking(r);
+            if(data.length === 0) list.innerHTML = "<span style='font-size:0.8rem; opacity:0.6'>きろく なし</span>";
+            else {
+                let html = "";
+                data.forEach((best, i) => {
+                    if (i >= 5) return; 
+                    const spdIcon = best.speed ? ({'slow':'🐢', 'normal':'🐇', 'fast':'🐆'}[best.speed] || '') : '';
+                    const icon = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : (i + 1) + '.'));
+                    html += `<div class="menu-rank-row ${i===0?'top':''}">
+                        <span>${icon}</span>
+                        <div>
+                            <span>${best.score}点</span>
+                            <span class="time-display">(${best.time}s)</span>
+                            <span class="speed-icon">${spdIcon}</span>
+                        </div>
+                    </div>`;
+                });
+                list.innerHTML = html;
+            }
+        });
+        
+        if(localStorage.getItem('typing_speed')) {
+            currentSpeed = localStorage.getItem('typing_speed');
+            document.getElementById('speed-select').value = currentSpeed;
+        }
+        if(localStorage.getItem('typing_case')) {
+            document.getElementById('case-toggle').checked = (localStorage.getItem('typing_case') === 'true');
+        }
+        if(localStorage.getItem('typing_se_enabled') !== null) {
+            seEnabled = (localStorage.getItem('typing_se_enabled') === 'true');
+        } else {
+            seEnabled = true; // デフォルトON
+        }
+        document.getElementById('se-toggle').checked = seEnabled;
+
+        document.getElementById('speed-select').addEventListener('change', (e)=>{
+            currentSpeed = e.target.value;
+            localStorage.setItem('typing_speed', currentSpeed);
+            playSound(300, 'sine', 0.1);
+        });
+        document.getElementById('case-toggle').addEventListener('change', (e)=>{
+            localStorage.setItem('typing_case', e.target.checked);
+            playSound(300, 'sine', 0.1);
+        });
+        document.getElementById('se-toggle').addEventListener('change', (e)=>{
+            seEnabled = e.target.checked;
+            localStorage.setItem('typing_se_enabled', seEnabled);
+            if(seEnabled) playKeySound();
+        });
+    }
+    
+    function resetRankings() {
+        if(confirm("すべての きろくを さくじょ しますか？")) {
+            ['creature','vehicle','food','school'].forEach(m => localStorage.removeItem('typing_rank_' + m));
+            initMenu();
+            playSound(150, 'sawtooth', 0.3);
+        }
+    }
+
+    function getRanking(mode) {
+        return JSON.parse(localStorage.getItem('typing_rank_' + mode)) || [];
+    }
+
+    function saveRanking(mode, sc, tm, spd) {
+        let list = getRanking(mode);
+        const recordDate = Date.now();
+        list.push({score: sc, time: tm, speed: spd, date: recordDate});
+        list.sort((a, b) => {
+            if(b.score !== a.score) return b.score - a.score;
+            return a.time - b.time;
+        });
+        // 50位まで保存
+        list = list.slice(0, 50);
+        localStorage.setItem('typing_rank_' + mode, JSON.stringify(list));
+        return { list, currentTimestamp: recordDate };
+    }
+
+    function selectMode(mode, color, icon, name) {
+        selectedMode = mode;
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
+        document.getElementById('btn-'+mode).classList.add('selected');
+        document.documentElement.style.setProperty('--main-color', color);
+        document.documentElement.style.setProperty('--sub-color', color + '33');
+        playSound(440, 'sine', 0.1);
+    }
+    
+    selectMode('creature','#fb923c','🦁','いきもの');
+
+    function toggleMute() {
+        isMuted = !isMuted;
+        document.getElementById('mute-btn').innerText = isMuted ? "🔇" : "🔊";
+        const container = document.getElementById('game-container');
+        if(container && container.style.display !== 'none') container.focus();
+    }
+
+    function playSound(freq, type, duration, vol=0.06) {
+        if(isMuted) return; 
+        if(!seEnabled) return; 
+        
+        try {
+            if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const o = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            o.type = type;
+            o.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            g.gain.setValueAtTime(vol, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            o.connect(g);
+            g.connect(audioCtx.destination);
+            o.start();
+            o.stop(audioCtx.currentTime + duration);
+        } catch(e) {}
+    }
+
+    function playKeySound() {
+        if(isMuted || !seEnabled) return;
+        playSound(800, 'square', 0.03, 0.02); 
+    }
+    
+    function toggleFullScreen() {
+        isIgnoringBlur = true;
+        setTimeout(() => { isIgnoringBlur = false; }, 1000); 
+
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(e => {
+                isIgnoringBlur = false; 
+            });
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    }
+
+    window.addEventListener('blur', () => {
+        if(gameActive && document.getElementById('modal-overlay').style.display !== 'flex' && !isIgnoringBlur) {
+            isFocused = false;
+            setTimeout(() => {
+                if (!document.hasFocus() && gameActive) { 
+                    document.getElementById('focus-overlay').style.display = 'flex';
+                } else {
+                    isFocused = true; 
+                }
+            }, 100);
+        }
+    });
+
+    function refocusGame() {
+        if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        isFocused = true;
+        document.getElementById('focus-overlay').style.display = 'none';
+        window.focus();
+        document.getElementById('game-container').focus();
+    }
+
+    function startGame() {
+        if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        
+        let modeName = "いきもの";
+        if(selectedMode==='vehicle') modeName="のりもの";
+        if(selectedMode==='food') modeName="たべもの";
+        if(selectedMode==='school') modeName="がっこう";
+
+        document.getElementById('mode-label').innerText = modeName + "コース";
+        playSound(660, 'sine', 0.1, 0.05);
+        
+        gameActive=true;
+        qIndex=0;
+        score=0;
+        missCount = 0; 
+        timeLeft=100;
+        
+        document.getElementById('start-screen').style.display='none';
+        const container = document.getElementById('game-container');
+        container.style.display = 'flex';
+        container.style.opacity = '1';
+        container.focus();
+        
+        currentQuestions = [...questions[selectedMode]].sort(()=>Math.random()-0.5).slice(0,30);
+        
+        nextQ();
+        gameStartTime = Date.now();
+        
+        let decay = 0.25;
+        if(currentSpeed === 'slow') decay = 0.08;
+        if(currentSpeed === 'fast') decay = 0.5;
+
+        if(timerInterval) clearInterval(timerInterval);
+
+        timerInterval = setInterval(()=>{
+            if(!gameActive) {
+                clearInterval(timerInterval);
+                return;
+            }
+            if(isFocused) timeLeft -= decay;
+            
+            const fill = document.getElementById('timer-fill');
+            fill.style.width = Math.max(0, timeLeft) + "%";
+            if (timeLeft < 20) fill.classList.add('timer-low');
+            else fill.classList.remove('timer-low');
+            
+            if(timeLeft<=0) gameOver(false);
+        }, 100);
+    }
+
+    function backToMenu() {
+        gameActive = false;
+        if(timerInterval) clearInterval(timerInterval);
+        
+        document.getElementById('modal-overlay').style.display = "none";
+        document.getElementById('game-container').style.display = 'none';
+        document.getElementById('start-screen').style.display = 'flex';
+        
+        initMenu();
+        playSound(440, 'sine', 0.1);
+    }
+
+    function nextQ(){
+        if(qIndex >= 30){
+            gameOver(true);
+            return;
+        }
+        
+        const q = currentQuestions[qIndex];
+        rawKana = q.k;
+        document.getElementById('kana-display').innerText = rawKana;
+        document.getElementById('visual-icon').innerText = q.i;
+        document.getElementById('remain').innerText = 30 - qIndex;
+
+        currentSyllables = [];
+        let i = 0;
+        while (i < rawKana.length) {
+            let char = rawKana[i], next = rawKana[i+1], nnext = rawKana[i+2];
+            
+            if (char === 'っ' && next) {
+                let targetStr3 = (nnext && romanMap[next+nnext]) ? next+nnext : null;
+                if (targetStr3) {
+                    let targetRomans = (romanMap[targetStr3] || [targetStr3]);
+                    let opts = targetRomans.map(o => o[0]+o); 
+                    opts.push(...romanMap['っ'].map(s => s + targetRomans[0]));
+                    currentSyllables.push({romans: opts, charIdx: i});
+                    i += 3;
+                    continue;
+                }
+                if (romanMap[next]) {
+                    let nextRomans = romanMap[next];
+                    let opts = nextRomans.map(r => r[0] + r);
+                    opts.push(...romanMap['っ'].map(s => s + nextRomans[0]));
+                    currentSyllables.push({romans: opts, charIdx: i});
+                    i += 2;
+                    continue;
+                }
+            }
+            
+            if (next && romanMap[char+next]) {
+                currentSyllables.push({romans: romanMap[char+next], charIdx: i});
+                i += 2;
+            } else {
+                currentSyllables.push({romans: romanMap[char]||['?'], charIdx: i});
+                i++;
+            }
+        }
+        sIdx = 0; cIdx = 0;
+        updateWordDisplay();
+    }
+
+    function updateWordDisplay() {
+        const isUpper = document.getElementById('case-toggle').checked;
+        let html = "";
+        
+        currentSyllables.forEach((s, idx) => {
+            let roma = s.romans[0]; 
+            if (isUpper) roma = roma.toUpperCase();
+            
+            if (idx < sIdx) {
+                html += `<span class="typed">${roma}</span>`;
+            } else if (idx === sIdx) {
+                let typedPart = s.romans[0].substring(0, cIdx);
+                let remainPart = s.romans[0].substring(cIdx);
+                if(isUpper) { typedPart = typedPart.toUpperCase(); remainPart = remainPart.toUpperCase(); }
+                html += `<span class="current"><span class="typed">${typedPart}</span>${remainPart}</span>`;
+            } else {
+                html += `<span>${roma}</span>`;
+            }
+        });
+        document.getElementById('word-display').innerHTML = html;
+    }
+    
+    // --- 花火エフェクト ---
+    const fwCanvas = document.getElementById('fireworks-canvas');
+    const fwCtx = fwCanvas.getContext('2d');
+    let fwParticles = [];
+
+    function resizeCanvas() {
+        fwCanvas.width = window.innerWidth;
+        fwCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function createFirework(x, y) {
+        const colors = ['#ff4081', '#18ffff', '#ffeb3b', '#b2ff59', '#e040fb'];
+        const particleCount = 20; 
+        
+        for(let i=0; i<particleCount; i++) {
+            const speed = Math.random() * 4 + 2; 
+            const angle = Math.random() * Math.PI * 2;
+            
+            fwParticles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                color: colors[Math.floor(Math.random()*colors.length)],
+                life: 1.0,
+                decay: Math.random() * 0.015 + 0.01 
+            });
+        }
+    }
+
+    function animateFireworks() {
+        fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+        
+        if (fwParticles.length > 0) {
+            for (let i = fwParticles.length - 1; i >= 0; i--) {
+                let p = fwParticles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.08; 
+                p.vx *= 0.98; 
+                p.vy *= 0.98;
+                p.life -= p.decay;
+                
+                if (p.life <= 0) {
+                    fwParticles.splice(i, 1);
+                } else {
+                    fwCtx.globalAlpha = p.life;
+                    fwCtx.fillStyle = p.color;
+                    fwCtx.beginPath();
+                    fwCtx.arc(p.x, p.y, 6, 0, Math.PI * 2); 
+                    fwCtx.fill();
+                }
+            }
+        }
+        requestAnimationFrame(animateFireworks);
+    }
+    animateFireworks();
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key === "Escape") {
+            if (document.getElementById('modal-howto').style.display === 'flex') {
+                closeInfoModalBtn('modal-howto');
+                return;
+            }
+            if (document.getElementById('modal-concept').style.display === 'flex') {
+                closeInfoModalBtn('modal-concept');
+                return;
+            }
+            if (document.getElementById('modal-overlay').style.display === 'flex') {
+                backToMenu(); 
+                return;
+            }
+            
+            if (gameActive) {
+                backToMenu();
+                return;
+            }
+        }
+        if (e.key === " " && !gameActive && document.getElementById('start-screen').style.display !== 'none') {
+            e.preventDefault();
+            startGame();
+            return;
+        }
+        if (!gameActive) return;
+        
+        let key = e.key;
+        if (e.code.startsWith('Key')) {
+            key = e.code.replace('Key', '').toLowerCase();
+        } 
+        else if (e.code === 'Minus') key = '-';
+        else if (key.length !== 1) return;
+        
+        playKeySound();
+        handleInput(key.toLowerCase());
+    });
+    
+    // --- 安全な入力処理 ---
+    function handleInput(input) {
+        let loopCount = 0;
+        
+        while(loopCount < 2) {
+            if(sIdx >= currentSyllables.length) return;
+            
+            const currentSyll = currentSyllables[sIdx];
+            if(!currentSyll) return;
+            
+            let autoSkipN = false;
+            if (currentSyll.romans.includes('nn') && cIdx === 1) {
+                 if (input !== 'n') {
+                     let nextSyll = currentSyllables[sIdx + 1];
+                     if (nextSyll) {
+                         let nextStarts = nextSyll.romans.map(r => r[0].toLowerCase());
+                         if (nextStarts.includes(input)) {
+                             score += 10;
+                             sIdx++;
+                             cIdx = 0;
+                             autoSkipN = true;
+                         }
+                     }
+                 }
+            }
+            
+            if(autoSkipN) {
+                loopCount++;
+                continue;
+            }
+            
+            let matched = currentSyll.romans.filter(opt => opt[cIdx] && opt[cIdx].toLowerCase() === input);
+            
+            if(matched.length > 0){
+                currentSyll.romans = matched;
+                cIdx++;
+                score += 10;
+                document.getElementById('points').innerText = score;
+                playSound(400 + Math.random()*60, 'triangle', 0.08, 0.04);
+                
+                if(cIdx >= currentSyll.romans[0].length){
+                    sIdx++;
+                    cIdx = 0;
+                }
+                
+                if(sIdx >= currentSyllables.length){
+                    createFirework(Math.random()*window.innerWidth, 150);
+                    qIndex++;
+                    
+                    let recover = 10;
+                    if(currentSpeed === 'slow') recover = 15;
+                    if(currentSpeed === 'fast') recover = 5;
+                    
+                    timeLeft = Math.min(100, timeLeft + recover);
+                    nextQ();
+                } else {
+                    updateWordDisplay();
+                }
+                break; 
+                
+            } else {
+                missCount++; 
+                score = Math.max(0, score - 5);
+                document.getElementById('points').innerText = score;
+                playSound(150, 'sawtooth', 0.1);
+                
+                const container = document.getElementById('game-container');
+                container.classList.remove('shake-anim');
+                void container.offsetWidth;
+                container.classList.add('shake-anim');
+
+                container.classList.remove('miss-effect');
+                void container.offsetWidth; 
+                container.classList.add('miss-effect');
+                
+                setTimeout(() => {
+                    container.classList.remove('miss-effect');
+                }, 200);
+                break; 
+            }
+        }
+    }
+
+    function gameOver(isClear) {
+        gameActive = false;
+        clearInterval(timerInterval);
+        const elapsedTime = ((Date.now() - gameStartTime) / 1000).toFixed(1);
+        
+        const modal = document.getElementById('modal-overlay');
+        const title = document.getElementById('modal-title');
+        const text = document.getElementById('modal-text');
+        const timeDisplay = document.getElementById('time-result');
+        
+        if (isClear) {
+            let fwCount = 0;
+            const fwInterval = setInterval(() => {
+                createFirework(Math.random()*window.innerWidth, Math.random()*window.innerHeight/2);
+                fwCount++;
+                if(fwCount > 30) clearInterval(fwInterval); 
+            }, 200);
+        }
+
+        modal.style.display = "flex";
+        const content = modal.querySelector('.modal-content');
+        content.classList.remove('shake-anim');
+        content.style.animation = 'none';
+        content.offsetHeight;
+        content.style.animation = 'popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+
+        let modeName = "いきもの";
+        if(selectedMode==='vehicle') modeName="のりもの";
+        if(selectedMode==='food') modeName="たべもの";
+        if(selectedMode==='school') modeName="がっこう";
+
+        if(isClear) {
+            title.innerText = "ALL CLEAR!";
+            
+            if (missCount === 0) {
+                score += 300; 
+                text.innerHTML = `すべての もんだいを クリア！<br><span style="color:#e91e63; font-size:1.8rem; text-shadow:2px 2px 0 #fff;">💯 フルコンボ！！</span>`;
+                playSound(800, 'sine', 0.1); setTimeout(()=>playSound(1200, 'sine', 0.3), 150);
+            } else {
+                text.innerText = "すべての もんだいを クリア！";
+                playSound(600, 'sine', 0.1); setTimeout(()=>playSound(800, 'sine', 0.2), 150);
+            }
+        } else {
+            title.innerText = "TIME UP!";
+            text.innerText = "じかんぎれ...";
+            playSound(100, 'sawtooth', 0.5);
+        }
+        
+        timeDisplay.innerText = elapsedTime;
+        document.getElementById('rank-mode-name').innerText = modeName;
+        
+        let rankingData = { list: getRanking(selectedMode), currentTimestamp: 0 };
+        
+        if (isClear) {
+            rankingData = saveRanking(selectedMode, score, parseFloat(elapsedTime), currentSpeed);
+        }
+        
+        const listEl = document.getElementById('ranking-list');
+        listEl.innerHTML = "";
+        
+        if (!isClear) {
+            listEl.innerHTML = "<li style='text-align:center; list-style:none; padding:10px;'>（クリアすると きろくが のこるよ）</li>";
+        } else {
+            let myRankIndex = -1;
+            rankingData.list.forEach((r, idx) => {
+                if(r.date === rankingData.currentTimestamp) {
+                    myRankIndex = idx;
+                }
+            });
+
+            rankingData.list.forEach((r, i) => {
+                const isMine = (i === myRankIndex);
+                
+                // 5位以内 または 自分の記録なら表示
+                if (i < 5 || isMine) {
+                    
+                    // 6位以下の自分のランクを表示する前に、区切り線を入れる
+                    if (i >= 5 && isMine && i > 5) {
+                         const sep = document.createElement('li');
+                         sep.style.textAlign = "center";
+                         sep.style.listStyle = "none";
+                         sep.innerText = "・ ・ ・";
+                         listEl.appendChild(sep);
+                    }
+
+                    const spdIcon = r.speed ? ({'slow':'🐢', 'normal':'🐇', 'fast':'🐆'}[r.speed] || '') : '';
+                    const li = document.createElement('li');
+                    
+                    let rankClass = `ranking-item`;
+                    if (i === 0) rankClass += ' rank-1';
+                    else if (i === 1) rankClass += ' rank-2';
+                    else if (i === 2) rankClass += ' rank-3';
+                    
+                    if (isMine) rankClass += ' my-rank';
+
+                    li.className = rankClass;
+                    li.innerHTML = `
+                        <span style="width:70px;">第 ${i+1} 位</span> 
+                        <b>${r.score} 点</b>
+                        <span style="font-size:0.85em; opacity:0.8">(${r.time}秒)</span>
+                        <span style="font-size:1rem; margin-left:5px;">${spdIcon}</span>
+                    `;
+                    listEl.appendChild(li);
+                }
+            });
+        }
+    }
+</script>
+</body>
+</html>
