@@ -13,36 +13,45 @@
             text-align: center;
             margin: 0;
             padding: 20px;
+            
+            /* Flexboxで縦並び・中央配置 */
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center; /* 常に画面中央に配置 */
+            gap: 20px; /* 要素間の基本の隙間 */
+            
+            min-height: 100vh; /* 画面の高さを確保 */
+            box-sizing: border-box;
         }
 
         h1 {
             color: #ea580c;
-            margin-bottom: 20px;
-            font-size: 36px;
+            font-size: 40px;
+            line-height: 1.1;
+            margin: 0;
+            text-shadow: 2px 2px 0 #fff;
+            flex-shrink: 0; /* 縮まないように */
         }
 
-        /* --- 遊び方ボタンとモーダルのデザイン --- */
-        
-        /* 遊び方ボタン */
+        /* --- 遊び方ボタン --- */
         .howto-btn {
-            background-color: #f59e0b; /* オレンジ色 */
+            background-color: #f59e0b;
             color: white;
             border: none;
-            padding: 12px 24px;
-            font-size: 1.2rem;
+            padding: 12px 32px;
+            font-size: 1.4rem;
             font-weight: bold;
-            border-radius: 30px;
+            border-radius: 40px;
             cursor: pointer;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 0 #d97706; /* 立体的な影 */
+            margin: 0;
+            box-shadow: 0 5px 0 #d97706;
             transition: transform 0.1s;
             font-family: inherit;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            flex-shrink: 0;
         }
         .howto-btn:active {
             transform: translateY(2px);
@@ -52,145 +61,14 @@
             filter: brightness(1.1);
         }
 
-        /* モーダル（ポップアップ）全体の背景 */
-        .modal {
-            display: none; /* 最初は隠しておく */
-            position: fixed;
-            z-index: 100;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.6);
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(3px);
-        }
-
-        /* モーダルの中身 */
-        .modal-content {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 600px;
-            max-height: 85vh;
-            overflow-y: auto;
-            position: relative;
-            text-align: left;
-            border: 6px solid #ea580c;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            animation: popIn 0.3s ease-out;
-            
-            /* 中身の配置調整用 */
-            display: flex;
-            flex-direction: column;
-        }
-
-        @keyframes popIn {
-            0% { transform: scale(0.8); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        /* 閉じるボタン */
-        .close-btn {
-            position: absolute;
-            top: 10px;
-            right: 20px;
-            color: #aaa;
-            font-size: 32px;
-            font-weight: bold;
-            cursor: pointer;
-            line-height: 1;
-            transition: color 0.2s;
-            z-index: 10;
-        }
-        .close-btn:hover { color: #ea580c; }
-
-        /* モーダル内の見出しデザイン */
-        .modal h2 {
-            text-align: center;
-            color: #fff;
-            background-color: #ea580c;
-            padding: 10px 30px;
-            border-radius: 50px;
-            margin: 0 auto 25px auto;
-            font-size: 1.6rem;
-            border-bottom: none;
-            box-shadow: 0 4px 0 #c2410c;
-            width: fit-content;
-            align-self: center;
-        }
-
-        /* 各ゲームの説明ブロック */
-        .game-desc {
-            background: #fff7ed;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-left: 6px solid #ea580c;
-        }
-        .game-desc h3 {
-            margin: 0 0 15px 0;
-            color: #c2410c;
-            font-size: 1.3rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border-bottom: 2px solid rgba(234, 88, 12, 0.2);
-            padding-bottom: 5px;
-        }
-
-        /* --- 説明文のレイアウト調整（Flexbox） --- */
-        .desc-row {
-            display: flex;          /* 横並びにする */
-            align-items: flex-start;/* 上揃え */
-            margin-bottom: 12px;
-            line-height: 1.6;
-        }
-        .desc-row:last-child {
-            margin-bottom: 0;
-        }
-        
-        /* ラベル（バッジ）部分 */
-        .desc-label {
-            flex-shrink: 0;         /* 縮まないようにする */
-            width: 90px;            /* 幅を固定して揃える */
-            margin-right: 10px;
-        }
-        
-        /* 説明テキスト部分 */
-        .desc-text {
-            font-size: 0.95rem;
-            color: #444;
-            flex-grow: 1;           /* 残りの幅を使う */
-        }
-
-        /* バッジの共通スタイル */
-        .badge-common {
-            display: inline-block;
-            padding: 4px 0;
-            width: 100%;
-            text-align: center;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            color: #fff;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.1);
-            box-shadow: 0 2px 0 rgba(0,0,0,0.1);
-        }
-        .badge-menu { background: #fbbf24; } /* 黄色 */
-        .badge-play { background: #4ade80; } /* 緑色 */
-
-        /* --- ここまで追加・修正 --- */
-
-        /* ボタンリスト */
+        /* --- メニューリスト --- */
         .menu-list {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 18px; /* カード間の隙間 */
             width: 100%;
-            max-width: 500px;
+            max-width: 600px;
+            flex-grow: 0; /* 必要以上に伸びない */
         }
 
         /* ゲームリンクボタン */
@@ -198,36 +76,30 @@
             display: block;
             text-decoration: none;
             background: white;
-            padding: 20px;
-            border-radius: 20px;
-            border: 5px solid;
+            padding: 20px 25px; /* 内側を広げて高さを出す */
+            border-radius: 24px;
+            border: 6px solid;
             transition: transform 0.2s;
             position: relative;
             color: #333;
+            /* 影をつけて存在感を出す */
+            box-shadow: 0 4px 0 rgba(0,0,0,0.05);
         }
         .game-link:hover {
             transform: translateY(-5px);
             opacity: 0.9;
         }
 
-        /* デザインバリエーション */
-        .beginner {
-            border-color: #84cc16;
-            background: #f7fee7;
-        }
+        /* 色設定 */
+        .beginner { border-color: #84cc16; background: #f7fee7; }
         .beginner .icon { background: #bef264; }
 
-        .master {
-            border-color: #3b82f6;
-            background: #eff6ff;
-        }
+        .master { border-color: #3b82f6; background: #eff6ff; }
         .master .icon { background: #93c5fd; }
 
         .game-version {
-            border-color: #f97316;
-            background: #fff7ed;
-            border-width: 6px;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+            border-color: #f97316; background: #fff7ed;
+            border-width: 7px; box-shadow: 0 6px 0 rgba(0,0,0,0.1);
         }
         .game-version .icon { background: #fdba74; }
 
@@ -235,44 +107,158 @@
         .content {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
             text-align: left;
         }
         .icon {
-            font-size: 36px;
-            width: 60px;
-            height: 60px;
+            font-size: 38px;
+            width: 68px;
+            height: 68px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
             flex-shrink: 0;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.1);
         }
         .title {
-            font-size: 20px;
+            font-size: 24px;
             font-weight: bold;
             margin: 0;
+            line-height: 1.3;
         }
         .desc {
-            font-size: 14px;
+            font-size: 15px;
             color: #666;
-            margin: 5px 0 0 0;
+            margin: 4px 0 0 0;
+            line-height: 1.4;
         }
         .badge {
             position: absolute;
-            top: -10px;
-            right: 10px;
-            background: #ef4444;
-            color: white;
-            font-size: 12px;
-            font-weight: bold;
-            padding: 5px 10px;
-            border-radius: 15px;
+            top: -14px; right: 20px;
+            background: #ef4444; color: white;
+            font-size: 13px; font-weight: bold;
+            padding: 6px 14px; border-radius: 20px;
             animation: bounce 1s infinite;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-5px); }
+        }
+
+        /* バージョン表記 (下部に自然に配置) */
+        .version-text {
+            font-size: 12px;
+            color: #a8a29e;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        /* --- モーダル (遊び方) --- */
+        .modal {
+            display: none; position: fixed; z-index: 100; left: 0; top: 0;
+            width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);
+            align-items: center; justify-content: center; backdrop-filter: blur(3px);
+        }
+        .modal-content {
+            background-color: #fff; padding: 30px; border-radius: 20px;
+            width: 90%; max-width: 600px; max-height: 85vh;
+            overflow-y: auto; position: relative; text-align: left;
+            border: 6px solid #ea580c; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            animation: popIn 0.3s ease-out; display: flex; flex-direction: column;
+        }
+        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        
+        .close-btn {
+            position: absolute; top: 10px; right: 20px; color: #aaa;
+            font-size: 36px; font-weight: bold; cursor: pointer; line-height: 1;
+            transition: color 0.2s; z-index: 10;
+        }
+        .close-btn:hover { color: #ea580c; }
+        .modal h2 {
+            text-align: center; color: #fff; background-color: #ea580c;
+            padding: 10px 30px; border-radius: 50px; margin: 0 auto 25px auto;
+            font-size: 1.6rem; border-bottom: none; box-shadow: 0 4px 0 #c2410c;
+            width: fit-content; align-self: center;
+        }
+        .game-desc {
+            background: #fff7ed; border-radius: 12px; padding: 15px; margin-bottom: 20px; border-left: 6px solid #ea580c;
+        }
+        .game-desc h3 {
+            margin: 0 0 15px 0; color: #c2410c; font-size: 1.4rem; display: flex; align-items: center; gap: 10px; border-bottom: 2px solid rgba(234, 88, 12, 0.2); padding-bottom: 5px;
+        }
+        .desc-row { display: flex; align-items: flex-start; margin-bottom: 12px; line-height: 1.6; }
+        .desc-row:last-child { margin-bottom: 0; }
+        .desc-label { flex-shrink: 0; width: 90px; margin-right: 10px; }
+        .desc-text { font-size: 1rem; color: #444; flex-grow: 1; }
+        .badge-common {
+            display: inline-block; padding: 4px 0; width: 100%; text-align: center; border-radius: 6px; font-size: 0.85rem; font-weight: bold; color: #fff; text-shadow: 1px 1px 0 rgba(0,0,0,0.1); box-shadow: 0 2px 0 rgba(0,0,0,0.1);
+        }
+        .badge-menu { background: #fbbf24; }
+        .badge-play { background: #4ade80; }
+
+
+        /* --- 縦幅が狭い画面（650px以下）向けの自動調整 --- */
+        @media (max-height: 650px) {
+            body {
+                /* 中央配置を維持して、上下の余白を均等にする */
+                justify-content: center;
+                padding: 10px;
+                /* 要素間の隙間を少し詰めるが、詰めすぎない */
+                gap: 15px; 
+            }
+            h1 {
+                font-size: 32px;
+            }
+            .howto-btn {
+                padding: 10px 30px;
+                font-size: 1.3rem;
+                box-shadow: 0 3px 0 #d97706;
+            }
+            
+            /* カード */
+            .menu-list {
+                gap: 12px;
+            }
+            .game-link {
+                /* パディングをしっかり確保して高さを維持 */
+                padding: 15px 20px; 
+                border-width: 5px;
+                border-radius: 20px;
+            }
+            .content {
+                gap: 15px;
+            }
+            .icon {
+                width: 54px; 
+                height: 54px;
+                font-size: 30px;
+            }
+            .title {
+                font-size: 22px; /* 文字サイズは大きめを維持 */
+            }
+            .desc {
+                font-size: 13px;
+                margin-top: 3px;
+            }
+            .badge {
+                font-size: 11px;
+                padding: 4px 10px;
+                top: -12px;
+            }
+            .game-version {
+                border-width: 5px;
+            }
+            
+            /* もし画面が極端に狭くて入り切らない場合はスクロール許可 */
+            @media (max-height: 550px) {
+                body {
+                    justify-content: flex-start;
+                    overflow-y: auto;
+                }
+            }
         }
 
     </style>
@@ -311,12 +297,14 @@
                 <div class="icon">🦁</div>
                 <div>
                     <p class="title">マスター（ゲーム）</p>
-                    <p class="desc">いろいろなしゅるいの<strong>ことば</strong>をうって ゲームクリア<br>しよう！（ゆっくりあそべる「のんびりモード」もあるよ）</p>
+                    <p class="desc">いろいろなしゅるいの<strong>ことば</strong>をうって ゲームクリアしよう！（ゆっくりあそべる「のんびりモード」もあるよ）</p>
                 </div>
             </div>
         </a>
 
     </div>
+
+    <div class="version-text">Ver.1.1</div>
 
     <div id="howtoModal" class="modal">
         <div class="modal-content">
@@ -325,11 +313,8 @@
 
             <div class="game-desc">
                 <h3>🔰 1もじ とっくん</h3>
-                
                 <div class="desc-row">
-                    <div class="desc-label">
-                        <span class="badge-common badge-menu">メニュー</span>
-                    </div>
+                    <div class="desc-label"><span class="badge-common badge-menu">メニュー</span></div>
                     <div class="desc-text">
                         <strong>レベル (Lv)</strong><br>
                         れんしゅうする もじを えらべるよ。<br>
@@ -337,34 +322,23 @@
                         「Lv3」は ぜんぶ！<br>じぶんで いれた<strong>もくひょうタイム</strong>までに ぜんぶうてるかな！
                     </div>
                 </div>
-
                 <div class="desc-row">
-                    <div class="desc-label">
-                        <span class="badge-common badge-play">あそびかた</span>
-                    </div>
-                    <div class="desc-text">
-                        がめんの おおきな「ひらがな」を 1つずつ うってみよう。ひかる キーを おしてね。
-                    </div>
+                    <div class="desc-label"><span class="badge-common badge-play">あそびかた</span></div>
+                    <div class="desc-text">がめんの おおきな「ひらがな」を 1つずつ うってみよう。ひかる キーを おしてね。</div>
                 </div>
             </div>
 
             <div class="game-desc">
                 <h3>⌨️ タイピング・マスター</h3>
-                
                 <div class="desc-row">
-                    <div class="desc-label">
-                        <span class="badge-common badge-menu">メニュー</span>
-                    </div>
+                    <div class="desc-label"><span class="badge-common badge-menu">メニュー</span></div>
                     <div class="desc-text">
                         <strong>「れんしゅう」</strong>（10もん）と、<br>
                         ランキングに きろくが のこる<strong>「マスター」</strong>が あるよ。
                     </div>
                 </div>
-
                 <div class="desc-row">
-                    <div class="desc-label">
-                        <span class="badge-common badge-play">あそびかた</span>
-                    </div>
+                    <div class="desc-label"><span class="badge-common badge-play">あそびかた</span></div>
                     <div class="desc-text">
                         つぎつぎに でてくる <strong>ことば</strong>を うつよ！<br>
                         「マスター」では、ぜんぶ クリアするまでの <strong>じかんの はやさ</strong>に チャレンジ！
@@ -374,20 +348,14 @@
 
             <div class="game-desc">
                 <h3>🦁 マスター（ゲーム）</h3>
-                
                 <div class="desc-row">
-                    <div class="desc-label">
-                        <span class="badge-common badge-menu">メニュー</span>
-                    </div>
+                    <div class="desc-label"><span class="badge-common badge-menu">メニュー</span></div>
                     <div class="desc-text">
                         「いきもの」「のりもの」「たべもの」「がっこう」から<br>すきな <strong>ことば</strong>のコースがえらべるよ。<br>せいげんじかんないに ぜんぶうてるかな？（ゆっくり あそべる<strong>「のんびりモード」</strong>も えらべるよ）
                     </div>
                 </div>
-
                 <div class="desc-row">
-                    <div class="desc-label">
-                        <span class="badge-common badge-play">あそびかた</span>
-                    </div>
+                    <div class="desc-label"><span class="badge-common badge-play">あそびかた</span></div>
                     <div class="desc-text">
                         じかんないに <strong>ことば</strong>を うって <strong>てんすう</strong>を きそう ゲームだよ。<br>
                         せいかいすると じかんがかいふくして<strong>はなび</strong>があがるよ！<br>（まちがうと じかんが へるよ）
@@ -401,33 +369,10 @@
         const modal = document.getElementById("howtoModal");
         const btn = document.getElementById("howtoBtn");
         const closeSpan = document.getElementsByClassName("close-btn")[0];
-
-        // モーダルを開く
-        btn.onclick = function() { 
-            modal.style.display = "flex"; 
-            // フォーカスを外して、スペースキー等での誤操作を防ぐ
-            btn.blur();
-        }
-
-        // ×ボタンで閉じる
-        closeSpan.onclick = function() { 
-            modal.style.display = "none"; 
-        }
-
-        // 画面外クリックで閉じる
-        window.onclick = function(event) {
-            if (event.target == modal) { 
-                modal.style.display = "none"; 
-            }
-        }
-
-        // Escキーで閉じる処理
-        window.addEventListener('keydown', function(event) {
-            // Escキーが押され、かつモーダルが表示されている場合
-            if (event.key === 'Escape' && modal.style.display === 'flex') {
-                modal.style.display = 'none';
-            }
-        });
+        btn.onclick = function() { modal.style.display = "flex"; btn.blur(); }
+        closeSpan.onclick = function() { modal.style.display = "none"; }
+        window.onclick = function(event) { if (event.target == modal) modal.style.display = "none"; }
+        window.addEventListener('keydown', function(event) { if (event.key === 'Escape' && modal.style.display === 'flex') modal.style.display = 'none'; });
     </script>
 
 </body>

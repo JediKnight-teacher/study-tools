@@ -22,21 +22,22 @@
             font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', 'Rounded Mplus 1c', 'Meiryo', sans-serif; 
             text-align: center; background-color: var(--bg-color); margin: 0; padding: 0;
             color: var(--text-color); overflow: hidden; user-select: none;
-            height: 100vh; display: flex; justify-content: center; align-items: center;
+            height: 100vh; display: flex; justify-content: center; 
+            align-items: flex-start; padding-top: 20px; 
+            box-sizing: border-box;
         }
         body.order-mode { --primary-color: #0ea5e9; --bg-color: #e0f2fe; }
         
         #game-wrapper {
             width: 100%; height: 100%;
-            display: flex; justify-content: center; align-items: center;
+            display: flex; justify-content: center; align-items: flex-start;
         }
 
         #game-container { 
             background: white; 
             width: 96%; max-width: 1100px;
-            /* WXGA等の縦が短い画面に対応するため、高さの制限を緩和 */
             height: 96vh; max-height: 720px;
-            padding: 15px; 
+            padding: 10px;
             border: 8px solid #f8bbd0; border-radius: 20px; box-shadow: 0 10px 0 rgba(0,0,0,0.1);
             position: relative; box-sizing: border-box;
             display: flex; flex-direction: column; justify-content: space-between; align-items: center;
@@ -48,23 +49,22 @@
         .info-bar { 
             display: flex; justify-content: center; 
             width: 100%; font-size: 1.4rem; font-weight: bold; color: #555; 
-            margin-bottom: 5px; height: 40px; align-items: center;
-            position: relative;
+            margin-bottom: 5px; height: 35px; align-items: center;
+            position: relative; flex-shrink: 0;
         }
         
         .remain-box { position: absolute; left: 10px; font-size: 1.2rem; }
         .timer-box { color: var(--timer-color); font-size: 1.8rem; z-index: 5; }
 
-        /* アイコン群（右上） */
         .top-icons {
-            position: absolute; top: 5px; right: 10px; 
+            position: absolute; top: 0px; right: 5px; 
             display: flex; gap: 8px; z-index: 20;
         }
         .icon-btn {
             font-size: 1.3rem; cursor: pointer;
             background: rgba(255,255,255,0.9);
             border: 2px solid #eee;
-            border-radius: 50%; width: 38px; height: 38px;
+            border-radius: 50%; width: 36px; height: 36px;
             display: flex; justify-content: center; align-items: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             transition: 0.2s; user-select: none; color: #555;
@@ -74,17 +74,28 @@
         
         #display-area {
             flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
-            width: 100%; background: #fff5f8; border-radius: 16px; margin-bottom: 10px;
+            width: 100%; background: #fff5f8; border-radius: 16px; margin-bottom: 8px;
             border: 4px dashed #f48fb1;
-            min-height: 150px;
+            min-height: 100px;
+            overflow: hidden; 
+            padding: 0;
         }
         body.order-mode #display-area { background: #f0f9ff; border-color: #81d4fa; }
 
-        #target-kana { font-size: 8rem; font-weight: bold; line-height: 1; margin: -10px 0 10px; color: #333; }
+        /* 文字サイズ設定 */
+        #target-kana { 
+            font-size: clamp(6rem, 28vmin, 15rem); 
+            font-weight: bold; line-height: 1.0; margin: 0;
+            color: #333; text-shadow: 3px 3px 0 #fff; z-index: 2;
+        }
         #target-roma { 
-            font-size: 5rem; font-weight: bold; letter-spacing: 6px; 
-            color: #b0bec5; font-family: 'Courier New', monospace; 
-            min-height: 80px; line-height: 1;
+            font-size: clamp(4rem, 16vmin, 10rem);
+            font-weight: bold; letter-spacing: 2px; 
+            color: #90a4ae; font-family: 'Courier New', monospace; 
+            line-height: 0.9; 
+            /* 変更点: 上に隙間を追加 */
+            margin-top: 15px; 
+            z-index: 1;
         }
         .typed { color: var(--primary-color); }
         .next-char { color: #0288d1; text-decoration: underline; background-color: rgba(2, 136, 209, 0.1); border-radius: 5px; }
@@ -111,6 +122,57 @@
             box-shadow: 0 2px 0 #f9a825; transform: translateY(4px); 
         }
         .key.home { border: 2px solid #ff4081; }
+
+        /* --- メディアクエリ: 縦が狭い画面(Chromebook WXGAなど)用 --- */
+        @media (max-height: 800px) {
+            body { padding-top: 5px; }
+            #game-container { padding: 6px; border-width: 5px; height: 99vh; max-height: none; }
+            
+            .info-bar { height: 28px; font-size: 1.1rem; margin-bottom: 2px; }
+            .timer-box { font-size: 1.4rem; }
+            #display-area { margin-bottom: 4px; border-width: 3px; }
+            
+            /* 変更点: 狭い画面でも少し隙間を確保 (以前は-5px) */
+            #target-kana { line-height: 0.95; margin-bottom: 5px; }
+            #target-roma { line-height: 0.9; margin-top: 0; /* こちらは0にしてkanaの下マージンに任せる */ }
+
+            #keyboard { padding: 6px 4px; gap: 4px; }
+            .key { max-width: 50px; font-size: 1.1rem; border-radius: 5px; box-shadow: 0 3px 0 var(--key-shadow); }
+            .key.active { transform: translateY(3px); box-shadow: 0 1px 0 #f9a825; }
+            
+            #title-area { margin: 5px 0 2px; }
+            #title-text { font-size: 1.6rem; }
+            .subtitle { font-size: 1.0rem; margin-top: 0px; }
+            .btn-howto { font-size: 0.8rem; padding: 4px 12px; margin-top: 2px; }
+            
+            .menu-wrapper { gap: 8px; margin-top: 2px; margin-bottom: 2px; }
+            .settings-panel { padding: 4px 8px; gap: 2px; justify-content: space-around; }
+            .panel-label { font-size: 0.9rem; margin-bottom: 2px; }
+            
+            .level-selector { gap: 3px; }
+            .lvl-btn { padding: 2px 0; }
+            .lvl-icon { font-size: 1.2rem; }
+            .lvl-name { font-size: 0.65rem; }
+
+            .case-selector { padding: 2px; }
+            .toggle-switch { height: 22px; width: 40px; }
+            .toggle-switch::after { width: 16px; height: 16px; top: 3px; }
+            .toggle-switch.on::after { left: 21px; }
+            .switch-label { font-size: 0.9rem; }
+            
+            .sound-panel { padding: 2px 8px; }
+            #target-time-select { padding: 2px; font-size: 0.9rem; }
+
+            .modes-panel { gap: 6px; }
+            .mode-card { gap: 5px; } 
+            .mode-card .mode-icon { width: 40px; height: 40px; font-size: 1.5rem; }
+            .mode-title { font-size: 1.1rem; }
+            .mode-desc { font-size: 0.75rem; margin-top: 0; }
+
+            #footer-area { margin-top: 2px; margin-bottom: 2px; align-items: center; }
+            .mini-rank { padding: 2px 8px; font-size: 0.75rem; }
+            .copyright-link { margin-top: 2px; font-size: 0.7rem; }
+        }
         
         /* --- メニュー画面 --- */
         #overlay { 
@@ -120,21 +182,24 @@
             padding: 10px; overflow-y: auto;
         }
 
-        /* タイトルエリア調整：アイコンと被らないようマージン確保しつつ、全体を少し小さく */
         #title-area { 
-            margin: 35px 0 5px; /* 上マージンを調整 */
+            margin: 20px 0 10px; 
             text-align: center; flex-shrink: 0;
         }
         #title-text { 
-            margin: 0; font-size: 2.0rem; color: #333; /* フォントサイズ微調整 */
-            text-shadow: 2px 2px 0 #eee; line-height: 1.2;
+            margin: 0; font-size: 2.2rem; color: #333; 
+            text-shadow: 2px 2px 0 #eee; line-height: 1.1;
         }
-        .subtitle { font-size: 1.1rem; color: #ec407a; font-weight: bold; margin-left: 8px; white-space: nowrap; }
+        .subtitle { 
+            display: block; 
+            font-size: 1.3rem; color: #ec407a; font-weight: bold; 
+            margin-top: 5px; margin-left: 0; white-space: nowrap; 
+        }
 
         .btn-howto {
             background: #81d4fa; color: #01579b; border: none;
             padding: 6px 18px; border-radius: 20px; font-weight: bold;
-            cursor: pointer; margin-top: 5px; font-family: inherit; font-size: 0.9rem;
+            cursor: pointer; margin-top: 8px; font-family: inherit; font-size: 0.9rem;
             box-shadow: 0 3px 0 #4fc3f7; transition: 0.2s;
         }
         .btn-howto:hover { transform: translateY(-2px); filter: brightness(1.05); }
@@ -147,12 +212,11 @@
             margin-top: 8px; margin-bottom: 5px;
         }
 
-        /* 設定パネル：縦幅を抑える調整 */
         .settings-panel {
             flex: 1; background: #fff; 
             border: 3px solid #eee; border-radius: 16px;
             padding: 10px 15px; display: flex; flex-direction: column; 
-            justify-content: space-evenly; /* 均等配置だが間隔を詰める */
+            justify-content: space-evenly; 
             gap: 5px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
@@ -163,7 +227,6 @@
             display: flex; align-items: center;
         }
 
-        /* レベル選択ボタン：コンパクト化 */
         .level-selector { display: flex; gap: 5px; }
         .lvl-btn {
             flex: 1; border: 2px solid #ddd; border-radius: 10px; padding: 4px 2px;
@@ -183,7 +246,6 @@
         .lvl-icon { font-size: 1.3rem; margin-bottom: 0px; }
         .lvl-name { font-size: 0.75rem; line-height: 1.1; }
         
-        /* スイッチ類：パディング調整 */
         .case-selector {
             display: flex; gap: 10px; align-items: center; background: #f5f5f5;
             padding: 6px; border-radius: 10px; justify-content: center;
@@ -211,13 +273,11 @@
             transition: 0.2s;
         }
         
-        /* 音設定パネル */
         .sound-panel {
             background: #f5f5f5; padding: 6px 12px; border-radius: 10px; 
             display:flex; align-items:center;
         }
 
-        /* 目標タイム選択：高さを抑える */
         #target-time-select {
             font-size: 1.0rem; padding: 6px; width: 100%; border-radius: 8px; border: 2px solid #ddd;
         }
@@ -345,8 +405,8 @@
                                 <span class="level-detail">
                                     ・Lv0：<strong>あいうえお</strong> だけ<br>
                                     ・Lv1：<strong>あ～ん</strong> (きほん)<br>
-                                    ・Lv2：Lv1 ＋ <strong>だくおん</strong> ( が ～ ぽ )<br>
-                                    ・Lv3：Lv2 ＋ <strong>ようおん</strong> (きゃ～りょ)
+                                    ・Lv2：Lv1 ＋ <strong>だくおん</strong> ( が ～ ぽ )もじに<strong> ゛゜</strong>が くっついているよ<br>
+                                    ・Lv3：Lv2 ＋ <strong>ようおん</strong> (きゃ～りょ)ちいさい<strong>もじ</strong> が いっしょだよ<br>
                                 </span>
                             </div>
                         </div>
@@ -432,6 +492,7 @@
                 <div class="modal-box concept-mode">
                     <span class="modal-close" onclick="closeModalBtn()">×</span>
                     <h2 class="concept-h2">💡 このツールについて</h2>
+                    <div style="text-align:center; font-weight:bold; color:#c2185b; margin-bottom:10px;">Ver.1.1</div>
                     
                     <ul class="concept-list">
                         <li><strong>🏫 楽しく習得</strong><br>小学校低学年から、遊び感覚でローマ字入力を覚えられます。タイムアタックやランキング表示などのゲーム要素を取り入れ、楽しく継続できるように設計しました。</li>
@@ -450,7 +511,10 @@
 
             <div id="overlay">
                 <div id="title-area">
-                    <h1 id="title-text">ローマ字タイピング<span class="subtitle">（1もじとっくん）</span></h1>
+                    <h1 id="title-text">
+                        ローマ字タイピング<br>
+                        <span class="subtitle">（1もじとっくん）</span>
+                    </h1>
                     <button class="btn-howto" onclick="showHowto()">📖 あそびかた・せつめい</button>
                 </div>
                 
@@ -823,12 +887,14 @@
                     questions = keysArr; 
                 } else {
                     // ランダム: まずシャッフル
-                    let qList = [...keysArr].sort(() => Math.random() - 0.5).slice(0, 50);
+                    let qList = [...keysArr].sort(() => Math.random() - 0.5).slice(50);
+                    // もし50問未満なら全問
+                    if (qList.length < 50) qList = [...keysArr].sort(() => Math.random() - 0.5);
+                    else qList = qList.slice(0, 50);
                     
                     // 連続チェックと修正（念のため）
                     for(let i=1; i<qList.length; i++) {
                         if(qList[i] === qList[i-1]) {
-                            // もし被ったら、配列の別の場所と入れ替えてみる（簡易対処）
                             const swapIdx = (i + 1) % qList.length;
                             [qList[i], qList[swapIdx]] = [qList[swapIdx], qList[i]];
                         }
