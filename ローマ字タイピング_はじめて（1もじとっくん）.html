@@ -492,7 +492,7 @@
                 <div class="modal-box concept-mode">
                     <span class="modal-close" onclick="closeModalBtn()">×</span>
                     <h2 class="concept-h2">💡 このツールについて</h2>
-                    <div style="text-align:center; font-weight:bold; color:#c2185b; margin-bottom:10px;">Ver.1.1</div>
+                    <div style="text-align:center; font-weight:bold; color:#c2185b; margin-bottom:10px;">Ver.1.2</div>
                     
                     <ul class="concept-list">
                         <li><strong>🏫 楽しく習得</strong><br>小学校低学年から、遊び感覚でローマ字入力を覚えられます。タイムアタックやランキング表示などのゲーム要素を取り入れ、楽しく継続できるように設計しました。</li>
@@ -1112,7 +1112,7 @@
             // Lv0の場合は目標タイム判定を行わない
             const level = document.getElementById('level-slider').value;
             if (level == 0) {
-                 msg += `<div class="stamp" style="border-color:#66bb6a; color:#2e7d32;">Practice Finish!</div>`;
+                 msg += `<div class="stamp" style="border-color:#66bb6a; color:#2e7d32;">やったー！<br>れんしゅう おしまい！！</div>`;
             } else if (targetTime !== 9999) {
                 if (finalTime <= targetTime) {
                     playTone(600, 'sine', 0.1); setTimeout(()=>playTone(800, 'sine', 0.2), 150);
@@ -1121,7 +1121,7 @@
                     msg += `<div style=\"margin-top:10px; color:#555; font-size:1.4rem\\\">あと ${(finalTime - targetTime).toFixed(1)}びょうで クリア！</div>`;
                 }
             } else {
-                msg += `<div class="stamp" style="border-color:orange; color:orange;">FINISH!</div>`;
+                msg += `<div class="stamp" style="border-color:orange; color:orange;">ぜんぶできたよ！<br>おしまい！！</div>`;
             }
             document.getElementById('result-message').innerHTML = msg;
         }
