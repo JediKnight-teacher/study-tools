@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Countdown_timer Ver.1.00</title>
+    <style>
+        :root {
+            --bg-normal: #1a2a3a;
+            --bg-warning: #8a7a00;
+            --bg-danger: #5a0000;
+            --text-color: #ffffff;
+            --panel-bg: rgba(15, 15, 20, 0.95);
+            --accent-color: #00d2ff;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-normal);
+            color: var(--text-color);
+            font-family: 'Meiryo', 'Yu Gothic', sans-serif;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            transition: background-color 1.0s ease;
+        }
+
+        /* 全画面ボタン */
+        .fullscreen-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            z-index: 50;
+        }
+        .fullscreen-btn:hover { background: rgba(255,255,255,0.3); }
+
+        /* --- メイン画面 --- */
+        .timer-fullscreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        #progressCanvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-90deg);
+            max-width: 95vw;
+            max-height: 95vh;
+        }
+
+        .time-text {
+            font-size: 18vw;
+            font-weight: bold;
+            font-variant-numeric: tabular-nums;
+            z-index: 10;
+            text-shadow: 0 0 50px rgba(0,0,0,0.8);
+            pointer-events: none;
+        }
+        
+        .status-text {
+            position: absolute;
+            bottom: -4rem;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3rem;
+            color: #ffeb3b;
+            white-space: nowrap;
+        }
+
+        /* --- 設定ドロワー (3段レイアウト) --- */
+        .control-drawer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--panel-bg);
+            border-top: 3px solid var(--accent-color);
+            padding: 30px 40px 40px 40px;
+            box-sizing: border-box;
+            
+            transform: translateY(95%); 
+            transition: transform 1.5s cubic-bezier(0.19, 1, 0.22, 1);
+            z-index: 100;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
+            
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .control-drawer.visible {
+            transform: translateY(0);
+        }
+
+        .drawer-handle {
+            position: absolute;
+            top: -30px;
+            left: 0;
+            width: 100%;
+            height: 30px;
+            cursor: pointer;
+        }
+        .drawer-handle::after {
+            content: "▲ SETTINGS ▲";
+            font-size: 11px;
+            font-weight: bold;
+            color: rgba(255,255,255,0.6);
+            display: block;
+            margin-top: -20px;
+            background: rgba(0,0,0,0.8);
+            width: 140px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 5px 0;
+            border-radius: 8px 8px 0 0;
+            text-align: center;
+        }
+
+        /* ボタン列 */
+        .action-row {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        .btn {
+            padding: 12px 0;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            flex: 1;
+            max-width: 300px;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn-start { background: linear-gradient(to bottom, #28a745, #1e7e34); }
+        .btn-stop { background: linear-gradient(to bottom, #dc3545, #bd2130); }
+        .btn-reset { background: linear-gradient(to bottom, #6c757d, #545b62); flex: 0.4; max-width: 150px; }
+
+        /* 設定エリア全体 */
+        .settings-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+            width: 100%;
+        }
+
+        .settings-tier {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        /* 1段目: 時間設定 */
+        .tier-time {
+            background: rgba(255,255,255,0.05);
+            padding: 10px 20px;
+            border-radius: 10px;
+        }
+        
+        /* 2段目: 音設定 */
+        .tier-sound {
+        }
+
+        /* 3段目: オプション */
+        .tier-options {
+            opacity: 0.9;
+        }
+
+        label {
+            font-size: 0.9rem;
+            color: #bbb;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        select, input[type="number"] {
+            background-color: #333;
+            color: white;
+            border: 1px solid #666;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 1.1rem;
+        }
+        select:focus, input:focus { outline: 2px solid var(--accent-color); }
+
+        .time-inputs {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .time-inputs input {
+            width: 60px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.4rem;
+            background-color: #222;
+        }
+        .time-sep { font-size: 1.4rem; font-weight: bold; color: #888; }
+
+        #soundSelect {
+            width: 300px;
+            font-size: 1.1rem;
+        }
+
+        .mini-btn {
+            background: #555;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            margin-left: 5px;
+        }
+
+        .test-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 0 20px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+        }
+        .test-btn:hover { background: #0056b3; }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            height: 40px;
+            background: rgba(255,255,255,0.08);
+            padding: 0 15px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+        input[type="checkbox"] { transform: scale(1.3); cursor: pointer; margin: 0;}
+
+    </style>
+</head>
+<body>
+
+    <button class="fullscreen-btn" onclick="toggleFullScreen()">⛶ 全画面</button>
+
+    <div class="timer-fullscreen">
+        <canvas id="progressCanvas"></canvas>
+        <div class="time-text">
+            <span id="timeDisplay">00:00:00</span>
+            <div id="statusMsg" class="status-text"></div>
+        </div>
+    </div>
+
+    <div class="control-drawer">
+        <div class="drawer-handle"></div>
+        
+        <div class="action-row">
+            <button class="btn btn-start" onclick="startTimer()">スタート (Enter)</button>
+            <button class="btn btn-stop" onclick="togglePause()">停止 / 再開 (Space)</button>
+            <button class="btn btn-reset" onclick="resetTimer()">リセット (Esc)</button>
+        </div>
+
+        <div class="settings-container">
+            
+            <div class="settings-tier tier-time">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <label>プリセット</label>
+                    <select id="presetSelect" onchange="applyPreset()" style="width: 140px;">
+                        <option value="custom">▼ カスタム</option>
+                        <option value="900" selected>15分</option>
+                        <option value="1200">20分</option>
+                        <option value="1800">30分</option>
+                        <option value="2700">45分</option>
+                        <option value="3000">50分</option>
+                        <option value="3600">60分</option>
+                    </select>
+                </div>
+
+                <div style="width: 1px; height: 30px; background: #555; margin: 0 10px;"></div>
+
+                <div class="time-inputs">
+                    <input type="number" id="inH" min="0" max="99" value="0"><span class="time-sep">:</span>
+                    <input type="number" id="inM" min="0" max="59" value="15"><span class="time-sep">:</span>
+                    <input type="number" id="inS" min="0" max="59" value="0">
+                    <button class="mini-btn" onclick="clearCustomInput()" title="0に戻す">↺</button>
+                </div>
+            </div>
+
+            <div class="settings-tier tier-sound">
+                <label>アラーム音</label>
+                <select id="soundSelect">
+                    <option value="1">1. グランドピアノ (Chord)</option>
+                    <option value="2">2. 教会の鐘 (Church Bell)</option>
+                    <option value="3">3. トライアングル (Triangle)</option>
+                    <option value="4">4. 天使のハープ (Harp)</option>
+                    <option value="5">5. ウィンドチャイム (Wind)</option>
+                    <option value="6">6. 瞑想のボウル (Singing Bowl)</option>
+                    <option value="7">7. オーケストラ (Strings)</option>
+                    <option value="8">8. マリンバ (Marimba)</option>
+                    <option value="9">9. クリスタルベル (Synth Bell)</option>
+                    <option value="10">10. シンプルチャイム (Ding-Dong)</option>
+                    <option value="11">11. 銅鑼 (Gong)</option>
+                    <option value="12">12. オルゴール (Music Box)</option>
+                    <option value="13">13. 琴 (Koto style)</option>
+                    <option value="14">14. 勝利のファンファーレ (Trumpet)</option>
+                    <option value="15">15. 決定音 (Level Up)</option>
+                </select>
+                <button class="test-btn" onclick="testSound()" title="3秒間テスト再生">♪ 再生</button>
+            </div>
+
+            <div class="settings-tier tier-options">
+                <div class="checkbox-row">
+                    <input type="checkbox" id="preAlarmToggle" checked>
+                    <span>予鈴 (残 <input type="number" id="preAlarmPercent" value="20" min="1" max="99" style="width:40px; background:transparent; border:none; color:white; border-bottom:1px solid white; text-align:center;">%)</span>
+                </div>
+                <div class="checkbox-row">
+                    <input type="checkbox" id="loopToggle">
+                    <span>ループ再生</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+<script>
+    let timerInterval = null;
+    let alarmLoopInterval = null;
+    let totalSeconds = 900;
+    let remainingSeconds = 900;
+    let isRunning = false;
+    let isPaused = false;
+    let isAlarmRinging = false; // アラーム鳴動中フラグ
+    let audioCtx = null;
+    
+    // メニュー制御
+    let drawerHideTimeout = null;
+    const drawer = document.querySelector('.control-drawer');
+
+    // DOM要素
+    const display = document.getElementById('timeDisplay');
+    const canvas = document.getElementById('progressCanvas');
+    const ctx = canvas.getContext('2d');
+    const presetSelect = document.getElementById('presetSelect');
+    const inH = document.getElementById('inH');
+    const inM = document.getElementById('inM');
+    const inS = document.getElementById('inS');
+    const preAlarmPercentIn = document.getElementById('preAlarmPercent');
+    const statusMsg = document.getElementById('statusMsg');
+
+    window.onload = () => {
+        resizeCanvas();
+        applyPreset();
+    };
+    window.onresize = resizeCanvas;
+
+    // --- メニュー動作 ---
+    const showDrawer = () => {
+        if (drawerHideTimeout) clearTimeout(drawerHideTimeout);
+        drawer.classList.add('visible');
+    };
+    const hideDrawer = () => {
+        if (drawerHideTimeout) clearTimeout(drawerHideTimeout);
+        drawerHideTimeout = setTimeout(() => {
+            drawer.classList.remove('visible');
+        }, 3000);
+    };
+
+    drawer.addEventListener('mouseenter', showDrawer);
+    drawer.addEventListener('mouseleave', hideDrawer);
+    document.addEventListener('mousemove', (e) => {
+        if (e.clientY > window.innerHeight - 50) showDrawer();
+    });
+
+    // --- 描画・時間 ---
+    function resizeCanvas() {
+        const size = Math.min(window.innerWidth, window.innerHeight) * 0.9;
+        canvas.width = size;
+        canvas.height = size;
+        drawCircle(isRunning || isPaused ? remainingSeconds / totalSeconds : 1);
+    }
+
+    function applyPreset() {
+        const val = presetSelect.value;
+        if (val !== 'custom') {
+            const h = Math.floor(val / 3600);
+            const m = Math.floor((val % 3600) / 60);
+            const s = val % 60;
+            inH.value = h; inM.value = m; inS.value = s;
+        }
+        updateTimeFromInput();
+    }
+
+    function clearCustomInput() {
+        presetSelect.value = 'custom';
+        inH.value = 0; inM.value = 0; inS.value = 0;
+        updateTimeFromInput();
+    }
+
+    [inH, inM, inS].forEach(el => el.addEventListener('input', () => {
+        presetSelect.value = 'custom';
+        updateTimeFromInput();
+    }));
+
+    function updateTimeFromInput() {
+        if (isRunning || isPaused || isAlarmRinging) return;
+        totalSeconds = (parseInt(inH.value)||0)*3600 + (parseInt(inM.value)||0)*60 + (parseInt(inS.value)||0);
+        remainingSeconds = totalSeconds;
+        updateDisplay();
+        drawCircle(1);
+    }
+
+    function updateDisplay() {
+        const h = Math.floor(remainingSeconds / 3600);
+        const m = Math.floor((remainingSeconds % 3600) / 60);
+        const s = remainingSeconds % 60;
+        let timeStr = "";
+        if (h > 0) timeStr += h.toString().padStart(2, '0') + ":";
+        timeStr += m.toString().padStart(2, '0') + ":" + s.toString().padStart(2, '0');
+        display.textContent = timeStr;
+    }
+
+    function drawCircle(percentage) {
+        if (percentage < 0) percentage = 0;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = (canvas.width / 2) - 20;
+
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+        ctx.lineWidth = 20;
+        ctx.strokeStyle = "rgba(255,255,255,0.1)";
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI * percentage);
+        ctx.lineWidth = 20;
+        ctx.lineCap = 'round';
+        if (percentage <= 0.1) ctx.strokeStyle = "#ff4444";
+        else if (percentage <= 0.3) ctx.strokeStyle = "#ffeb3b";
+        else ctx.strokeStyle = "#00d2ff";
+        ctx.stroke();
+    }
+
+    // --- タイマー制御 ---
+    function startTimer() {
+        if (isRunning || isAlarmRinging) return;
+        
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        drawer.classList.remove('visible');
+
+        if (remainingSeconds <= 0 && !isPaused) {
+            updateTimeFromInput();
+            if(remainingSeconds <= 0) return;
+        }
+
+        isRunning = true;
+        isPaused = false;
+        document.body.style.backgroundColor = "var(--bg-normal)";
+        statusMsg.textContent = "";
+
+        timerInterval = setInterval(() => {
+            remainingSeconds--;
+
+            // 予鈴
+            if (document.getElementById('preAlarmToggle').checked) {
+                const percent = parseInt(preAlarmPercentIn.value) || 20;
+                const triggerSec = Math.floor(totalSeconds * (percent / 100));
+                
+                if (remainingSeconds === triggerSec && remainingSeconds > 0) {
+                    playAlarmSound(1.0, 1.0); // 予鈴は短く1番の音で
+                    statusMsg.textContent = "予鈴 (" + percent + "%)";
+                    document.body.style.backgroundColor = "var(--bg-warning)";
+                }
+            }
+
+            updateDisplay();
+            drawCircle(remainingSeconds / totalSeconds);
+
+            if (remainingSeconds <= 0) {
+                timeIsUp();
+            }
+        }, 1000);
+    }
+
+    function stopTimer() {
+        if (!isRunning) return;
+        
+        clearInterval(timerInterval);
+        stopAlarm();
+        isRunning = false;
+        isPaused = true; 
+        drawer.classList.add('visible');
+    }
+
+    // スペースキー用トグル
+    function togglePause() {
+        // 重要: アラームが鳴っているならリセット（停止）を優先
+        if (isAlarmRinging) {
+            resetTimer();
+            return;
+        }
+
+        if (!isRunning && !isPaused && remainingSeconds === totalSeconds) {
+            return; 
+        }
+        if (isRunning) {
+            stopTimer();
+        } else {
+            startTimer();
+        }
+    }
+
+    function resetTimer() {
+        clearInterval(timerInterval);
+        stopAlarm();
+        isRunning = false;
+        isPaused = false;
+        isAlarmRinging = false; // フラグ解除
+        document.body.style.backgroundColor = "var(--bg-normal)";
+        statusMsg.textContent = "";
+        applyPreset();
+        drawCircle(1);
+        drawer.classList.add('visible');
+    }
+
+    function timeIsUp() {
+        clearInterval(timerInterval);
+        isRunning = false;
+        isPaused = false;
+        isAlarmRinging = true; // アラーム鳴動開始
+        remainingSeconds = 0;
+        updateDisplay();
+        drawCircle(0);
+        
+        document.body.style.backgroundColor = "var(--bg-danger)";
+        statusMsg.textContent = "Finished";
+        
+        playAlarmLoop(10); 
+
+        if (document.getElementById('loopToggle').checked) {
+            setTimeout(() => {
+                resetTimer();
+                startTimer();
+            }, 12000);
+        } else {
+            setTimeout(() => { drawer.classList.add('visible'); }, 3000);
+        }
+    }
+
+    // --- サウンド ---
+    function stopAlarm() {
+        if (alarmLoopInterval) {
+            clearInterval(alarmLoopInterval);
+            alarmLoopInterval = null;
+        }
+        isAlarmRinging = false;
+        if (audioCtx && audioCtx.state === 'running') {
+            audioCtx.suspend();
+        }
+    }
+
+    function testSound() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        playAlarmSound(3, 3.0);
+    }
+
+    function playAlarmLoop(duration) {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        let counter = 0;
+        const intervalTime = 2500;
+        const maxLoops = Math.ceil((duration * 1000) / intervalTime);
+
+        playAlarmSound(2.5, 2.5);
+
+        alarmLoopInterval = setInterval(() => {
+            counter++;
+            if (counter >= maxLoops) {
+                clearInterval(alarmLoopInterval);
+                alarmLoopInterval = null;
+            } else {
+                playAlarmSound(2.5, 2.5);
+            }
+        }, intervalTime);
+    }
+
+    // --- 15種類の楽器サウンドエンジン ---
+    function playAlarmSound(duration, length) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const typeIndex = document.getElementById('soundSelect').value;
+        const now = audioCtx.currentTime;
+
+        // 汎用トーン生成関数
+        const playTone = (freq, time, dur, vol, flavor) => {
+            const gain = audioCtx.createGain();
+            gain.connect(audioCtx.destination);
+            
+            const osc = audioCtx.createOscillator();
+            osc.connect(gain);
+
+            if (flavor === 'piano') {
+                osc.type = 'triangle';
+                const osc2 = audioCtx.createOscillator();
+                const gain2 = audioCtx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.value = freq * 2;
+                osc2.connect(gain2);
+                gain2.connect(audioCtx.destination);
+                gain2.gain.setValueAtTime(0, time);
+                gain2.gain.linearRampToValueAtTime(vol * 0.4, time + 0.05);
+                gain2.gain.exponentialRampToValueAtTime(0.001, time + dur);
+                osc2.start(time);
+                osc2.stop(time + dur + 1);
+            } else if (flavor === 'bell') {
+                osc.type = 'triangle';
+                const osc3 = audioCtx.createOscillator();
+                osc3.frequency.value = freq * 1.5; 
+                const gain3 = audioCtx.createGain();
+                osc3.connect(gain3);
+                gain3.connect(audioCtx.destination);
+                gain3.gain.setValueAtTime(0, time);
+                gain3.gain.linearRampToValueAtTime(vol * 0.3, time + 0.02);
+                gain3.gain.exponentialRampToValueAtTime(0.001, time + dur * 0.6);
+                osc3.start(time);
+                osc3.stop(time + dur);
+            } else if (flavor === 'metal') { // トライアングルなど
+                osc.type = 'sine';
+                const oscM = audioCtx.createOscillator();
+                oscM.type = 'square';
+                oscM.frequency.value = freq * 2.5;
+                const gainM = audioCtx.createGain();
+                gainM.gain.value = 0.1;
+                oscM.connect(gainM);
+                gainM.connect(audioCtx.destination);
+                oscM.start(time);
+                oscM.stop(time + dur);
+            } else if (flavor === 'saw') {
+                osc.type = 'sawtooth';
+            } else if (flavor === 'square') {
+                osc.type = 'square';
+            } else {
+                osc.type = 'sine';
+            }
+
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0, time);
+            gain.gain.linearRampToValueAtTime(vol, time + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + dur + 1.0);
+
+            osc.start(time);
+            osc.stop(time + dur + 2);
+        };
+
+        switch(typeIndex) {
+            case "1": // グランドピアノ
+                playTone(261.63, now, 2.0, 0.5, 'piano');
+                playTone(329.63, now+0.1, 2.0, 0.5, 'piano');
+                playTone(392.00, now+0.2, 2.0, 0.5, 'piano');
+                playTone(523.25, now+0.3, 2.5, 0.5, 'piano');
+                break;
+            case "2": // 教会の鐘
+                playTone(261.63, now, 3.0, 0.6, 'bell'); 
+                playTone(329.63, now, 3.0, 0.4, 'bell');
+                playTone(523.25, now+0.05, 3.0, 0.3, 'bell');
+                break;
+            case "3": // トライアングル
+                playTone(2000, now, 2.0, 0.3, 'metal');
+                playTone(2000, now+0.5, 2.0, 0.6, 'metal'); // チン、チーン
+                break;
+            case "4": // 天使のハープ
+                [261, 329, 392, 523, 659, 783, 1046].forEach((f, i) => {
+                    playTone(f, now + i*0.1, 1.5, 0.3, 'sine');
+                });
+                break;
+            case "5": // ウィンドチャイム
+                [1,2,3,4].forEach((i) => {
+                    const randomFreq = 2000 + Math.random() * 1500;
+                    playTone(randomFreq, now + Math.random()*1.5, 1.5, 0.2, 'bell');
+                });
+                break;
+            case "6": // 瞑想のボウル
+                playTone(440, now, 3.5, 0.6, 'sine');
+                playTone(446, now, 3.5, 0.6, 'sine'); // うなり
+                break;
+            case "7": // オーケストラ
+                playTone(261, now, 2.0, 0.2, 'saw');
+                playTone(329, now, 2.0, 0.2, 'saw');
+                playTone(392, now, 2.0, 0.2, 'saw');
+                playTone(523, now, 2.0, 0.2, 'saw');
+                break;
+            case "8": // マリンバ
+                playTone(523.25, now, 0.4, 0.7, 'triangle');
+                playTone(659.25, now+0.15, 0.4, 0.7, 'triangle');
+                playTone(783.99, now+0.3, 0.4, 0.7, 'triangle');
+                playTone(1046.5, now+0.45, 0.4, 0.7, 'triangle');
+                break;
+            case "9": // クリスタルベル
+                playTone(1046, now, 2.0, 0.3, 'bell');
+                playTone(2093, now+0.1, 2.0, 0.2, 'bell');
+                break;
+            case "10": // シンプルチャイム
+                playTone(784, now, 0.8, 0.5, 'sine'); // ソ
+                playTone(523, now+0.6, 1.5, 0.5, 'sine'); // ドー
+                break;
+            case "11": // 銅鑼 (Gong) - 低く不協和音
+                playTone(100, now, 4.0, 0.7, 'saw');
+                playTone(110, now, 4.0, 0.5, 'square');
+                playTone(145, now, 4.0, 0.4, 'bell');
+                break;
+            case "12": // オルゴール
+                playTone(523, now, 1.0, 0.4, 'sine');
+                playTone(659, now+0.25, 1.0, 0.4, 'sine');
+                playTone(784, now+0.5, 1.0, 0.4, 'sine');
+                playTone(1046, now+0.75, 1.5, 0.4, 'sine');
+                break;
+            case "13": // 琴 (Koto style)
+                playTone(293, now, 1.5, 0.5, 'triangle'); // レ
+                playTone(329, now+0.2, 1.5, 0.5, 'triangle'); // ミ
+                playTone(392, now+0.4, 1.5, 0.5, 'triangle'); // ソ
+                playTone(440, now+0.6, 2.0, 0.5, 'triangle'); // ラ
+                break;
+            case "14": // 勝利のファンファーレ
+                playTone(392, now, 0.2, 0.4, 'saw');
+                playTone(392, now+0.2, 0.2, 0.4, 'saw');
+                playTone(392, now+0.4, 0.2, 0.4, 'saw');
+                playTone(523, now+0.6, 1.5, 0.5, 'saw');
+                break;
+            case "15": // 決定音 (Level Up)
+                playTone(440, now, 0.1, 0.4, 'square');
+                playTone(554, now+0.1, 0.1, 0.4, 'square');
+                playTone(659, now+0.2, 0.1, 0.4, 'square');
+                playTone(880, now+0.3, 0.6, 0.4, 'square');
+                break;
+        }
+    }
+
+    // --- キーボード操作 ---
+    document.addEventListener('keydown', (e) => {
+        // Space: 停止と再開 / アラーム停止
+        if (e.code === 'Space') {
+            if (document.activeElement.tagName !== 'INPUT') {
+                e.preventDefault();
+                togglePause();
+            }
+        }
+        // Enter: スタート
+        if (e.code === 'Enter') {
+            startTimer();
+        }
+        // Esc: リセット / アラーム停止
+        if (e.code === 'Escape') {
+            e.preventDefault();
+            resetTimer();
+        }
+    });
+
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+        else if (document.exitFullscreen) document.exitFullscreen();
+    }
+</script>
+</body>
+</html>
