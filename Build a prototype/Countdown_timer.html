@@ -201,7 +201,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 20px;
+            gap: 15px; /* 幅調整のため少し狭める */
             width: 100%;
             flex-wrap: wrap;
         }
@@ -276,6 +276,7 @@
             justify-content: center;
             border-radius: 4px;
             transition: background 0.2s, color 0.2s;
+            -webkit-tap-highlight-color: transparent; 
         }
         .spinner-btn:hover {
             background: #666;
@@ -332,10 +333,10 @@
         .checkbox-row {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             height: 40px;
             background: rgba(255,255,255,0.08);
-            padding: 0 15px;
+            padding: 0 12px;
             border-radius: 6px;
             font-size: 0.95rem;
         }
@@ -344,9 +345,27 @@
         #preAlarmTimeDisplay {
             color: var(--accent-color);
             font-weight: bold;
-            margin-left: 5px;
+            margin-left: 2px;
             font-family: monospace;
-            font-size: 1.1em;
+            font-size: 1.05em;
+        }
+
+        /* 初期化ボタン */
+        .reset-settings-btn {
+            background: transparent;
+            color: #ff4444;
+            border: 1px solid #ff4444;
+            border-radius: 6px;
+            padding: 0 15px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: background 0.2s, color 0.2s;
+            margin-left: auto; /* 右寄せ */
+        }
+        .reset-settings-btn:hover { 
+            background: #ff4444; 
+            color: white; 
         }
 
     </style>
@@ -402,25 +421,37 @@
 
                 <div class="time-inputs">
                     <div class="spinner-group">
-                        <button class="spinner-btn" onclick="adjustTime('inH', 1)">▲</button>
+                        <button class="spinner-btn" 
+                            onmousedown="startSpin('inH', 1)" onmouseup="stopSpin()" onmouseleave="stopSpin()"
+                            ontouchstart="handleTouchStart(event, 'inH', 1)" ontouchend="stopSpin()" ontouchcancel="stopSpin()">▲</button>
                         <input type="number" id="inH" min="0" max="99" value="0">
-                        <button class="spinner-btn" onclick="adjustTime('inH', -1)">▼</button>
+                        <button class="spinner-btn" 
+                            onmousedown="startSpin('inH', -1)" onmouseup="stopSpin()" onmouseleave="stopSpin()"
+                            ontouchstart="handleTouchStart(event, 'inH', -1)" ontouchend="stopSpin()" ontouchcancel="stopSpin()">▼</button>
                     </div>
                     
                     <span class="time-sep">:</span>
                     
                     <div class="spinner-group">
-                        <button class="spinner-btn" onclick="adjustTime('inM', 1)">▲</button>
+                        <button class="spinner-btn" 
+                            onmousedown="startSpin('inM', 1)" onmouseup="stopSpin()" onmouseleave="stopSpin()"
+                            ontouchstart="handleTouchStart(event, 'inM', 1)" ontouchend="stopSpin()" ontouchcancel="stopSpin()">▲</button>
                         <input type="number" id="inM" min="0" max="59" value="15">
-                        <button class="spinner-btn" onclick="adjustTime('inM', -1)">▼</button>
+                        <button class="spinner-btn" 
+                            onmousedown="startSpin('inM', -1)" onmouseup="stopSpin()" onmouseleave="stopSpin()"
+                            ontouchstart="handleTouchStart(event, 'inM', -1)" ontouchend="stopSpin()" ontouchcancel="stopSpin()">▼</button>
                     </div>
                     
                     <span class="time-sep">:</span>
                     
                     <div class="spinner-group">
-                        <button class="spinner-btn" onclick="adjustTime('inS', 1)">▲</button>
+                        <button class="spinner-btn" 
+                            onmousedown="startSpin('inS', 1)" onmouseup="stopSpin()" onmouseleave="stopSpin()"
+                            ontouchstart="handleTouchStart(event, 'inS', 1)" ontouchend="stopSpin()" ontouchcancel="stopSpin()">▲</button>
                         <input type="number" id="inS" min="0" max="59" value="0">
-                        <button class="spinner-btn" onclick="adjustTime('inS', -1)">▼</button>
+                        <button class="spinner-btn" 
+                            onmousedown="startSpin('inS', -1)" onmouseup="stopSpin()" onmouseleave="stopSpin()"
+                            ontouchstart="handleTouchStart(event, 'inS', -1)" ontouchend="stopSpin()" ontouchcancel="stopSpin()">▼</button>
                     </div>
 
                     <button class="mini-btn" onclick="clearCustomInput()" title="0に戻す">↺</button>
@@ -452,18 +483,20 @@
             <div class="settings-tier tier-options">
                 <div class="checkbox-row">
                     <input type="checkbox" id="preAlarmToggle" checked>
-                    <span>予鈴 (残 <input type="number" id="preAlarmPercent" value="20" min="1" max="99" style="width:40px; background:transparent; border:none; color:white; border-bottom:1px solid white; text-align:center;"> %)</span>
+                    <span>予鈴 (残 <input type="number" id="preAlarmPercent" value="20" min="0" max="99" style="width:40px; background:transparent; border:none; color:white; border-bottom:1px solid white; text-align:center;"> %)</span>
                     <span id="preAlarmTimeDisplay">(@ 03:00)</span>
                 </div>
                 
                 <div class="checkbox-row">
-                    <span>鳴動: <input type="number" id="alarmDurationIn" value="10" min="1" max="999" style="width:40px; background:transparent; border:none; color:white; border-bottom:1px solid white; text-align:center;"> 秒</span>
+                    <span>アラーム: <input type="number" id="alarmDurationIn" value="10" min="1" max="999" style="width:40px; background:transparent; border:none; color:white; border-bottom:1px solid white; text-align:center;"> 秒</span>
                 </div>
 
                 <div class="checkbox-row">
                     <input type="checkbox" id="loopToggle">
                     <span>ループ再生</span>
                 </div>
+
+                <button class="reset-settings-btn" onclick="factoryReset()">設定を初期化</button>
             </div>
 
         </div>
@@ -485,9 +518,12 @@
      * Ver 1.10: 画面右下にショートカットキーの案内を追加
      * Ver 1.11: タイムアップ時のアラーム鳴動時間を可変(デフォルト10秒)にし、Local Storage保存に対応
      * Ver 1.12: ソースコード内のバージョン履歴コメントを拡充・明記
+     * Ver 1.13: 【バグ修正】予鈴0%対応、ループ時のアラーム継続、Spaceキー再開バグの修正
+     * Ver 1.14: 設定初期化ボタンの追加、時間設定(▲▼)の長押し連続変更に対応
+     * Ver 1.15: 「鳴動」を「アラーム」に変更しUIバランス調整、バージョン履歴の差し替え
      */
 
-    const APP_VERSION = "1.12";
+    const APP_VERSION = "1.15";
     
     let timerInterval = null;
     let alarmLoopInterval = null;
@@ -500,6 +536,10 @@
     let isAlarmRinging = false;
     let audioCtx = null;
     
+    // スピンボタン（長押し）用
+    let spinInterval = null;
+    let spinTimeout = null;
+
     let drawerHideTimeout = null;
     const drawer = document.querySelector('.control-drawer');
     const drawerHandle = document.querySelector('.drawer-handle');
@@ -538,6 +578,17 @@
         updateDisplay();
     };
 
+    // --- 設定保存・読み込み・初期化 ---
+    function getPreAlarmPercent() {
+        let p = parseInt(preAlarmPercentIn.value);
+        return isNaN(p) ? 20 : Math.max(0, Math.min(99, p));
+    }
+
+    function getAlarmDuration() {
+        let d = parseInt(alarmDurationIn.value);
+        return (isNaN(d) || d <= 0) ? 10 : d;
+    }
+
     function saveSettings() {
         const settings = {
             preset: presetSelect.value,
@@ -564,12 +615,19 @@
                 if (settings.s) inS.value = settings.s;
                 if (settings.sound) soundSelect.value = settings.sound;
                 if (settings.preAlarm !== undefined) preAlarmToggle.checked = settings.preAlarm;
-                if (settings.prePercent) preAlarmPercentIn.value = settings.prePercent;
+                if (settings.prePercent !== undefined) preAlarmPercentIn.value = settings.prePercent; 
                 if (settings.loop !== undefined) loopToggle.checked = settings.loop;
                 if (settings.alarmDuration) alarmDurationIn.value = settings.alarmDuration;
             } catch(e) {
                 console.error("設定の読み込みに失敗しました", e);
             }
+        }
+    }
+
+    function factoryReset() {
+        if (confirm("保存された設定をすべて削除して、初期状態に戻しますか？")) {
+            localStorage.removeItem('countdownTimerSettings');
+            location.reload(); 
         }
     }
 
@@ -684,6 +742,7 @@
         saveSettings();
     }
 
+    // --- スピンボタン連続操作 ---
     function adjustTime(id, amount) {
         presetSelect.value = 'custom';
         const input = document.getElementById(id);
@@ -697,16 +756,39 @@
 
         input.value = val;
         updateTimeFromInput();
-        saveSettings();
+        saveSettings(); 
+    }
+
+    function startSpin(id, amount) {
+        adjustTime(id, amount); 
+        spinTimeout = setTimeout(() => {
+            spinInterval = setInterval(() => {
+                adjustTime(id, amount);
+            }, 100); 
+        }, 400); 
+    }
+
+    function stopSpin() {
+        if (spinTimeout) clearTimeout(spinTimeout);
+        if (spinInterval) clearInterval(spinInterval);
+    }
+
+    function handleTouchStart(e, id, amount) {
+        e.preventDefault(); 
+        startSpin(id, amount);
     }
 
     function updatePreAlarmCalc() {
-        const percent = parseInt(preAlarmPercentIn.value) || 0;
-        const triggerSec = Math.floor(totalSeconds * (percent / 100));
-        const m = Math.floor(triggerSec / 60);
-        const s = triggerSec % 60;
-        const timeStr = m.toString().padStart(2, '0') + ":" + s.toString().padStart(2, '0');
-        preAlarmTimeDisplay.textContent = `(@ ${timeStr})`;
+        const percent = getPreAlarmPercent();
+        if (percent <= 0) {
+            preAlarmTimeDisplay.textContent = `(予鈴なし)`;
+        } else {
+            const triggerSec = Math.floor(totalSeconds * (percent / 100));
+            const m = Math.floor(triggerSec / 60);
+            const s = triggerSec % 60;
+            const timeStr = m.toString().padStart(2, '0') + ":" + s.toString().padStart(2, '0');
+            preAlarmTimeDisplay.textContent = `(@ ${timeStr})`;
+        }
     }
 
     function updateTimeFromInput() {
@@ -806,13 +888,14 @@
             remainingSeconds--;
 
             if (preAlarmToggle.checked) {
-                const percent = parseInt(preAlarmPercentIn.value) || 20;
-                const triggerSec = Math.floor(totalSeconds * (percent / 100));
-                
-                if (remainingSeconds === triggerSec && remainingSeconds > 0) {
-                    playAlarmSound(1.0, 1.0); 
-                    statusMsg.textContent = "予鈴 (" + percent + "%)";
-                    startBlinking('--bg-warning', 3000);
+                const percent = getPreAlarmPercent();
+                if (percent > 0) {
+                    const triggerSec = Math.floor(totalSeconds * (percent / 100));
+                    if (remainingSeconds === triggerSec && remainingSeconds > 0) {
+                        playAlarmSound(1.0, 1.0); 
+                        statusMsg.textContent = "予鈴 (" + percent + "%)";
+                        startBlinking('--bg-warning', 3000);
+                    }
                 }
             }
 
@@ -821,11 +904,12 @@
 
             if (remainingSeconds <= 0) {
                 if (loopToggle.checked) {
-                    playAlarmSound(2.5, 2.5);
+                    const dur = getAlarmDuration();
+                    playAlarmLoop(dur); 
                     remainingSeconds = totalSeconds;
                     updateDisplay();
                     drawCircle(1);
-                    startBlinking('--bg-danger', 2500);
+                    startBlinking('--bg-danger', dur * 1000);
                 } else {
                     timeIsUp();
                 }
@@ -844,7 +928,7 @@
 
     function togglePause() {
         if (isAlarmRinging) {
-            startTimer();
+            resetTimer(); 
             return;
         }
         if (!isRunning && !isPaused && remainingSeconds === totalSeconds) {
@@ -882,7 +966,7 @@
         drawCircle(0);
         statusMsg.textContent = "Finished";
         
-        const dur = parseInt(alarmDurationIn.value) || 10;
+        const dur = getAlarmDuration();
         startBlinking('--bg-danger', dur * 1000);
         playAlarmLoop(dur); 
     }
@@ -901,6 +985,7 @@
     }
 
     function testSound() {
+        stopAlarm(); 
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
         const typeIndex = soundSelect.value;
@@ -911,6 +996,11 @@
     function playAlarmLoop(duration) {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        if (alarmLoopInterval) {
+            clearInterval(alarmLoopInterval);
+            alarmLoopInterval = null;
+        }
 
         const typeIndex = soundSelect.value;
         const isChime = (typeIndex === "2"); 
