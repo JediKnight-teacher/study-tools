@@ -23,7 +23,7 @@
             height: 100vh;
             width: 100vw;
             overflow: hidden;
-            transition: background-color 0.3s ease-out; /* 点滅を滑らかにするためのトランジション */
+            transition: background-color 0.3s ease-out;
             user-select: none; 
         }
 
@@ -454,15 +454,16 @@
      * Ver 1.4 : タイトル表示簡略化、再スタート挙動改善
      * Ver 1.5 : 背景フラッシュ時間調整
      * Ver 1.6 : サウンドリスト順序変更
-     * Ver 1.7 : 背景の点滅機能実装（予鈴・アラーム時に点滅を繰り返すように変更）
+     * Ver 1.7 : 背景の点滅機能実装
+     * Ver 1.8 : メニュー自動クローズ時間を2秒に短縮、SETTINGSクリックで即閉じる機能追加
      */
 
-    const APP_VERSION = "1.7";
+    const APP_VERSION = "1.8";
     
     let timerInterval = null;
     let alarmLoopInterval = null;
-    let flashInterval = null; // 点滅用インターバル
-    let flashTimeout = null;  // 点滅停止用タイマー
+    let flashInterval = null;
+    let flashTimeout = null;
     let totalSeconds = 900;
     let remainingSeconds = 900;
     let isRunning = false;
@@ -472,6 +473,7 @@
     
     let drawerHideTimeout = null;
     const drawer = document.querySelector('.control-drawer');
+    const drawerHandle = document.querySelector('.drawer-handle'); // ハンドル要素取得
 
     const display = document.getElementById('timeDisplay');
     const canvas = document.getElementById('progressCanvas');
@@ -499,12 +501,20 @@
         if (drawerHideTimeout) clearTimeout(drawerHideTimeout);
         drawer.classList.add('visible');
     };
+    
+    // 自動で閉じる処理
     const hideDrawer = () => {
         if (drawerHideTimeout) clearTimeout(drawerHideTimeout);
         drawerHideTimeout = setTimeout(() => {
             drawer.classList.remove('visible');
-        }, 3000);
+        }, 2000); // 3000 -> 2000に変更
     };
+
+    // SETTINGSクリックで即閉じる処理
+    drawerHandle.addEventListener('click', () => {
+        drawer.classList.remove('visible');
+        if (drawerHideTimeout) clearTimeout(drawerHideTimeout);
+    });
 
     drawer.addEventListener('mouseenter', showDrawer);
     drawer.addEventListener('mouseleave', hideDrawer);
@@ -512,15 +522,12 @@
         if (e.clientY > window.innerHeight - 50) showDrawer();
     });
 
-    // --- 点滅機能の実装 ---
+    // --- 点滅機能 ---
     function startBlinking(colorVar, durationMs) {
-        // 既に動いている点滅があれば停止
         stopBlinking();
-
         let isVisible = false;
-        const blinkSpeed = 500; // 0.5秒間隔で切り替え
+        const blinkSpeed = 500;
 
-        // 初回点灯
         document.body.style.backgroundColor = `var(${colorVar})`;
         isVisible = true;
 
@@ -533,7 +540,6 @@
             isVisible = !isVisible;
         }, blinkSpeed);
 
-        // 指定時間後に停止 (0の場合は無限)
         if (durationMs > 0) {
             flashTimeout = setTimeout(() => {
                 stopBlinking();
@@ -717,7 +723,6 @@
                 if (remainingSeconds === triggerSec && remainingSeconds > 0) {
                     playAlarmSound(1.0, 1.0); 
                     statusMsg.textContent = "予鈴 (" + percent + "%)";
-                    // 予鈴は3秒間点滅
                     startBlinking('--bg-warning', 3000);
                 }
             }
@@ -731,7 +736,6 @@
                     remainingSeconds = totalSeconds;
                     updateDisplay();
                     drawCircle(1);
-                    // ループ時は2.5秒間点滅
                     startBlinking('--bg-danger', 2500);
                 } else {
                     timeIsUp();
@@ -770,7 +774,7 @@
         isRunning = false;
         isPaused = false;
         isAlarmRinging = false;
-        stopBlinking(); // 点滅も確実に停止
+        stopBlinking();
         document.body.style.backgroundColor = "var(--bg-normal)";
         statusMsg.textContent = "";
         applyPreset();
@@ -788,7 +792,6 @@
         updateDisplay();
         drawCircle(0);
         statusMsg.textContent = "Finished";
-        // タイムアップ時は10秒間点滅（アラーム停止まで）
         startBlinking('--bg-danger', 10000);
         playAlarmLoop(10); 
         setTimeout(() => { drawer.classList.add('visible'); }, 3000);
@@ -803,7 +806,7 @@
         if (audioCtx && audioCtx.state === 'running') {
             audioCtx.suspend();
         }
-        stopBlinking(); // アラーム停止時に点滅も停止
+        stopBlinking();
         updateDisplay();
     }
 
@@ -833,7 +836,6 @@
             if (counter >= maxLoops) {
                 clearInterval(alarmLoopInterval);
                 alarmLoopInterval = null;
-                // ループ終了時に点滅も停止したい場合はここでも呼ぶ（念のため）
                 stopBlinking(); 
             } else {
                 playAlarmSound(5, 5);
@@ -914,7 +916,6 @@
                 playTone(523.25, now+0.3, 2.5, 0.5, 'piano');
                 break;
             case "2": 
-                // 学校のチャイム (Westminster)
                 const t = 0.6;
                 playTone(659.25, now, 2.0, 0.4, 'bell');
                 playTone(523.25, now + t, 2.0, 0.4, 'bell');
@@ -978,7 +979,6 @@
                 playTone(1046, now+0.75, 1.5, 0.4, 'sine');
                 break;
             case "13": 
-                // 教会の鐘 (Church Bell) を移動
                 playTone(261.63, now, 3.0, 0.6, 'bell'); 
                 playTone(329.63, now, 3.0, 0.4, 'bell');
                 playTone(523.25, now+0.05, 3.0, 0.3, 'bell');
