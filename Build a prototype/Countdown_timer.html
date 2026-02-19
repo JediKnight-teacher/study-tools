@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Countdown timer ver.1.1</title>
+    <title>Countdown Timer</title>
     <style>
         :root {
             --bg-normal: #1a2a3a;
             --bg-warning: #8a7a00;
-            --bg-danger: #8a0000; /* 少し明るめの赤に変更 */
+            --bg-danger: #8a0000;
             --text-color: #ffffff;
             --panel-bg: rgba(15, 15, 20, 0.95);
             --accent-color: #00d2ff;
@@ -23,11 +23,10 @@
             height: 100vh;
             width: 100vw;
             overflow: hidden;
-            /* 背景色の変化アニメーション設定 */
-            transition: background-color 0.3s ease-out;
+            transition: background-color 0.3s ease-out; /* 点滅を滑らかにするためのトランジション */
+            user-select: none; 
         }
 
-        /* 全画面ボタン */
         .fullscreen-btn {
             position: absolute;
             top: 20px;
@@ -42,6 +41,17 @@
         }
         .fullscreen-btn:hover { background: rgba(255,255,255,0.3); }
 
+        .version-display {
+            position: absolute;
+            bottom: 10px;
+            right: 15px;
+            color: rgba(255, 255, 255, 0.2);
+            font-family: monospace;
+            font-size: 0.9rem;
+            z-index: 50;
+            pointer-events: none;
+        }
+
         /* --- メイン画面 --- */
         .timer-fullscreen {
             position: absolute;
@@ -53,15 +63,11 @@
             align-items: center;
             justify-content: center;
             z-index: 1;
-            /* 重要: 下部に余白を持たせてSETTINGSと被らないように調整 */
-            padding-bottom: 60px; 
-            box-sizing: border-box; 
         }
 
         #progressCanvas {
-            /* 最大サイズを制限して重なりを防止 */
-            max-width: 85vw;
-            max-height: 80vh;
+            max-width: 90vmin;
+            max-height: 90vmin;
             transform: rotate(-90deg);
         }
 
@@ -69,25 +75,26 @@
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -60%); /* 少し上に持ち上げる */
-            font-size: 15vw; /* 少しサイズ調整 */
+            transform: translate(-50%, -55%); 
+            font-size: 22vmin; 
             font-weight: bold;
             font-variant-numeric: tabular-nums;
             z-index: 10;
             text-shadow: 0 0 50px rgba(0,0,0,0.8);
             pointer-events: none;
             text-align: center;
+            line-height: 1;
         }
         
         .status-text {
             display: block;
-            font-size: 2rem;
-            margin-top: 10px;
+            font-size: 4vmin;
+            margin-top: 2vmin;
             color: #ffeb3b;
-            min-height: 3rem;
+            min-height: 1.2em;
         }
 
-        /* --- 設定ドロワー (3段レイアウト) --- */
+        /* --- 設定ドロワー --- */
         .control-drawer {
             position: fixed;
             bottom: 0;
@@ -95,17 +102,16 @@
             width: 100%;
             background-color: var(--panel-bg);
             border-top: 3px solid var(--accent-color);
-            padding: 30px 40px 40px 40px;
+            padding: 20px 40px 30px 40px;
             box-sizing: border-box;
-            
-            transform: translateY(98%); /* 普段はほぼ隠す */
+            transform: translateY(98%);
             transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
             z-index: 100;
             box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
-            
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 15px;
+            user-select: auto;
         }
 
         .control-drawer.visible {
@@ -122,14 +128,13 @@
             z-index: 101;
         }
         
-        /* SETTINGSラベルのデザイン調整 */
         .drawer-handle::after {
             content: "▲ SETTINGS ▲";
             font-size: 10px;
             font-weight: bold;
-            color: rgba(255,255,255,0.3); /* 普段は薄く */
+            color: rgba(255,255,255,0.3);
             display: block;
-            margin-top: 10px; /* 位置を下げる */
+            margin-top: 10px;
             background: rgba(0,0,0,0.6);
             width: 120px;
             margin-left: auto;
@@ -140,20 +145,18 @@
             transition: color 0.3s, background 0.3s, margin-top 0.3s;
         }
         
-        /* ホバー時に目立たせる */
         .drawer-handle:hover::after,
         .control-drawer:hover .drawer-handle::after {
             color: rgba(255,255,255,0.9);
             background: var(--accent-color);
-            margin-top: 5px; /* 少し飛び出す */
+            margin-top: 5px;
         }
 
-        /* ボタン列 */
         .action-row {
             display: flex;
             gap: 20px;
             justify-content: center;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
         .btn {
             padding: 12px 0;
@@ -172,7 +175,6 @@
         .btn-stop { background: linear-gradient(to bottom, #dc3545, #bd2130); }
         .btn-reset { background: linear-gradient(to bottom, #6c757d, #545b62); flex: 0.4; max-width: 150px; }
 
-        /* 設定エリア全体 */
         .settings-container {
             display: flex;
             flex-direction: column;
@@ -190,20 +192,10 @@
             flex-wrap: wrap;
         }
 
-        /* 1段目: 時間設定 */
         .tier-time {
             background: rgba(255,255,255,0.05);
             padding: 10px 20px;
             border-radius: 10px;
-        }
-        
-        /* 2段目: 音設定 */
-        .tier-sound {
-        }
-
-        /* 3段目: オプション */
-        .tier-options {
-            opacity: 0.9;
         }
 
         label {
@@ -213,7 +205,7 @@
             margin-right: 10px;
         }
 
-        select, input[type="number"] {
+        select {
             background-color: #333;
             color: white;
             border: 1px solid #666;
@@ -221,21 +213,71 @@
             border-radius: 6px;
             font-size: 1.1rem;
         }
-        select:focus, input:focus { outline: 2px solid var(--accent-color); }
-
+        
         .time-inputs {
             display: flex;
             align-items: center;
             gap: 5px;
         }
-        .time-inputs input {
-            width: 60px;
+
+        .spinner-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+            width: 70px;
+            height: 50px;
             text-align: center;
             font-weight: bold;
-            font-size: 1.4rem;
+            font-size: 1.8rem;
             background-color: #222;
+            color: white;
+            border: 1px solid #444;
+            border-radius: 4px;
         }
-        .time-sep { font-size: 1.4rem; font-weight: bold; color: #888; }
+        input[type="number"]:focus {
+            outline: 2px solid var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .spinner-btn {
+            width: 70px;
+            height: 25px;
+            background: #444;
+            border: 1px solid #555;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: background 0.2s, color 0.2s;
+        }
+        .spinner-btn:hover {
+            background: #666;
+            color: white;
+        }
+        .spinner-btn:active {
+            background: var(--accent-color);
+            color: #000;
+        }
+
+        .time-sep { 
+            font-size: 1.8rem; 
+            font-weight: bold; 
+            color: #888; 
+            margin-top: 0; 
+        }
 
         #soundSelect {
             width: 300px;
@@ -246,13 +288,18 @@
             background: #555;
             color: white;
             border: none;
-            border-radius: 6px;
-            width: 35px;
-            height: 35px;
+            border-radius: 8px;
+            width: 50px;
+            height: 50px;
             cursor: pointer;
-            font-size: 1.2rem;
-            margin-left: 5px;
+            font-size: 1.8rem;
+            margin-left: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
         }
+        .mini-btn:hover { background: #777; }
 
         .test-btn {
             background: #007bff;
@@ -280,7 +327,6 @@
         }
         input[type="checkbox"] { transform: scale(1.3); cursor: pointer; margin: 0;}
 
-        /* 予鈴計算表示用 */
         #preAlarmTimeDisplay {
             color: var(--accent-color);
             font-weight: bold;
@@ -292,6 +338,8 @@
     </style>
 </head>
 <body>
+    
+    <div class="version-display" id="versionDisplay"></div>
 
     <button class="fullscreen-btn" onclick="toggleFullScreen()">⛶ 全画面</button>
 
@@ -317,7 +365,7 @@
             <div class="settings-tier tier-time">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <label>プリセット</label>
-                    <select id="presetSelect" onchange="applyPreset()" style="width: 140px;">
+                    <select id="presetSelect" onchange="applyPreset()" style="width: 140px; height: 50px; font-size: 1.2rem;">
                         <option value="custom">▼ カスタム</option>
                         <option value="600">10分</option>
                         <option value="900" selected>15分</option>
@@ -330,12 +378,31 @@
                     </select>
                 </div>
 
-                <div style="width: 1px; height: 30px; background: #555; margin: 0 10px;"></div>
+                <div style="width: 1px; height: 60px; background: #555; margin: 0 15px;"></div>
 
                 <div class="time-inputs">
-                    <input type="number" id="inH" min="0" max="99" value="0"><span class="time-sep">:</span>
-                    <input type="number" id="inM" min="0" max="59" value="15"><span class="time-sep">:</span>
-                    <input type="number" id="inS" min="0" max="59" value="0">
+                    <div class="spinner-group">
+                        <button class="spinner-btn" onclick="adjustTime('inH', 1)">▲</button>
+                        <input type="number" id="inH" min="0" max="99" value="0">
+                        <button class="spinner-btn" onclick="adjustTime('inH', -1)">▼</button>
+                    </div>
+                    
+                    <span class="time-sep">:</span>
+                    
+                    <div class="spinner-group">
+                        <button class="spinner-btn" onclick="adjustTime('inM', 1)">▲</button>
+                        <input type="number" id="inM" min="0" max="59" value="15">
+                        <button class="spinner-btn" onclick="adjustTime('inM', -1)">▼</button>
+                    </div>
+                    
+                    <span class="time-sep">:</span>
+                    
+                    <div class="spinner-group">
+                        <button class="spinner-btn" onclick="adjustTime('inS', 1)">▲</button>
+                        <input type="number" id="inS" min="0" max="59" value="0">
+                        <button class="spinner-btn" onclick="adjustTime('inS', -1)">▼</button>
+                    </div>
+
                     <button class="mini-btn" onclick="clearCustomInput()" title="0に戻す">↺</button>
                 </div>
             </div>
@@ -344,7 +411,7 @@
                 <label>アラーム音</label>
                 <select id="soundSelect">
                     <option value="1">1. グランドピアノ (Chord)</option>
-                    <option value="2">2. 教会の鐘 (Church Bell)</option>
+                    <option value="2" selected>2. 学校のチャイム (Westminster)</option>
                     <option value="3">3. トライアングル (Triangle)</option>
                     <option value="4">4. 天使のハープ (Harp)</option>
                     <option value="5">5. ウィンドチャイム (Wind)</option>
@@ -355,7 +422,7 @@
                     <option value="10">10. シンプルチャイム (Ding-Dong)</option>
                     <option value="11">11. 銅鑼 (Gong)</option>
                     <option value="12">12. オルゴール (Music Box)</option>
-                    <option value="13">13. 琴 (Koto style)</option>
+                    <option value="13">13. 教会の鐘 (Church Bell)</option>
                     <option value="14">14. 勝利のファンファーレ (Trumpet)</option>
                     <option value="15">15. 決定音 (Level Up)</option>
                 </select>
@@ -378,9 +445,24 @@
     </div>
 
 <script>
+    /*
+     * カウントダウンタイマー アプリケーション
+     * [バージョン履歴]
+     * Ver 1.1 : 初回リリース
+     * Ver 1.2 : 高解像度対応、UI改善
+     * Ver 1.3 : 時間設定ボタン追加
+     * Ver 1.4 : タイトル表示簡略化、再スタート挙動改善
+     * Ver 1.5 : 背景フラッシュ時間調整
+     * Ver 1.6 : サウンドリスト順序変更
+     * Ver 1.7 : 背景の点滅機能実装（予鈴・アラーム時に点滅を繰り返すように変更）
+     */
+
+    const APP_VERSION = "1.7";
+    
     let timerInterval = null;
     let alarmLoopInterval = null;
-    let flashTimeout = null;
+    let flashInterval = null; // 点滅用インターバル
+    let flashTimeout = null;  // 点滅停止用タイマー
     let totalSeconds = 900;
     let remainingSeconds = 900;
     let isRunning = false;
@@ -388,11 +470,9 @@
     let isAlarmRinging = false;
     let audioCtx = null;
     
-    // メニュー制御
     let drawerHideTimeout = null;
     const drawer = document.querySelector('.control-drawer');
 
-    // DOM要素
     const display = document.getElementById('timeDisplay');
     const canvas = document.getElementById('progressCanvas');
     const ctx = canvas.getContext('2d');
@@ -405,6 +485,8 @@
     const statusMsg = document.getElementById('statusMsg');
 
     window.onload = () => {
+        document.title = "Countdown Timer";
+        document.getElementById('versionDisplay').textContent = `Ver ${APP_VERSION}`;
         resizeCanvas();
         applyPreset();
     };
@@ -413,7 +495,6 @@
         updateDisplay();
     };
 
-    // --- メニュー動作 ---
     const showDrawer = () => {
         if (drawerHideTimeout) clearTimeout(drawerHideTimeout);
         drawer.classList.add('visible');
@@ -428,31 +509,60 @@
     drawer.addEventListener('mouseenter', showDrawer);
     drawer.addEventListener('mouseleave', hideDrawer);
     document.addEventListener('mousemove', (e) => {
-        // マウスが下端50pxに来たら表示
         if (e.clientY > window.innerHeight - 50) showDrawer();
     });
 
-    // --- 背景フラッシュ制御 ---
-    function triggerFlash(colorVar) {
-        if (flashTimeout) clearTimeout(flashTimeout);
+    // --- 点滅機能の実装 ---
+    function startBlinking(colorVar, durationMs) {
+        // 既に動いている点滅があれば停止
+        stopBlinking();
 
-        // 即座に色を変更
-        document.body.style.transition = "background-color 0.2s ease-out";
+        let isVisible = false;
+        const blinkSpeed = 500; // 0.5秒間隔で切り替え
+
+        // 初回点灯
         document.body.style.backgroundColor = `var(${colorVar})`;
+        isVisible = true;
 
-        // 2秒後に元の色に戻すアニメーションを開始
-        flashTimeout = setTimeout(() => {
-            document.body.style.transition = "background-color 2.0s ease-out"; // ゆっくり戻る
-            document.body.style.backgroundColor = "var(--bg-normal)";
-        }, 2000);
+        flashInterval = setInterval(() => {
+            if (isVisible) {
+                document.body.style.backgroundColor = "var(--bg-normal)";
+            } else {
+                document.body.style.backgroundColor = `var(${colorVar})`;
+            }
+            isVisible = !isVisible;
+        }, blinkSpeed);
+
+        // 指定時間後に停止 (0の場合は無限)
+        if (durationMs > 0) {
+            flashTimeout = setTimeout(() => {
+                stopBlinking();
+            }, durationMs);
+        }
     }
 
-    // --- 描画・時間計算 ---
+    function stopBlinking() {
+        if (flashInterval) {
+            clearInterval(flashInterval);
+            flashInterval = null;
+        }
+        if (flashTimeout) {
+            clearTimeout(flashTimeout);
+            flashTimeout = null;
+        }
+        document.body.style.backgroundColor = "var(--bg-normal)";
+    }
+
     function resizeCanvas() {
-        // キャンバスサイズを調整
-        const size = Math.min(window.innerWidth, window.innerHeight * 0.8); // 高さは少し控えめに
-        canvas.width = size;
-        canvas.height = size;
+        const dpr = window.devicePixelRatio || 1;
+        const size = Math.min(window.innerWidth, window.innerHeight * 0.9);
+        
+        canvas.style.width = size + "px";
+        canvas.style.height = size + "px";
+        canvas.width = size * dpr;
+        canvas.height = size * dpr;
+
+        ctx.scale(dpr, dpr);
         drawCircle(isRunning || isPaused ? remainingSeconds / totalSeconds : 1);
     }
 
@@ -473,6 +583,21 @@
         updateTimeFromInput();
     }
 
+    function adjustTime(id, amount) {
+        presetSelect.value = 'custom';
+        const input = document.getElementById(id);
+        let val = parseInt(input.value) || 0;
+        const max = parseInt(input.getAttribute('max'));
+        
+        val += amount;
+
+        if (val > max) val = 0;
+        if (val < 0) val = max;
+
+        input.value = val;
+        updateTimeFromInput();
+    }
+
     [inH, inM, inS].forEach(el => el.addEventListener('input', () => {
         presetSelect.value = 'custom';
         updateTimeFromInput();
@@ -483,11 +608,9 @@
     function updatePreAlarmCalc() {
         const percent = parseInt(preAlarmPercentIn.value) || 0;
         const triggerSec = Math.floor(totalSeconds * (percent / 100));
-        
         const m = Math.floor(triggerSec / 60);
         const s = triggerSec % 60;
         const timeStr = m.toString().padStart(2, '0') + ":" + s.toString().padStart(2, '0');
-        
         preAlarmTimeDisplay.textContent = `(@ ${timeStr})`;
     }
 
@@ -508,14 +631,31 @@
         if (h > 0) timeStr += h.toString().padStart(2, '0') + ":";
         timeStr += m.toString().padStart(2, '0') + ":" + s.toString().padStart(2, '0');
         display.textContent = timeStr;
+        updateTitle(timeStr);
+    }
+
+    function updateTitle(timeStr) {
+        if (isAlarmRinging) {
+            document.title = "TIME UP!";
+        } else if (timeStr) {
+            document.title = timeStr; 
+        } else {
+            document.title = "Countdown Timer";
+        }
     }
 
     function drawCircle(percentage) {
         if (percentage < 0) percentage = 0;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-        const radius = (canvas.width / 2) - 10;
+        
+        const dpr = window.devicePixelRatio || 1;
+        const logicalWidth = canvas.width / dpr;
+        const logicalHeight = canvas.height / dpr;
+
+        ctx.clearRect(0, 0, logicalWidth, logicalHeight);
+        
+        const centerX = logicalWidth / 2;
+        const centerY = logicalHeight / 2;
+        const radius = (logicalWidth / 2) - 15;
 
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
@@ -528,7 +668,6 @@
         ctx.lineWidth = 15;
         ctx.lineCap = 'round';
         
-        // 色分け
         if (percentage <= 0.1) ctx.strokeStyle = "#ff4444";
         else if (percentage <= 0.3) ctx.strokeStyle = "#ffeb3b";
         else ctx.strokeStyle = "#00d2ff";
@@ -536,12 +675,24 @@
         ctx.stroke();
     }
 
-    // --- タイマー制御 ---
     function startTimer() {
-        if (isRunning || isAlarmRinging) return;
+        if (isAlarmRinging) {
+            stopAlarm();
+            isAlarmRinging = false;
+            isRunning = false;
+            document.body.style.backgroundColor = "var(--bg-normal)";
+            statusMsg.textContent = "";
+            applyPreset();
+        }
+
+        if (isRunning) return;
         
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        if (document.activeElement && document.activeElement.tagName === "INPUT") {
+            document.activeElement.blur();
+        }
 
         drawer.classList.remove('visible');
 
@@ -553,14 +704,12 @@
         isRunning = true;
         isPaused = false;
         
-        // 開始時に背景リセット
         document.body.style.backgroundColor = "var(--bg-normal)";
         statusMsg.textContent = "";
 
         timerInterval = setInterval(() => {
             remainingSeconds--;
 
-            // 予鈴判定
             if (document.getElementById('preAlarmToggle').checked) {
                 const percent = parseInt(preAlarmPercentIn.value) || 20;
                 const triggerSec = Math.floor(totalSeconds * (percent / 100));
@@ -568,25 +717,23 @@
                 if (remainingSeconds === triggerSec && remainingSeconds > 0) {
                     playAlarmSound(1.0, 1.0); 
                     statusMsg.textContent = "予鈴 (" + percent + "%)";
-                    triggerFlash('--bg-warning'); // 予鈴フラッシュ (黄色)
+                    // 予鈴は3秒間点滅
+                    startBlinking('--bg-warning', 3000);
                 }
             }
 
             updateDisplay();
             drawCircle(remainingSeconds / totalSeconds);
 
-            // 終了判定
             if (remainingSeconds <= 0) {
                 if (document.getElementById('loopToggle').checked) {
-                    // --- ループモード ---
                     playAlarmSound(2.5, 2.5);
-                    remainingSeconds = totalSeconds; // 即リセット
+                    remainingSeconds = totalSeconds;
                     updateDisplay();
                     drawCircle(1);
-                    triggerFlash('--bg-danger'); // 終了フラッシュ (赤)
-                    
+                    // ループ時は2.5秒間点滅
+                    startBlinking('--bg-danger', 2500);
                 } else {
-                    // --- 通常モード (停止) ---
                     timeIsUp();
                 }
             }
@@ -595,7 +742,6 @@
 
     function stopTimer() {
         if (!isRunning) return;
-        
         clearInterval(timerInterval);
         stopAlarm();
         isRunning = false;
@@ -605,7 +751,7 @@
 
     function togglePause() {
         if (isAlarmRinging) {
-            resetTimer();
+            startTimer();
             return;
         }
         if (!isRunning && !isPaused && remainingSeconds === totalSeconds) {
@@ -624,11 +770,12 @@
         isRunning = false;
         isPaused = false;
         isAlarmRinging = false;
-        if(flashTimeout) clearTimeout(flashTimeout);
+        stopBlinking(); // 点滅も確実に停止
         document.body.style.backgroundColor = "var(--bg-normal)";
         statusMsg.textContent = "";
         applyPreset();
         drawCircle(1);
+        updateTitle();
         drawer.classList.add('visible');
     }
 
@@ -640,15 +787,13 @@
         remainingSeconds = 0;
         updateDisplay();
         drawCircle(0);
-        
         statusMsg.textContent = "Finished";
-        triggerFlash('--bg-danger'); // 終了フラッシュ (赤)
-        
+        // タイムアップ時は10秒間点滅（アラーム停止まで）
+        startBlinking('--bg-danger', 10000);
         playAlarmLoop(10); 
         setTimeout(() => { drawer.classList.add('visible'); }, 3000);
     }
 
-    // --- サウンド ---
     function stopAlarm() {
         if (alarmLoopInterval) {
             clearInterval(alarmLoopInterval);
@@ -658,36 +803,44 @@
         if (audioCtx && audioCtx.state === 'running') {
             audioCtx.suspend();
         }
+        stopBlinking(); // アラーム停止時に点滅も停止
+        updateDisplay();
     }
 
     function testSound() {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
-        playAlarmSound(3, 3.0);
+        const typeIndex = document.getElementById('soundSelect').value;
+        const dur = (typeIndex === "2") ? 5.0 : 3.0;
+        playAlarmSound(dur, dur);
     }
 
     function playAlarmLoop(duration) {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
 
-        let counter = 0;
-        const intervalTime = 2500;
-        const maxLoops = Math.ceil((duration * 1000) / intervalTime);
+        const typeIndex = document.getElementById('soundSelect').value;
+        const isChime = (typeIndex === "2"); 
+        const intervalTime = isChime ? 6000 : 2500;
 
-        playAlarmSound(2.5, 2.5);
+        let counter = 0;
+        const maxLoops = Math.ceil((duration * 1000) / intervalTime) || 1;
+
+        playAlarmSound(5, 5); // 初回
 
         alarmLoopInterval = setInterval(() => {
             counter++;
             if (counter >= maxLoops) {
                 clearInterval(alarmLoopInterval);
                 alarmLoopInterval = null;
+                // ループ終了時に点滅も停止したい場合はここでも呼ぶ（念のため）
+                stopBlinking(); 
             } else {
-                playAlarmSound(2.5, 2.5);
+                playAlarmSound(5, 5);
             }
         }, intervalTime);
     }
 
-    // --- 楽器音生成 ---
     function playAlarmSound(duration, length) {
         if (audioCtx.state === 'suspended') audioCtx.resume();
 
@@ -697,7 +850,6 @@
         const playTone = (freq, time, dur, vol, flavor) => {
             const gain = audioCtx.createGain();
             gain.connect(audioCtx.destination);
-            
             const osc = audioCtx.createOscillator();
             osc.connect(gain);
 
@@ -723,7 +875,7 @@
                 gain3.connect(audioCtx.destination);
                 gain3.gain.setValueAtTime(0, time);
                 gain3.gain.linearRampToValueAtTime(vol * 0.3, time + 0.02);
-                gain3.gain.exponentialRampToValueAtTime(0.001, time + dur * 0.6);
+                gain3.gain.exponentialRampToValueAtTime(0.001, time + dur * 0.8);
                 osc3.start(time);
                 osc3.stop(time + dur);
             } else if (flavor === 'metal') {
@@ -762,9 +914,18 @@
                 playTone(523.25, now+0.3, 2.5, 0.5, 'piano');
                 break;
             case "2": 
-                playTone(261.63, now, 3.0, 0.6, 'bell'); 
-                playTone(329.63, now, 3.0, 0.4, 'bell');
-                playTone(523.25, now+0.05, 3.0, 0.3, 'bell');
+                // 学校のチャイム (Westminster)
+                const t = 0.6;
+                playTone(659.25, now, 2.0, 0.4, 'bell');
+                playTone(523.25, now + t, 2.0, 0.4, 'bell');
+                playTone(587.33, now + t*2, 2.0, 0.4, 'bell');
+                playTone(392.00, now + t*3, 3.0, 0.4, 'bell'); 
+
+                const offset = t*4 + 0.5;
+                playTone(392.00, now + offset, 2.0, 0.4, 'bell');
+                playTone(587.33, now + offset + t, 2.0, 0.4, 'bell');
+                playTone(659.25, now + offset + t*2, 2.0, 0.4, 'bell');
+                playTone(523.25, now + offset + t*3, 3.5, 0.4, 'bell');
                 break;
             case "3": 
                 playTone(2000, now, 2.0, 0.3, 'metal');
@@ -817,10 +978,10 @@
                 playTone(1046, now+0.75, 1.5, 0.4, 'sine');
                 break;
             case "13": 
-                playTone(293, now, 1.5, 0.5, 'triangle');
-                playTone(329, now+0.2, 1.5, 0.5, 'triangle');
-                playTone(392, now+0.4, 1.5, 0.5, 'triangle');
-                playTone(440, now+0.6, 2.0, 0.5, 'triangle');
+                // 教会の鐘 (Church Bell) を移動
+                playTone(261.63, now, 3.0, 0.6, 'bell'); 
+                playTone(329.63, now, 3.0, 0.4, 'bell');
+                playTone(523.25, now+0.05, 3.0, 0.3, 'bell');
                 break;
             case "14": 
                 playTone(392, now, 0.2, 0.4, 'saw');
@@ -837,7 +998,6 @@
         }
     }
 
-    // --- キーボード操作 ---
     document.addEventListener('keydown', (e) => {
         if (e.code === 'Space') {
             if (document.activeElement.tagName !== 'INPUT') {
@@ -846,6 +1006,10 @@
             }
         }
         if (e.code === 'Enter') {
+            e.preventDefault();
+            if (document.activeElement) {
+                document.activeElement.blur();
+            }
             startTimer();
         }
         if (e.code === 'Escape') {
