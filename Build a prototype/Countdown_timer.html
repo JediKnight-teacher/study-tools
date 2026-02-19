@@ -41,13 +41,27 @@
         }
         .fullscreen-btn:hover { background: rgba(255,255,255,0.3); }
 
+        /* ショートカットキー案内（右下） */
+        .shortcuts-info {
+            position: absolute;
+            bottom: 35px;
+            right: 15px;
+            color: rgba(255, 255, 255, 0.2); 
+            font-size: 0.85rem;
+            text-align: right;
+            line-height: 1.6;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        /* バージョン表示（右下端） */
         .version-display {
             position: absolute;
             bottom: 10px;
             right: 15px;
             color: rgba(255, 255, 255, 0.2);
             font-family: monospace;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             z-index: 50;
             pointer-events: none;
         }
@@ -339,6 +353,12 @@
 </head>
 <body>
     
+    <div class="shortcuts-info">
+        [Enter] スタート<br>
+        [Space] 停止 / 再開<br>
+        [Esc] リセット
+    </div>
+    
     <div class="version-display" id="versionDisplay"></div>
 
     <button class="fullscreen-btn" onclick="toggleFullScreen()">⛶ 全画面</button>
@@ -435,6 +455,11 @@
                     <span>予鈴 (残 <input type="number" id="preAlarmPercent" value="20" min="1" max="99" style="width:40px; background:transparent; border:none; color:white; border-bottom:1px solid white; text-align:center;"> %)</span>
                     <span id="preAlarmTimeDisplay">(@ 03:00)</span>
                 </div>
+                
+                <div class="checkbox-row">
+                    <span>鳴動: <input type="number" id="alarmDurationIn" value="10" min="1" max="999" style="width:40px; background:transparent; border:none; color:white; border-bottom:1px solid white; text-align:center;"> 秒</span>
+                </div>
+
                 <div class="checkbox-row">
                     <input type="checkbox" id="loopToggle">
                     <span>ループ再生</span>
@@ -448,17 +473,22 @@
     /*
      * カウントダウンタイマー アプリケーション
      * [バージョン履歴]
-     * Ver 1.1 : 初回リリース
-     * Ver 1.2 : 高解像度対応、UI改善
-     * Ver 1.3 : 時間設定ボタン追加
-     * Ver 1.4 : タイトル表示簡略化、再スタート挙動改善
-     * Ver 1.5 : 背景フラッシュ時間調整
-     * Ver 1.6 : サウンドリスト順序変更
-     * Ver 1.7 : 背景の点滅機能実装
-     * Ver 1.8 : メニュー自動クローズ時間を2秒に短縮、SETTINGSクリックで即閉じる機能追加
+     * Ver 1.0 : 初期リリース
+     * Ver 1.1 : ダークテーマを基調としたUIデザインの適用
+     * Ver 1.2 : プリセット時間選択機能の実装
+     * Ver 1.3 : Web Audio APIを用いた15種類のアラーム音生成機能を追加
+     * Ver 1.4 : 予鈴（プレアラーム）機能の実装（残り%指定）
+     * Ver 1.5 : ループ再生（自動リピート）機能の追加
+     * Ver 1.6 : カスタム時間入力のUI改善（スピンボタン追加）
+     * Ver 1.7 : Canvasによる円形プログレスバー表示の実装
+     * Ver 1.8 : 設定メニューのドロワー（引き出し）UI化と自動非表示
+     * Ver 1.9 : 全画面（フルスクリーン）表示機能の追加と画面リサイズ対応
+     * Ver 1.10: 画面右下にショートカットキーの案内を追加
+     * Ver 1.11: タイムアップ時のアラーム鳴動時間を可変(デフォルト10秒)にし、Local Storage保存に対応
+     * Ver 1.12: ソースコード内のバージョン履歴コメントを拡充・明記
      */
 
-    const APP_VERSION = "1.8";
+    const APP_VERSION = "1.12";
     
     let timerInterval = null;
     let alarmLoopInterval = null;
@@ -473,7 +503,7 @@
     
     let drawerHideTimeout = null;
     const drawer = document.querySelector('.control-drawer');
-    const drawerHandle = document.querySelector('.drawer-handle'); // ハンドル要素取得
+    const drawerHandle = document.querySelector('.drawer-handle');
 
     const display = document.getElementById('timeDisplay');
     const canvas = document.getElementById('progressCanvas');
@@ -484,33 +514,94 @@
     const inS = document.getElementById('inS');
     const preAlarmPercentIn = document.getElementById('preAlarmPercent');
     const preAlarmTimeDisplay = document.getElementById('preAlarmTimeDisplay');
+    const alarmDurationIn = document.getElementById('alarmDurationIn'); 
     const statusMsg = document.getElementById('statusMsg');
+    const soundSelect = document.getElementById('soundSelect');
+    const preAlarmToggle = document.getElementById('preAlarmToggle');
+    const loopToggle = document.getElementById('loopToggle');
 
     window.onload = () => {
         document.title = "Countdown Timer";
         document.getElementById('versionDisplay').textContent = `Ver ${APP_VERSION}`;
+        
+        loadSettings(); 
+        
+        if (presetSelect.value !== 'custom') {
+            applyPresetValueOnly();
+        }
+        
         resizeCanvas();
-        applyPreset();
+        updateTimeFromInput();
     };
+
     window.onresize = () => {
         resizeCanvas();
         updateDisplay();
     };
+
+    function saveSettings() {
+        const settings = {
+            preset: presetSelect.value,
+            h: inH.value,
+            m: inM.value,
+            s: inS.value,
+            sound: soundSelect.value,
+            preAlarm: preAlarmToggle.checked,
+            prePercent: preAlarmPercentIn.value,
+            loop: loopToggle.checked,
+            alarmDuration: alarmDurationIn.value
+        };
+        localStorage.setItem('countdownTimerSettings', JSON.stringify(settings));
+    }
+
+    function loadSettings() {
+        const saved = localStorage.getItem('countdownTimerSettings');
+        if (saved) {
+            try {
+                const settings = JSON.parse(saved);
+                if (settings.preset) presetSelect.value = settings.preset;
+                if (settings.h) inH.value = settings.h;
+                if (settings.m) inM.value = settings.m;
+                if (settings.s) inS.value = settings.s;
+                if (settings.sound) soundSelect.value = settings.sound;
+                if (settings.preAlarm !== undefined) preAlarmToggle.checked = settings.preAlarm;
+                if (settings.prePercent) preAlarmPercentIn.value = settings.prePercent;
+                if (settings.loop !== undefined) loopToggle.checked = settings.loop;
+                if (settings.alarmDuration) alarmDurationIn.value = settings.alarmDuration;
+            } catch(e) {
+                console.error("設定の読み込みに失敗しました", e);
+            }
+        }
+    }
+
+    [inH, inM, inS].forEach(el => el.addEventListener('input', () => {
+        presetSelect.value = 'custom';
+        updateTimeFromInput();
+        saveSettings();
+    }));
+
+    preAlarmPercentIn.addEventListener('input', () => {
+        updatePreAlarmCalc();
+        saveSettings();
+    });
+
+    alarmDurationIn.addEventListener('input', saveSettings);
+    soundSelect.addEventListener('change', saveSettings);
+    preAlarmToggle.addEventListener('change', saveSettings);
+    loopToggle.addEventListener('change', saveSettings);
 
     const showDrawer = () => {
         if (drawerHideTimeout) clearTimeout(drawerHideTimeout);
         drawer.classList.add('visible');
     };
     
-    // 自動で閉じる処理
     const hideDrawer = () => {
         if (drawerHideTimeout) clearTimeout(drawerHideTimeout);
         drawerHideTimeout = setTimeout(() => {
             drawer.classList.remove('visible');
-        }, 2000); // 3000 -> 2000に変更
+        }, 2000);
     };
 
-    // SETTINGSクリックで即閉じる処理
     drawerHandle.addEventListener('click', () => {
         drawer.classList.remove('visible');
         if (drawerHideTimeout) clearTimeout(drawerHideTimeout);
@@ -522,7 +613,6 @@
         if (e.clientY > window.innerHeight - 50) showDrawer();
     });
 
-    // --- 点滅機能 ---
     function startBlinking(colorVar, durationMs) {
         stopBlinking();
         let isVisible = false;
@@ -572,7 +662,7 @@
         drawCircle(isRunning || isPaused ? remainingSeconds / totalSeconds : 1);
     }
 
-    function applyPreset() {
+    function applyPresetValueOnly() {
         const val = presetSelect.value;
         if (val !== 'custom') {
             const h = Math.floor(val / 3600);
@@ -580,13 +670,19 @@
             const s = val % 60;
             inH.value = h; inM.value = m; inS.value = s;
         }
+    }
+
+    function applyPreset() {
+        applyPresetValueOnly();
         updateTimeFromInput();
+        saveSettings();
     }
 
     function clearCustomInput() {
         presetSelect.value = 'custom';
         inH.value = 0; inM.value = 0; inS.value = 0;
         updateTimeFromInput();
+        saveSettings();
     }
 
     function adjustTime(id, amount) {
@@ -602,14 +698,8 @@
 
         input.value = val;
         updateTimeFromInput();
+        saveSettings();
     }
-
-    [inH, inM, inS].forEach(el => el.addEventListener('input', () => {
-        presetSelect.value = 'custom';
-        updateTimeFromInput();
-    }));
-
-    preAlarmPercentIn.addEventListener('input', updatePreAlarmCalc);
 
     function updatePreAlarmCalc() {
         const percent = parseInt(preAlarmPercentIn.value) || 0;
@@ -716,7 +806,7 @@
         timerInterval = setInterval(() => {
             remainingSeconds--;
 
-            if (document.getElementById('preAlarmToggle').checked) {
+            if (preAlarmToggle.checked) {
                 const percent = parseInt(preAlarmPercentIn.value) || 20;
                 const triggerSec = Math.floor(totalSeconds * (percent / 100));
                 
@@ -731,7 +821,7 @@
             drawCircle(remainingSeconds / totalSeconds);
 
             if (remainingSeconds <= 0) {
-                if (document.getElementById('loopToggle').checked) {
+                if (loopToggle.checked) {
                     playAlarmSound(2.5, 2.5);
                     remainingSeconds = totalSeconds;
                     updateDisplay();
@@ -792,9 +882,10 @@
         updateDisplay();
         drawCircle(0);
         statusMsg.textContent = "Finished";
-        startBlinking('--bg-danger', 10000);
-        playAlarmLoop(10); 
-        setTimeout(() => { drawer.classList.add('visible'); }, 3000);
+        
+        const dur = parseInt(alarmDurationIn.value) || 10;
+        startBlinking('--bg-danger', dur * 1000);
+        playAlarmLoop(dur); 
     }
 
     function stopAlarm() {
@@ -813,7 +904,7 @@
     function testSound() {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
-        const typeIndex = document.getElementById('soundSelect').value;
+        const typeIndex = soundSelect.value;
         const dur = (typeIndex === "2") ? 5.0 : 3.0;
         playAlarmSound(dur, dur);
     }
@@ -822,14 +913,14 @@
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
 
-        const typeIndex = document.getElementById('soundSelect').value;
+        const typeIndex = soundSelect.value;
         const isChime = (typeIndex === "2"); 
         const intervalTime = isChime ? 6000 : 2500;
 
         let counter = 0;
         const maxLoops = Math.ceil((duration * 1000) / intervalTime) || 1;
 
-        playAlarmSound(5, 5); // 初回
+        playAlarmSound(5, 5); 
 
         alarmLoopInterval = setInterval(() => {
             counter++;
@@ -846,7 +937,7 @@
     function playAlarmSound(duration, length) {
         if (audioCtx.state === 'suspended') audioCtx.resume();
 
-        const typeIndex = document.getElementById('soundSelect').value;
+        const typeIndex = soundSelect.value;
         const now = audioCtx.currentTime;
 
         const playTone = (freq, time, dur, vol, flavor) => {
