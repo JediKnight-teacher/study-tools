@@ -168,6 +168,29 @@
             margin-top: 15px;
         }
 
+        .apply-btn {
+            display: none;
+            background: linear-gradient(to bottom, #ff9800, #e65100);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 0;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto 5px auto;
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
+            animation: pulse 1.5s infinite;
+        }
+        .apply-btn:hover { opacity: 0.9; }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
         .action-row {
             display: flex;
             gap: 20px;
@@ -184,12 +207,22 @@
             color: white;
             flex: 1;
             max-width: 300px;
-            transition: opacity 0.2s;
+            transition: opacity 0.2s, transform 0.1s;
         }
         .btn:hover { opacity: 0.9; }
         .btn-start { background: linear-gradient(to bottom, #28a745, #1e7e34); }
         .btn-stop { background: linear-gradient(to bottom, #dc3545, #bd2130); }
         .btn-reset { background: linear-gradient(to bottom, #6c757d, #545b62); flex: 0.4; max-width: 150px; }
+
+        @keyframes pauseBlink {
+            0%   { opacity: 1; box-shadow: 0 0 15px rgba(220, 53, 69, 0.8); }
+            50%  { opacity: 0.4; box-shadow: none; }
+            100% { opacity: 1; box-shadow: 0 0 15px rgba(220, 53, 69, 0.8); }
+        }
+        .btn-stop.is-paused {
+            animation: pauseBlink 1.2s infinite;
+            border: 2px solid #ffb3b3;
+        }
 
         .settings-container {
             display: flex;
@@ -283,6 +316,22 @@
         .spinner-btn:hover { background: #666; color: white; }
         .spinner-btn:active { background: var(--accent-color); color: #000; }
 
+        .spin-btn-small {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #ccc;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 6px 14px;
+            border-radius: 6px;
+            margin: 0 6px;
+            vertical-align: middle;
+            transition: background 0.2s, color 0.2s;
+            -webkit-tap-highlight-color: transparent; 
+        }
+        .spin-btn-small:hover { background: #666; color: white; }
+        .spin-btn-small:active { background: var(--accent-color); color: #000; }
+
         .time-sep { font-size: 1.8rem; font-weight: bold; color: #888; margin-top: 0; }
         #soundSelect { width: 300px; font-size: 1.1rem; }
 
@@ -321,11 +370,11 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            height: 40px;
+            height: 50px;
             background: rgba(255,255,255,0.08);
             padding: 0 12px;
             border-radius: 6px;
-            font-size: 0.95rem;
+            font-size: 1rem;
         }
         input[type="checkbox"] { transform: scale(1.3); cursor: pointer; margin: 0;}
 
@@ -375,10 +424,12 @@
 
     <div class="control-drawer">
         <div class="drawer-handle"></div>
+
+        <button id="applyChangesBtn" class="apply-btn" onclick="promptLiveUpdate()">⚠️ 設定を変更しました。ここを押して反映</button>
         
         <div class="action-row">
             <button class="btn btn-start" onclick="startTimer()">スタート (Enter)</button>
-            <button class="btn btn-stop" onclick="togglePause()">停止 / 再開 (Space)</button>
+            <button id="stopBtn" class="btn btn-stop" onclick="togglePause()">停止 / 再開 (Space)</button>
             <button class="btn btn-reset" onclick="resetTimer()">リセット (Esc)</button>
         </div>
 
@@ -454,12 +505,20 @@
             <div class="settings-tier tier-options">
                 <div class="checkbox-row">
                     <input type="checkbox" id="preAlarmToggle" checked>
-                    <span>予鈴 (残 <input type="number" id="preAlarmPercent" value="20" min="0" max="99" style="width:40px; background:transparent; border:none; color:white; border-bottom:1px solid white; text-align:center;"> %)</span>
+                    <span>予鈴 (残 
+                        <button class="spin-btn-small" onmousedown="startSettingSpin('preAlarmPercent', 1)" onmouseup="stopSettingSpin()" onmouseleave="stopSettingSpin()" ontouchstart="handleSettingTouch(event, 'preAlarmPercent', 1)" ontouchend="stopSettingSpin()" ontouchcancel="stopSettingSpin()">▲</button>
+                        <input type="number" id="preAlarmPercent" value="20" min="0" max="99" style="width:45px; font-size:1.1rem; background:transparent; border:none; color:white; border-bottom:1px solid white; text-align:center;">
+                        <button class="spin-btn-small" onmousedown="startSettingSpin('preAlarmPercent', -1)" onmouseup="stopSettingSpin()" onmouseleave="stopSettingSpin()" ontouchstart="handleSettingTouch(event, 'preAlarmPercent', -1)" ontouchend="stopSettingSpin()" ontouchcancel="stopSettingSpin()">▼</button>
+                        %)</span>
                     <span id="preAlarmTimeDisplay">(@ 03:00)</span>
                 </div>
                 
                 <div class="checkbox-row">
-                    <span>アラーム: <input type="number" id="alarmDurationIn" value="10" min="1" max="999" style="width:40px; background:transparent; border:none; color:white; border-bottom:1px solid white; text-align:center;"> 秒</span>
+                    <span>アラーム: 
+                        <button class="spin-btn-small" onmousedown="startSettingSpin('alarmDurationIn', 1)" onmouseup="stopSettingSpin()" onmouseleave="stopSettingSpin()" ontouchstart="handleSettingTouch(event, 'alarmDurationIn', 1)" ontouchend="stopSettingSpin()" ontouchcancel="stopSettingSpin()">▲</button>
+                        <input type="number" id="alarmDurationIn" value="10" min="1" max="999" style="width:45px; font-size:1.1rem; background:transparent; border:none; color:white; border-bottom:1px solid white; text-align:center;">
+                        <button class="spin-btn-small" onmousedown="startSettingSpin('alarmDurationIn', -1)" onmouseup="stopSettingSpin()" onmouseleave="stopSettingSpin()" ontouchstart="handleSettingTouch(event, 'alarmDurationIn', -1)" ontouchend="stopSettingSpin()" ontouchcancel="stopSettingSpin()">▼</button>
+                        秒</span>
                 </div>
 
                 <div class="checkbox-row">
@@ -497,10 +556,19 @@
      * Ver 1.18: AudioContext完全破棄による多重再生防止、Spaceキー二重発火防止、手入力の数値補正
      * Ver 1.19: 絶対時間計算によるバックグラウンド時の時間ズレ防止、予鈴すっぽ抜け防止、ゼロ除算回避
      * Ver 1.20: 【完璧版】一時停止時の予鈴二重鳴り防止、Enterキーの暴走防止、ループのミリ秒完全同期、保存データの厳密な型チェック
-     * Ver 1.21: 設定画面開閉をSETTINGSのタッチ動作に変更
+     * Ver 1.21: UIのレイアウト改善、ホバーで開閉する設定ドロワーの実装
+     * Ver 1.22: ゼロ到達後のループ再生機能、背景色フラッシュ効果の追加
+     * Ver 1.23: 各種設定のローカル保存（localStorage）機能と初期化の実装
+     * Ver 1.24: 実行中の設定変更時、「変更を反映」ボタンを出して確認ダイアログを出す形式に変更。バグ防止強化。
+     * Ver 1.25: スピンボタンにマウスを通過させただけで「変更を反映」ボタンが出現してしまうバグを修正。
+     * Ver 1.26: アラーム終了後に「リセット」や「スタート」を押しても、同じ時間で再スタートできない不具合を修正。
+     * Ver 1.27: 予鈴時間の表示形式（60分以上）の修正、および極端に短い時間でのループ再生時に音が多重再生されるバグを修正。
+     * Ver 1.28: 予鈴・アラーム秒数のスピンボタンを大型化し、タッチ時の二重発火（感度が良すぎる問題）を防止。
+     * Ver 1.29: 停止（ポーズ）中であることが視覚的にわかるよう、停止ボタンが点滅する機能を追加。
+     * Ver 1.30: アラーム鳴動中の設定変更許可、入力欄でのEnterキー開始、初期状態でのSpaceキー開始に対応。
      */
 
-    const APP_VERSION = "1.21";
+    const APP_VERSION = "1.30";
     
     let timerInterval = null;
     let alarmLoopInterval = null;
@@ -509,8 +577,8 @@
     
     let totalSeconds = 900;
     let remainingSeconds = 900;
-    let expectedEndTime = 0; // 絶対時間計算用
-    let hasPreAlarmRung = false; // 予鈴の重複・すっぽ抜け防止用
+    let expectedEndTime = 0; 
+    let hasPreAlarmRung = false; 
     
     let isRunning = false;
     let isPaused = false;
@@ -518,14 +586,20 @@
     
     // Audio API
     let audioCtx = null;
-    let masterGain = null; // 音を安全に即切断するためのマスターボリューム
+    let masterGain = null; 
     
     // UI制御用
     let spinInterval = null;
     let spinTimeout = null;
+    let settingSpinInterval = null;
+    let settingSpinTimeout = null;
     let drawerShowTimeout = null;
     let drawerHideTimeout = null;
     
+    // 二重発火防止用
+    let lastSettingSpinTime = 0;
+    let lastMainSpinTime = 0;
+
     const drawer = document.querySelector('.control-drawer');
     const drawerHandle = document.querySelector('.drawer-handle');
     const display = document.getElementById('timeDisplay');
@@ -543,6 +617,8 @@
     const preAlarmToggle = document.getElementById('preAlarmToggle');
     const loopToggle = document.getElementById('loopToggle');
     const fullscreenBtn = document.querySelector('.fullscreen-btn');
+    const applyChangesBtn = document.getElementById('applyChangesBtn');
+    const stopBtn = document.getElementById('stopBtn');
 
     window.onload = () => {
         document.title = "Countdown Timer";
@@ -550,7 +626,7 @@
         loadSettings(); 
         if (presetSelect.value !== 'custom') applyPresetValueOnly();
         resizeCanvas();
-        updateTimeFromInput();
+        applySettingsToTimer();
     };
 
     window.onresize = () => {
@@ -558,7 +634,6 @@
         updateDisplay();
     };
 
-    // --- フォーカス外す処理 (Spaceキー誤爆防止) ---
     function blurActiveElement() {
         const active = document.activeElement;
         if (active && ['INPUT', 'SELECT', 'BUTTON'].includes(active.tagName)) {
@@ -592,7 +667,6 @@
         if (saved) {
             try {
                 const settings = JSON.parse(saved);
-                // バグ修正: undefinedでないか厳密に判定して、0が無視されないようにする
                 if (settings.preset !== undefined) presetSelect.value = settings.preset;
                 if (settings.h !== undefined) inH.value = settings.h;
                 if (settings.m !== undefined) inM.value = settings.m;
@@ -606,6 +680,11 @@
         }
     }
 
+    function updateUIFromSettings() {
+        loadSettings();
+        updatePreAlarmCalc();
+    }
+
     function factoryReset() {
         blurActiveElement();
         if (confirm("保存された設定をすべて削除して、初期状態に戻しますか？")) {
@@ -614,7 +693,6 @@
         }
     }
 
-    // 数値のサニタイズ（異常な数値を手入力させない）
     function clampInput(el) {
         let val = parseInt(el.value) || 0;
         let max = parseInt(el.getAttribute('max')) || 99;
@@ -623,24 +701,79 @@
         if (val < min) el.value = min;
     }
 
+    // --- ライブアップデート（反映ボタンのロジック） ---
+    function applySettingsToTimer() {
+        const newTotalSeconds = (parseInt(inH.value)||0)*3600 + (parseInt(inM.value)||0)*60 + (parseInt(inS.value)||0);
+        
+        if (newTotalSeconds !== totalSeconds) {
+            totalSeconds = newTotalSeconds;
+            remainingSeconds = totalSeconds;
+            
+            if (isRunning) {
+                expectedEndTime = Date.now() + (remainingSeconds * 1000);
+            } else if (isPaused) {
+                isPaused = false; 
+                statusMsg.textContent = "";
+                stopBtn.classList.remove('is-paused'); 
+            }
+            hasPreAlarmRung = false;
+        }
+        
+        updatePreAlarmCalc();
+        updateDisplay();
+        
+        let percentage = totalSeconds > 0 ? remainingSeconds / totalSeconds : 0;
+        if (!isRunning && !isPaused) percentage = 1;
+        drawCircle(percentage);
+    }
+
+    // 【修正点】 アラーム中も適用ボタンを表示するように変更
+    function showApplyButton() {
+        if (isRunning || isPaused || isAlarmRinging) {
+            applyChangesBtn.style.display = 'block'; 
+        } else {
+            saveSettings();
+            applySettingsToTimer();
+        }
+    }
+
+    function promptLiveUpdate() {
+        blurActiveElement();
+        const doUpdate = confirm("設定を今すぐ反映しますか？\n（※時間を変更した場合は新しい時間で再スタートします。音や予鈴のみの変更ならカウントダウンは継続します）");
+        
+        if (doUpdate) {
+            // 【修正点】 アラーム中に適用された場合はアラームを停止する
+            if (isAlarmRinging) {
+                stopAlarm();
+                isAlarmRinging = false;
+                statusMsg.textContent = "";
+            }
+            saveSettings();
+            applySettingsToTimer();
+            applyChangesBtn.style.display = 'none';
+        } else {
+            updateUIFromSettings();
+            applyChangesBtn.style.display = 'none';
+        }
+    }
+
     [inH, inM, inS].forEach(el => el.addEventListener('change', () => {
         clampInput(el); 
         presetSelect.value = 'custom';
-        updateTimeFromInput();
-        saveSettings();
+        showApplyButton();
     }));
 
-    preAlarmPercentIn.addEventListener('change', () => { clampInput(preAlarmPercentIn); updatePreAlarmCalc(); saveSettings(); });
-    alarmDurationIn.addEventListener('change', () => { clampInput(alarmDurationIn); saveSettings(); });
-    soundSelect.addEventListener('change', saveSettings);
-    preAlarmToggle.addEventListener('change', saveSettings);
-    loopToggle.addEventListener('change', saveSettings);
+    preAlarmPercentIn.addEventListener('change', () => { clampInput(preAlarmPercentIn); showApplyButton(); });
+    alarmDurationIn.addEventListener('change', () => { clampInput(alarmDurationIn); showApplyButton(); });
+    soundSelect.addEventListener('change', showApplyButton);
+    preAlarmToggle.addEventListener('change', showApplyButton);
+    loopToggle.addEventListener('change', showApplyButton);
 
-    // --- メニュー開閉 (ディレイ対応) ---
+    // --- メニュー開閉 ---
     const requestShowDrawer = () => {
         if (drawerHideTimeout) clearTimeout(drawerHideTimeout);
         if (!drawer.classList.contains('visible') && !drawerShowTimeout) {
-            drawerShowTimeout = setTimeout(() => { drawer.classList.add('visible'); drawerShowTimeout = null; }, 400); 
+            drawerShowTimeout = setTimeout(() => { drawer.classList.add('visible'); drawerShowTimeout = null; }, 800); 
         }
     };
 
@@ -655,11 +788,9 @@
     };
 
     drawerHandle.addEventListener('click', (e) => {
-        e.preventDefault(); // スマホでの誤動作を防止
+        e.preventDefault(); 
         cancelShowDrawer(); 
         if (drawerHideTimeout) clearTimeout(drawerHideTimeout);
-        
-        // remove（削除）ではなく、toggle（切り替え）に変更します
         drawer.classList.toggle('visible');
     });
 
@@ -715,15 +846,19 @@
         }
     }
 
-    function applyPreset() { applyPresetValueOnly(); updateTimeFromInput(); saveSettings(); }
+    function applyPreset() { 
+        applyPresetValueOnly(); 
+        showApplyButton(); 
+    }
     
     function clearCustomInput() {
         blurActiveElement(); 
         presetSelect.value = 'custom'; inH.value = 0; inM.value = 0; inS.value = 0;
-        updateTimeFromInput(); saveSettings();
+        showApplyButton();
     }
 
     function adjustTime(id, amount) {
+        // 【修正点】 isAlarmRinging中の操作ガードを撤廃
         presetSelect.value = 'custom';
         const input = document.getElementById(id);
         let val = parseInt(input.value) || 0;
@@ -732,22 +867,68 @@
         if (val > max) val = 0;
         if (val < 0) val = max;
         input.value = val;
-        updateTimeFromInput();
+        
+        showApplyButton();
     }
 
     function startSpin(id, amount) {
+        const now = Date.now();
+        if (now - lastMainSpinTime < 100) return; 
+        lastMainSpinTime = now;
+
         blurActiveElement();
         adjustTime(id, amount); 
-        spinTimeout = setTimeout(() => { spinInterval = setInterval(() => { adjustTime(id, amount); }, 100); }, 400); 
+        spinTimeout = setTimeout(() => { 
+            spinInterval = setInterval(() => { adjustTime(id, amount); }, 120); 
+        }, 400); 
     }
 
     function stopSpin() {
         if (spinTimeout) clearTimeout(spinTimeout);
         if (spinInterval) clearInterval(spinInterval);
-        saveSettings(); 
     }
 
-    function handleTouchStart(e, id, amount) { e.preventDefault(); startSpin(id, amount); }
+    function handleTouchStart(e, id, amount) { 
+        e.preventDefault(); 
+        startSpin(id, amount); 
+    }
+
+    function adjustSettingValue(id, amount) {
+        // 【修正点】 isAlarmRinging中の操作ガードを撤廃
+        const input = document.getElementById(id);
+        let val = parseInt(input.value) || 0;
+        const max = parseInt(input.getAttribute('max')) || 99;
+        const min = parseInt(input.getAttribute('min')) || 0;
+        val += amount;
+        if (val > max) val = max;
+        if (val < min) val = min;
+        input.value = val;
+        
+        if (id === 'preAlarmPercent') updatePreAlarmCalc();
+        showApplyButton();
+    }
+
+    function startSettingSpin(id, amount) {
+        const now = Date.now();
+        if (now - lastSettingSpinTime < 100) return; 
+        lastSettingSpinTime = now;
+
+        blurActiveElement();
+        adjustSettingValue(id, amount);
+        settingSpinTimeout = setTimeout(() => {
+            settingSpinInterval = setInterval(() => { adjustSettingValue(id, amount); }, 120);
+        }, 400);
+    }
+
+    function stopSettingSpin() {
+        if (settingSpinTimeout) clearTimeout(settingSpinTimeout);
+        if (settingSpinInterval) clearInterval(settingSpinInterval);
+    }
+
+    function handleSettingTouch(e, id, amount) {
+        e.preventDefault();
+        startSettingSpin(id, amount);
+    }
 
     function updatePreAlarmCalc() {
         const percent = getPreAlarmPercent();
@@ -755,15 +936,13 @@
             preAlarmTimeDisplay.textContent = `(予鈴なし)`;
         } else {
             const triggerSec = Math.floor(totalSeconds * (percent / 100));
-            preAlarmTimeDisplay.textContent = `(@ ${Math.floor(triggerSec / 60).toString().padStart(2, '0')}:${(triggerSec % 60).toString().padStart(2, '0')})`;
+            const h = Math.floor(triggerSec / 3600);
+            const m = Math.floor((triggerSec % 3600) / 60);
+            const s = triggerSec % 60;
+            let timeStr = h > 0 ? `${h.toString().padStart(2, '0')}:` : "";
+            timeStr += `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            preAlarmTimeDisplay.textContent = `(@ ${timeStr})`;
         }
-    }
-
-    function updateTimeFromInput() {
-        if (isRunning || isPaused || isAlarmRinging) return;
-        totalSeconds = (parseInt(inH.value)||0)*3600 + (parseInt(inM.value)||0)*60 + (parseInt(inS.value)||0);
-        remainingSeconds = totalSeconds;
-        updateDisplay(); drawCircle(1); updatePreAlarmCalc();
     }
 
     function updateDisplay() {
@@ -801,7 +980,7 @@
         ctx.stroke();
     }
 
-    // --- 音声管理 (多重再生防止) ---
+    // --- 音声管理 ---
     function initAudio() {
         if (!audioCtx) {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -818,29 +997,33 @@
         isAlarmRinging = false;
         stopBlinking();
         
-        // 鳴っている音を即座に物理切断
         if (masterGain) {
             masterGain.disconnect();
-            masterGain = null; // 次鳴らす時に新しく作る
+            masterGain = null; 
         }
         updateDisplay();
     }
 
-    // --- タイマー制御 (絶対時間管理によるズレ防止) ---
+    // --- タイマー制御 ---
     function startTimer() {
         blurActiveElement();
+        
+        const wasAlarmRinging = isAlarmRinging;
         stopAlarm();
         
-        if (isAlarmRinging) {
-            isAlarmRinging = false; isRunning = false; statusMsg.textContent = ""; applyPreset();
-            return; // バグ修正: アラーム鳴動中にEnterを押した場合はストップするだけ
+        if (wasAlarmRinging) {
+            resetTimer();
+            return; 
         }
+        
         if (isRunning) return;
         
         drawer.classList.remove('visible');
+        stopBtn.classList.remove('is-paused'); 
 
         if (remainingSeconds <= 0 && !isPaused) {
-            updateTimeFromInput();
+            totalSeconds = (parseInt(inH.value)||0)*3600 + (parseInt(inM.value)||0)*60 + (parseInt(inS.value)||0);
+            remainingSeconds = totalSeconds;
             if(remainingSeconds <= 0) return;
         }
 
@@ -848,26 +1031,22 @@
         isRunning = true; isPaused = false;
         statusMsg.textContent = "";
         
-        // 時間のズレ防止処理（絶対時間で計算）
         expectedEndTime = Date.now() + (remainingSeconds * 1000);
         
-        // バグ修正: 新規スタート時のみ予鈴フラグをリセット（一時停止からの再開で二重に鳴らさない）
         if (remainingSeconds === totalSeconds) {
             hasPreAlarmRung = false; 
         }
 
         timerInterval = setInterval(() => {
-            // 現在時刻から残り時間を逆算 (バックグラウンドでのズレを許さない)
             remainingSeconds = Math.ceil((expectedEndTime - Date.now()) / 1000);
             if (remainingSeconds < 0) remainingSeconds = 0;
 
-            // 予鈴判定 (すっぽ抜け防止)
             if (preAlarmToggle.checked) {
                 const percent = getPreAlarmPercent();
                 if (percent > 0) {
                     const triggerSec = Math.floor(totalSeconds * (percent / 100));
                     if (remainingSeconds <= triggerSec && remainingSeconds > 0 && !hasPreAlarmRung) {
-                        hasPreAlarmRung = true; // 2回鳴らないようにロック
+                        hasPreAlarmRung = true; 
                         playAlarmSound(1.0); 
                         statusMsg.textContent = `予鈴 ${triggerSec}秒前 (${percent}%)`;
                         startBlinking('--bg-warning', 3000);
@@ -882,11 +1061,15 @@
             if (remainingSeconds <= 0) {
                 if (loopToggle.checked) {
                     const dur = getAlarmDuration();
+                    
+                    if (masterGain) {
+                        masterGain.disconnect();
+                        masterGain = null;
+                    }
+
                     playAlarmLoop(dur); 
                     
-                    // バグ修正: ループ時は「本来終わるはずだった時刻」に設定時間を足して完全同期させる
                     expectedEndTime += (totalSeconds * 1000);
-                    // PCスリープ等で極端に時間が飛んだ場合の補正
                     if (expectedEndTime < Date.now()) {
                         expectedEndTime = Date.now() + (totalSeconds * 1000);
                     }
@@ -897,7 +1080,7 @@
                     timeIsUp();
                 }
             }
-        }, 200); // 1000msだと画面更新がガタつくため、200ms間隔で滑らかにチェック
+        }, 200); 
     }
 
     function stopTimer() {
@@ -906,6 +1089,7 @@
         clearInterval(timerInterval);
         isRunning = false; isPaused = true; 
         drawer.classList.add('visible');
+        stopBtn.classList.add('is-paused'); 
     }
 
     function togglePause() {
@@ -914,7 +1098,13 @@
         stopAlarm(); 
 
         if (wasRinging) { resetTimer(); return; }
-        if (!isRunning && !isPaused && remainingSeconds === totalSeconds) return; 
+        
+        // 【修正点】 初期状態（停止中ではない）でも、Spaceキーなどでスタートできるように条件緩和
+        if (!isRunning && !isPaused) { 
+            startTimer(); 
+            return; 
+        }
+        
         if (isRunning) stopTimer(); else startTimer();
     }
 
@@ -926,16 +1116,31 @@
         isRunning = false; isPaused = false; isAlarmRinging = false;
         hasPreAlarmRung = false;
         statusMsg.textContent = "";
-        applyPreset(); drawCircle(1); updateTitle();
+        
+        applyChangesBtn.style.display = 'none';
+        stopBtn.classList.remove('is-paused'); 
+        updateUIFromSettings(); 
+        
+        totalSeconds = (parseInt(inH.value)||0)*3600 + (parseInt(inM.value)||0)*60 + (parseInt(inS.value)||0);
+        remainingSeconds = totalSeconds;
+        
+        updatePreAlarmCalc();
+        updateDisplay();
+        
+        drawCircle(1); updateTitle();
         drawer.classList.add('visible');
     }
 
     function timeIsUp() {
         clearInterval(timerInterval);
         isRunning = false; isPaused = false; isAlarmRinging = true; remainingSeconds = 0;
+        stopBtn.classList.remove('is-paused'); 
         updateDisplay(); drawCircle(0);
         statusMsg.textContent = "Finished";
         
+        applyChangesBtn.style.display = 'none';
+        updateUIFromSettings();
+
         const dur = getAlarmDuration();
         startBlinking('--bg-danger', dur * 1000);
         playAlarmLoop(dur); 
@@ -970,13 +1175,12 @@
     }
 
     function playAlarmSound(length) {
-        initAudio(); // 確実にAudioContextとMasterGainを準備
+        initAudio(); 
         const typeIndex = soundSelect.value;
         const now = audioCtx.currentTime;
 
         const playTone = (freq, time, dur, vol, flavor) => {
             const gain = audioCtx.createGain();
-            // すべての音はmasterGainを経由して出力。これによりmasterGainを消すだけで即座に全ミュート可能
             gain.connect(masterGain); 
             const osc = audioCtx.createOscillator();
             osc.connect(gain);
@@ -1145,20 +1349,29 @@
     });
 
     document.addEventListener('keydown', (e) => {
+        const active = document.activeElement;
+        const isFocusOnInteractive = active && ['INPUT', 'SELECT', 'BUTTON'].includes(active.tagName);
+
         if (e.code === 'Space') {
-            const active = document.activeElement;
-            // 入力欄等にフォーカスがある時はスペースキーの入力を邪魔しない
-            if (active && ['INPUT', 'SELECT', 'BUTTON'].includes(active.tagName)) return; 
-            
+            if (isFocusOnInteractive) return; 
             e.preventDefault();
             togglePause();
         }
         if (e.code === 'Enter') {
+            // 【修正点】 時間入力欄（INPUT/SELECT）にフォーカスがある状態でEnterを押した場合は、そのままスタートする
+            if (isFocusOnInteractive) {
+                if (active.tagName === 'INPUT' || active.tagName === 'SELECT') {
+                    blurActiveElement();
+                    startTimer();
+                }
+                return; 
+            }
             e.preventDefault();
             startTimer();
         }
         if (e.code === 'Escape') {
             e.preventDefault();
+            blurActiveElement();
             resetTimer();
         }
     });
