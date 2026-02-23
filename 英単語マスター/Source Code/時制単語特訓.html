@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>時制単語特訓 (Tense Master) Ver.3.21</title>
+<title>時制単語特訓 (Tense Master) Ver.3.30</title>
 <style>
-    /* アプリ用スタイル Ver.3.21 */
+    /* アプリ用スタイル Ver.3.30 */
     :root { 
         --bg-color: #f4f7f6; 
         --main-color: #009688; 
@@ -277,7 +277,7 @@
         <div class="start-content">
             <div style="text-align:center; margin-bottom: 5px;">
                 <h1>時制単語特訓</h1>
-                <span style="color:#90a4ae; font-size:0.9rem; font-weight:bold;">Final Perfect Edition Ver.3.21</span>
+                <span style="color:#90a4ae; font-size:0.9rem; font-weight:bold;">Final Perfect Edition Ver.3.30</span>
             </div>
             
             <button class="help-btn" onclick="openModal('student')">
@@ -310,7 +310,7 @@
                     <span>🏃 Lv.2 進行形</span> <span class="mode-badge">現在進行/過去進行</span>
                 </button>
                 <button class="mode-btn lv3" onclick="startGame(3)">
-                    <span>✨ Lv.3 完了形</span> <span class="mode-badge">現在完了/継続</span>
+                    <span>✨ Lv.3 過去・現在完了形</span> <span class="mode-badge">現在/過去/過去進行/現在完了</span>
                 </button>
                 <button class="mode-btn all" onclick="startGame(0)">
                     <span>🔥 総合テスト</span> <span class="mode-badge">全範囲ランダム</span>
@@ -349,7 +349,7 @@
         </div>
         
         <div class="esc-hint">
-            ※ 進行形や完了形、未来形の場合は「be動詞/助動詞」を含めて入力してください。<br>(例: is playing, have played, will play)
+            ※ 進行形は「ing形」のみ、完了形は「過去分詞」のみを入力してください。<br>（未来形のみ will + 原形 を入力します）
         </div>
     </div>
 
@@ -385,23 +385,30 @@
         <div id="modal-body-student" style="display:none;">
             <div class="concept-box">
                 <strong>🏫 目指せ！時制マスター</strong><br>
-                日本語の文脈（「昨日～した」「今～している」など）に合わせて、英単語を正しい形（過去形や進行形など）に変えるトレーニングだよ。 たまに変な日本語が出ることもあるけど、そこはスルーしてね。
+                日本語の文脈（「昨日～した」「今～している」など）に合わせて、英単語を正しい形（過去形や進行形など）に変えるトレーニングだよ。
             </div>
             <div class="info-section">
                 <h3>🎮 操作方法 (入力のルール)</h3>
+                <p style="font-size:0.95rem; margin-bottom:10px;">日本語の文脈に合わせて、空欄 <strong>[ _____ ]</strong> に入る正しい英語を入力してね。</p>
                 <ul class="info-list">
-                    <li>進行形 → <strong>be動詞 + ing形</strong> を入力 (例: am playing, is running)</li>
-                    <li>完了形 → <strong>have/has/had + 過去分詞</strong> を入力 (例: have played, has gone)</li>
-                    <li>未来形 → <strong>will + 原形</strong> を入力 (例: will play)</li>
-                    <li>現在/過去形 → 動詞の形だけを入力 (例: play, played)</li>
+                    <li><strong>進行形 (現在進行・過去進行)</strong><br>
+                        → <strong>ing形</strong> だけを入力 (例: playing, running)<br>
+                        <span style="font-size:0.85rem; color:#78909c;">※ am, is, was 等はすでに文に含まれています。</span></li>
+                    <li><strong>完了形 (現在完了)</strong><br>
+                        → <strong>過去分詞 (p.p.)</strong> だけを入力 (例: played, gone)<br>
+                        <span style="font-size:0.85rem; color:#78909c;">※ have, has はすでに文に含まれています。</span></li>
+                    <li><strong>それ以外 (現在形・過去形・未来形)</strong><br>
+                        → 現在形・過去形は <strong>動詞の形</strong> を入力 (例: plays, played)<br>
+                        → 未来形だけは <strong>will + 原形</strong> を入力 (例: will play)</li>
                 </ul>
             </div>
+
             <div class="info-section">
                 <h3>⚙ コースと設定</h3>
                 <ul class="info-list">
                     <li><strong>🔰 Lv.1 基本時制:</strong> 一覧表の <span class="p-check" style="display:inline;">①②③</span> を中心に出題します。</li>
                     <li><strong>🏃 Lv.2 進行形　:</strong> 一覧表の <span class="p-check" style="display:inline;">④⑤</span> を中心に出題します。</li>
-                    <li><strong>✨ Lv.3 完了形　:</strong> 一覧表の <span class="p-check" style="display:inline;">⑥</span> を中心に出題します。</li>
+                    <li><strong>✨ Lv.3 完了形　:</strong> 一覧表の <span class="p-check" style="display:inline;">①②⑤⑥</span> を中心に出題します。</li>
                     <li><strong>🔥 総合テスト 　:</strong> 一覧表の <span class="p-check" style="display:inline;">①～⑥</span> を全範囲でランダムに出題します。</li>
                 </ul>
             </div>
@@ -440,7 +447,7 @@
                             <td>
                                 <span class="p-check">✅⑥ 現在完了形</span>
                                 <span class="ex-verb">have played</span><br>
-                                <span class="p-desc">〜した/継続など</span>
+                                <span class="p-desc">ちょうど〜したところだ(完了・結果)<br>〜したことがある(経験)<br>🔼ずっと～している(継続）</span>
                             </td>
                             <td class="hs-range">
                                 (高校範囲)<br>🔼完了進行形<br><span class="ex-verb">have been playing</span><br><span class="p-desc">ずっと〜している</span>
@@ -485,29 +492,14 @@
                     </tbody>
                 </table>
                 <p style="font-size:0.85rem; color:#666; margin-top:5px; background:#f9f9f9; padding:8px; border-radius:5px;">
-                    🔼 「完了進行形=発展（ずっと～している）」は、基本的には高校範囲ですが、現在完了形の「継続（ずっと～している）」の一部として、<strong>have been ~ing</strong> の形だけ発展的に出ることがあります。
+                    🔼 「完了進行形=発展（ずっと～している）」は、基本的には高校範囲ですが、⑥ 現在完了形の「継続（ずっと～している）」の一部として、<strong>have been ~ing</strong> の形だけ発展的に出ることがあります。
                 </p>
-            </div>
-            <div class="info-section">
-                <h3>🎮 操作方法</h3>
-                <ul class="info-list">
-                    <li><strong>答え方:</strong> 日本語の文脈（[ ]の部分）に合わせて、正しい英語の形を入力してね。</li>
-                    <li>英語の文の空欄 <strong>[ _____ ]</strong> に、正しい形の単語を入力してね。</li>
-                    <li>
-                        <strong>入力のヒント:</strong>
-                        <ul>
-                            <li>進行形 (〜している) → <strong>ing形</strong> だけ入力 (am/is/was等は文に含まれています)</li>
-                            <li>完了形 (〜した/している) → <strong>過去分詞(p.p.)</strong> だけ入力 (have/had等は文に含まれています)</li>
-                            <li>それ以外 → <strong>単語全体</strong> を入力 (例: played, will play)</li>
-                        </ul>
-                    </li>
-                </ul>
             </div>
         </div>
 
         <div id="modal-body-adult" style="display:none;">
             <div style="text-align:center; font-weight:bold; color:var(--main-color); margin-bottom:15px; font-size:1.1rem;">
-                🚀 時制単語特訓 (Tense Master) Ver.3.21
+                🚀 時制単語特訓 (Tense Master) Ver.3.30
             </div>
             <ul class="concept-list" style="list-style:none; padding:0; margin-bottom:20px;">
                 <li><strong>⚡ 会話の瞬発力を高める</strong><br>キーボード入力と音声リズムによるフィードバックを採用し、脳の言語野を多角的に刺激するよう設計されています。</li>
@@ -741,25 +733,64 @@
         render();
     }
     
-        function createBalancedQuestion(level) {
+    function createBalancedQuestion(level) {
         let targetTenses = [];
-        if (level === 1) targetTenses = ['present', 'past', 'future'];
-        else if (level === 2) targetTenses = ['prog', 'pastprog'];
-        else if (level === 3) targetTenses = ['perf'];
-        // 総合テスト(level === 0)は、過去完了を除いた中学校の全時制にする
-        else targetTenses = ['present', 'past', 'future', 'prog', 'pastprog', 'perf'];
-        
-        const selectedTense = targetTenses[Math.floor(Math.random() * targetTenses.length)];
+        let selectedTense = '';
+
+        if (level === 1) {
+            // Lv.1: 現在15%・過去75%・未来10%
+            const rand = Math.random() * 100;
+            if (rand < 15) {
+                selectedTense = 'present'; // 15%の確率
+            } else if (rand < 90) {        // 15 + 75 = 90
+                selectedTense = 'past';    // 75%の確率
+            } else {
+                selectedTense = 'future';  // 残り10%の確率
+            }
+        } else if (level === 2) {
+            // Lv.2: 現在進行形50%・過去進行形50% (変更なし)
+            targetTenses = ['prog', 'pastprog'];
+            selectedTense = targetTenses[Math.floor(Math.random() * targetTenses.length)];
+        } else if (level === 3) {
+            // Lv.3: 現在10%・過去40%・過去進行20%・現在完了30%
+            const rand = Math.random() * 100;
+            if (rand < 10) {
+                selectedTense = 'present';  // 10%の確率で現在形
+        } else if (rand < 50) {         // 10 + 40 = 50
+                selectedTense = 'past';     // 40%の確率で過去形
+            } else if (rand < 70) {         // 50 + 20 = 70
+                selectedTense = 'pastprog'; // 20%の確率で過去進行形
+            } else {
+                selectedTense = 'perf';     // 残り30%の確率で現在完了形
+            }
+        } else {
+            // 総合テスト: 現在10%・未来10%・過去20%・現在進行20%・過去進行20%・現在完了20%
+            const rand = Math.random() * 100;
+            if (rand < 10) {
+                selectedTense = 'present';     // 10%
+            } else if (rand < 20) {
+                selectedTense = 'future';      // 10% (10+10)
+            } else if (rand < 40) {
+                selectedTense = 'past';        // 20% (20+20)
+            } else if (rand < 60) {
+                selectedTense = 'prog';        // 20% (40+20)
+            } else if (rand < 80) {
+            selectedTense = 'pastprog';    // 20% (60+20)
+            } else {
+                selectedTense = 'perf';        // 残り20%
+            }
+        }
+
         const candidates = wordData.filter(w => w.sentences && w.sentences[selectedTense]);
-        
         if(candidates.length === 0) {
             const w = wordData[Math.floor(Math.random() * wordData.length)];
-            return { word: w, tense: 'present' }; 
+            return { word: w, tense: 'present' };
         }
-        
         const word = candidates[Math.floor(Math.random() * candidates.length)];
         return { word: word, tense: selectedTense };
     }
+
+
 
     function backToTitle() {
         stopAudio();
@@ -768,7 +799,7 @@
         $('modal-info').style.display = 'none';
     }
 
-    function render() {
+function render() {
         if(currentIndex >= questions.length) {
             alert(`終了！\nScore: ${score} / ${questions.length * 10}`);
             backToTitle();
@@ -812,68 +843,35 @@
         if(jpHtml.includes('[')) jpHtml = jpHtml.replace('[', '<span class="target">[').replace(']', ']</span>');
         $('q-japanese').innerHTML = jpHtml;
         
+        // words.js の英文データをそのまま取得
         currentEnText = currentSentencePair.en;
         
-        // 完了進行形 (have been / had been) が最優先
-        currentEnText = currentEnText.replace(/\b(have|has|had)\s+been\s+\[/ig, "[");
-        
-        // その他の助動詞・be動詞などを一掃
-        currentEnText = currentEnText.replace(/\b(am|is|are)\s+\[/ig, "[");
-        currentEnText = currentEnText.replace(/\b(was|were)\s+\[/ig, "[");
-        currentEnText = currentEnText.replace(/\b(have|has)\s+just\s+\[/ig, "just [");
-        currentEnText = currentEnText.replace(/\b(have|has)\s+already\s+\[/ig, "already [");
-        currentEnText = currentEnText.replace(/\b(have|has)\s+\[/ig, "[");
-        currentEnText = currentEnText.replace(/\bhad\s+just\s+\[/ig, "just [");
-        currentEnText = currentEnText.replace(/\bhad\s+already\s+\[/ig, "already [");
-        currentEnText = currentEnText.replace(/\bhad\s+\[/ig, "[");
-        
-        // words.js側に will [ _____ ] などと書かれていた場合も考慮して削除
-        currentEnText = currentEnText.replace(/\b(will|am going to|is going to|are going to)\s+\[/ig, "[");
+        // （ここに自動削除の replace 処理がたくさんありましたが、すべて削除しました）
 
+        // そのまま画面に出力
         $('q-sentence').innerHTML = currentEnText;
     }
 
     function getCorrectAnswer() {
-        const f = currentWordData.forms;
-        const subj = currentWordData.subject || "I";
-        const lowerSubj = subj.toLowerCase();
+    // 修正箇所：currentWord ではなく currentWordData にする
+        const forms = currentWordData.forms; 
         
-        let bePresent = "am";
-        let bePast = "was";
-        let haveVerb = "have";
-        
-        if (lowerSubj === "you" || lowerSubj === "we" || lowerSubj === "they" || lowerSubj.includes(" and ")) {
-            bePresent = "are";
-            bePast = "were";
-            haveVerb = "have";
-        } else if (lowerSubj !== "i") { // 3人称単数
-            bePresent = "is";
-            bePast = "was";
-            haveVerb = "has";
-        }
-
         switch(currentTense) {
-            case 'present': 
-                if (bePresent === "is") {
-                    if (f.basic === "have") return "has";
-                    if (f.basic === "go") return "goes";
-                    if (f.basic === "do") return "does";
-                    if (f.basic.endsWith("s") || f.basic.endsWith("sh") || f.basic.endsWith("ch") || f.basic.endsWith("x") || f.basic.endsWith("o")) return f.basic + "es";
-                    if (f.basic.endsWith("y") && !/[aeiou]y$/.test(f.basic)) return f.basic.slice(0, -1) + "ies";
-                    return f.basic + "s";
-                }
-                return f.basic;
-            case 'past': return f.past;
-            case 'future': return "will " + f.basic; 
-            case 'prog': return bePresent + " " + f.ing;
-            case 'pastprog': return bePast + " " + f.ing; 
-            case 'perf': return haveVerb + " " + f.pp;
-            case 'perfprog': return haveVerb + " been " + f.ing;
-            case 'pastperf': return "had " + f.pp;
-            case 'pastperfprog': return "had been " + f.ing;
-            default: return f.basic;
+            case 'present': return forms.basic; 
+            case 'past': return forms.past;
+            case 'future': return forms.basic;
+            case 'prog': 
+            case 'pastprog': 
+            case 'pastperfprog': 
+                return forms.ing;
+            case 'perf': 
+            case 'pastperf': 
+                return forms.pp;
+            default: 
+                return forms.basic;
         }
     }
+
 
     function checkAnswer(forcedWrong = false) {
         const val = $('type-input').value.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -962,7 +960,7 @@
         let tensesToShow = ['present']; 
         if (selectedLevel === 1) tensesToShow.push('past', 'future');
         else if (selectedLevel === 2) tensesToShow.push('prog', 'past', 'pastprog');
-        else if (selectedLevel === 3) tensesToShow.push('perf');
+        else if (selectedLevel === 3) tensesToShow.push('past', 'pastprog', 'perf');
         // 総合テスト用
         else tensesToShow.push('past', 'future', 'prog', 'pastprog', 'perf');
 
@@ -995,10 +993,8 @@
                 case 'future': label="未来"; val="will "+f.basic; jpShort="〜するつもり"; break;
                 case 'prog': label="現在進行"; val=bePresent + " " + f.ing; jpShort="今〜している"; break;
                 case 'pastprog': label="過去進行"; val=bePast + " " + f.ing; jpShort="〜していた"; break;
-                case 'perf': label="現在完了"; val=haveVerb + " " + f.pp; jpShort="〜した/継続"; break;
+                case 'perf': label="現在完了"; val=haveVerb + " " + f.pp; jpShort="〜したところだ(完了)/〜したことがある(経験)"; break;
                 case 'perfprog': label="完了進行"; val=haveVerb + " been " + f.ing; jpShort="ずっと〜している"; break;
-                case 'pastperf': label="過去完了"; val="had "+f.pp; jpShort="それまでに〜していた"; break;
-                case 'pastperfprog': label="過去完了進行"; val="had been "+f.ing; jpShort="ずっと〜していた"; break;
             }
             if(!val) return;
 
@@ -1048,10 +1044,7 @@
             case 'future': text += "未来形** (予定) なので will + 原形 です。"; break;
             case 'prog': text += "現在進行形** (今〜している) です。"; break;
             case 'pastprog': text += "過去進行形** (その時〜していた) です。"; break;
-            case 'perf': text += "現在完了形** (完了/経験/継続) です。"; break;
-            case 'perfprog': text += "現在完了進行形** (ずっと〜している) です。"; break;
-            case 'pastperf': text += "過去完了形** (過去の基準点よりさらに前の「大過去」) です。"; break;
-            case 'pastperfprog': text += "過去完了進行形** (過去のある基準点まで継続していた動作) です。"; break;
+            case 'perf': text += "現在完了形** (〜したところだ:完了/〜したことがある:経験/ずっと〜している:継続) です。"; break;
         }
         if(w.memo && ['past','pp','ing'].some(k=>t.includes(k))) text += ` (${w.memo})`;
         el.innerText = text;
@@ -1066,9 +1059,24 @@
     }
     
     function toggleSpeed() {
-        speechRate = (speechRate === 1.0) ? 0.7 : 1.0;
+        // 1.0 -> 0.9 -> 0.7 -> 1.0 の順に切り替える
+        if (speechRate === 1.0) {
+            speechRate = 0.9;
+        } else if (speechRate === 0.9) {
+            speechRate = 0.7;
+        } else {
+            speechRate = 1.0;
+        }
+        
+        // ボタンの表示を更新する
         const btn = $('speed-btn');
-        btn.innerText = (speechRate === 1.0) ? "🚀 1.0" : "🐢 0.7";
+        if (speechRate === 1.0) {
+            btn.innerText = "🚀 1.0";
+        } else if (speechRate === 0.9) {
+            btn.innerText = "🚗 0.9";
+        } else {
+            btn.innerText = "🐢 0.7";
+        }
     }
 
     function toggleFullscreen() {
@@ -1156,8 +1164,7 @@
                 let tensesToShow = ['present']; 
                 if (selectedLevel === 1) tensesToShow.push('past', 'future');
                 else if (selectedLevel === 2) tensesToShow.push('prog', 'past', 'pastprog');
-                else if (selectedLevel === 3) tensesToShow.push('perf', 'perfprog');
-                else if (selectedLevel === 4) tensesToShow.push('past', 'pastprog', 'pastperf', 'pastperfprog');
+                else if (selectedLevel === 3) tensesToShow.push('past', 'pastprog', 'perf');
                 else tensesToShow.push('past', 'future', 'prog', 'perf', 'pastperf', 'pastperfprog');
                 tensesToShow = [...new Set(tensesToShow)];
 
