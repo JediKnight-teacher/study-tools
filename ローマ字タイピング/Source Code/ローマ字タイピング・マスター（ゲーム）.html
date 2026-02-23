@@ -385,6 +385,8 @@
                     <option value="slow">🐢 のんびり</option>
                     <option value="normal" selected>🐇 ふつう</option>
                     <option value="fast">🐆 はやい</option>
+                    <option value="superFast">🚀 とてもはやい</option>
+                    <option value="god">⚡ かみわざ</option>
                 </select>
             </div>
             <button class="reset-btn" onclick="resetRankings()" title="すべてのきろくをけす">🗑️</button>
@@ -476,7 +478,7 @@
     <div class="modal-box-info concept-mode">
         <span class="modal-close-btn" onclick="closeInfoModalBtn('modal-concept')">×</span>
             <h2 class="concept-h2">💡 このツールについて</h2>
-            <div style="text-align:center; font-weight:bold; color:#c2185b; margin-bottom:10px;">Ver.1.0</div>
+            <div style="text-align:center; font-weight:bold; color:#c2185b; margin-bottom:10px;">Ver.1.1</div>
 
             <ul class="concept-list">
             <li><strong>🎮 ゲーム感覚で楽しく習得</strong><br>小学校低学年から、遊び感覚でローマ字入力を覚えられます。花火のエフェクトや効果音、スコアランキングなどのゲーム要素を取り入れ、楽しく継続できるように設計しました。</li>
@@ -662,7 +664,7 @@
                 let html = "";
                 data.forEach((best, i) => {
                     if (i >= 5) return; 
-                    const spdIcon = best.speed ? ({'slow':'🐢', 'normal':'🐇', 'fast':'🐆'}[best.speed] || '') : '';
+                    const spdIcon = best.speed ? ({'slow':'🐢', 'normal':'🐇', 'fast':'🐆', 'superFast':'🚀', 'god':'⚡'}[best.speed] || '') : '';
                     const icon = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : (i + 1) + '.'));
                     html += `<div class="menu-rank-row ${i===0?'top':''}">
                         <span>${icon}</span>
@@ -843,7 +845,8 @@
         let decay = 0.25;
         if(currentSpeed === 'slow') decay = 0.08;
         if(currentSpeed === 'fast') decay = 0.5;
-
+        if(currentSpeed === 'superFast') decay = 0.7; // 「はやい」の1.4倍の減り方
+        if(currentSpeed === 'god') decay = 1.1;       // 「はやい」の2倍以上（激ムズ！）
         if(timerInterval) clearInterval(timerInterval);
 
         timerInterval = setInterval(()=>{
