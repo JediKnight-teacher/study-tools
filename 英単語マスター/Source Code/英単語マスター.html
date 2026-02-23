@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>英単語マスター School Edition Ver.2.00</title>
+<style>
+    /* Color Palette */
+    :root { --bg-color:#f0f4f8; --main-color:#0984e3; --accent-color:#d63031; --text-color:#2d3436; --text-sub: #636e72; --gold:#f1c40f; --success:#00b894; --typing:#6c5ce7; --howto-accent: #4ECDC4; --concept-accent: #ff5252; }
+    
+    /* Grade Themes */
+    [data-theme="elem_34"] { --bg-color:#fff8e1; --main-color:#ff9800; }
+    [data-theme="elem_5"]  { --bg-color:#f1f8e9; --main-color:#8bc34a; }
+    [data-theme="elem_6"]  { --bg-color:#e0f7fa; --main-color:#00bcd4; }
+    [data-theme="jh1"]     { --bg-color:#e0f2f1; --main-color:#009688; }
+    [data-theme="jh2"]     { --bg-color:#e8eaf6; --main-color:#3f51b5; }
+    [data-theme="jh3"]     { --bg-color:#fce4ec; --main-color:#e91e63; }
+    [data-theme="jh_all"]  { --bg-color:#ede7f6; --main-color:#673ab7; }
+    [data-theme="all_grades"] { --bg-color:#f3e5f5; --main-color:#9c27b0; }
+    [data-theme="typing"]  { --bg-color:#fff3e0; --main-color:#e67e22; }
+    
+    * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    
+    body { font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif; background:var(--bg-color); color:var(--text-color); margin:0; display:flex; justify-content:center; align-items:center; height:100vh; width:100vw; overflow:hidden; user-select:none; transition:background 0.5s ease; }
+    
+    .app-container { 
+        background:rgba(255,255,255,0.95); 
+        width:100%; max-width:1280px; 
+        height:100%; max-height:600px; 
+        display:flex; flex-direction:column; position:relative; overflow:hidden; backdrop-filter:blur(10px); 
+    }
+    
+    @media (min-width: 601px) and (min-height: 601px) { 
+        .app-container { height:95vh; border-radius:20px; box-shadow:0 20px 50px rgba(0,0,0,0.15); border:1px solid rgba(0,0,0,0.1); } 
+    }
+
+    /* Info Bar & Game Header */
+    .progress-bar-bg { width:100%; height:6px; background:rgba(0,0,0,0.05); position:absolute; top:0; left:0; z-index:10; }
+    .progress-fill { height:100%; background:var(--success); width:0%; transition:width 0.3s ease; }
+    .info-bar { background:rgba(255,255,255,0.95); padding:0 15px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(0,0,0,0.05); height:45px; flex-shrink:0; position:relative; z-index:60; }
+    .header-left, .header-right { display:flex; align-items:center; gap:8px; }
+    .mode-badge { font-size:12px; background:var(--main-color); color:white; padding:4px 10px; border-radius:12px; font-weight:bold; transition:background 0.3s; }
+    .score-pill { background:#fff; padding:4px 12px; border-radius:15px; font-weight:bold; color:var(--gold); border:1px solid #bdc3c7; font-size:14px; }
+    .count-pill { font-size:12px; font-weight:bold; color:#636e72; background:rgba(255,255,255,0.8); padding:4px 10px; border-radius:12px; border:1px solid #eee; }
+    .icon-btn { background:#f1f2f6; border:none; color:#636e72; min-width:32px; height:32px; border-radius:8px; cursor:pointer; font-weight:bold; display:flex; align-items:center; justify-content:center; font-size:16px; transition:0.2s; }
+    .icon-btn:hover { background:#dfe6e9; color:var(--main-color); }
+    
+    .speed-btn { font-family: monospace; letter-spacing:-1px; width:40px; font-size:11px; background:#3498db; color:white; box-shadow:0 2px 5px rgba(52,152,219,0.3); }
+    .speed-btn:hover { background:#2980b9; color:white; }
+    .voice-btn { width:32px; font-size:16px; background:#a29bfe; color:white; }
+    .voice-btn.muted { background:#b2bec3; opacity:0.7; text-decoration:line-through; }
+
+    /* Game Area */
+    .game-area { flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:5px 20px; position:relative; width:100%; height:100%; overflow:hidden; }
+    .word-card { width:100%; max-width:600px; text-align:center; margin-bottom:15px; padding:20px 10px; position:relative; z-index:50; background:white; border-radius:20px; box-shadow:0 5px 15px rgba(0,0,0,0.08); border:1px solid rgba(0,0,0,0.03); flex-shrink: 0; }
+    .word-display { font-size: clamp(40px, 10vh, 80px); font-weight:800; color:var(--text-color); margin:0; line-height:1.1; word-wrap: break-word; overflow-wrap: anywhere; width: 100%; }
+    .sub-text { font-size:18px; color:var(--text-sub); margin-top:5px; min-height:26px; }
+    .blind-mode { color:transparent!important; text-shadow:none!important; background:rgba(0,0,0,0.05); border-radius:12px; padding:0 20px; position:relative; display:inline-block; }
+    .blind-mode::after { content:"???"; color:rgba(0,0,0,0.2); font-size:40px; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); }
+    .reveal { color:var(--text-color)!important; background:transparent; text-shadow:none!important; } .reveal::after { content:none; }
+    .speaker-btn { font-size:24px; color:white; background:var(--main-color); width:50px; height:50px; border-radius:50%; border:none; box-shadow:0 3px 8px rgba(0,0,0,0.2); cursor:pointer; margin:10px auto 0 auto; transition:0.3s; display:flex; justify-content:center; align-items:center; }
+    .speaker-btn:active { transform:scale(0.95); } .speaker-btn.playing { animation:pulse 1s infinite; } @keyframes pulse { 0%{transform:scale(1);} 50%{transform:scale(1.1);} 100%{transform:scale(1);} }
+    .key-hint { font-size:11px; color:#95a5a6; font-weight:bold; margin-top:4px; text-align:center; }
+
+    .options-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%; max-width:700px; flex:1; max-height: 200px; z-index:50; position:relative; }
+    .option-btn { background:white; border:2px solid #bdc3c7; border-radius:14px; padding:5px 5px 5px 25px; font-size:clamp(16px, 4vh, 22px); font-weight:bold; color:var(--text-color); cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 0 rgba(0,0,0,0.05); transition:transform 0.1s; position:relative; }
+    .option-btn:active { transform:translateY(2px); box-shadow:none; }
+    .option-btn::before { position:absolute; top:8px; left:8px; font-family:monospace; font-size:11px; color:#fff; border-radius:6px; width:20px; height:20px; display:flex; align-items:center; justify-content:center; background:#95a5a6; font-weight:bold; }
+    #opt-0::before{content:"1"} #opt-1::before{content:"2"} #opt-2::before{content:"3"} #opt-3::before{content:"4"}
+    .correct { background:#dff9fb!important; border-color:#00cec9!important; color:#00cec9!important; }
+    .wrong { background:#ffeaa7!important; border-color:#ff7675!important; color:#d63031!important; opacity:0.6; }
+
+    .typing-area { width:100%; max-width:600px; display:flex; gap:10px; margin-top:10px; position:relative; z-index:50; }
+    .typing-input { flex:1; padding:10px; font-size:28px; border:2px solid #ccc; border-radius:12px; text-align:center; outline:none; font-weight:bold; font-family:monospace; background:rgba(255,255,255,0.9); }
+    .typing-input:focus { border-color:var(--typing); }
+    .typing-submit { padding:0 20px; background:var(--typing); color:white; border:none; border-radius:12px; font-weight:bold; font-size:18px; cursor:pointer; }
+
+    .hidden { display:none!important; }
+    #feedback-overlay { position:absolute; top:45%; left:50%; transform:translate(-50%,-50%) scale(0.5); font-size:200px; font-weight:900; opacity:0; pointer-events:none; z-index:75; transition:all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .fb-o { color:rgba(0, 184, 148, 0.4); opacity:0; } .fb-x { color:rgba(214, 48, 49, 0.4); opacity:0; } 
+    .pop { opacity:1!important; transform:translate(-50%,-50%) scale(1.0) rotate(0deg); } 
+
+    /* Overlay Screens */
+    .overlay-screen { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.98); z-index:100; display:flex; flex-direction:column; align-items:center; padding:10px; box-sizing:border-box; backdrop-filter:blur(5px); }
+    
+    /* Menu Layout Optimized */
+    .menu-root { display:flex; flex-direction:column; align-items:center; width:100%; height:100%; padding-top:5px; box-sizing:border-box; }
+    .app-header { text-align:center; flex-shrink:0; margin-bottom:0; display:flex; flex-direction:column; align-items:center; }
+    .app-title { font-size:26px; font-weight:900; color:var(--main-color); margin:0; letter-spacing:-0.5px; text-shadow:2px 2px 0 #fff; line-height: 1.2; }
+    
+    .btn-howto-menu { background: var(--howto-accent); color: white; border: none; padding: 4px 15px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; cursor: pointer; margin: 3px 0 5px 0; box-shadow: 0 2px 0 #26a69a; transition: 0.2s; }
+    .btn-howto-menu:hover { transform: translateY(-1px); filter: brightness(1.1); }
+    .btn-howto-menu:active { transform: translateY(1px); box-shadow: 0 1px 0 #26a69a; }
+
+    .menu-wrapper { width:100%; max-width:1200px; display:flex; flex-direction:row; justify-content:center; gap: 15px; padding: 0 10px; flex:1; min-height:0; }
+    .menu-left, .menu-right { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 8px; max-width: 550px; min-height:0; }
+    .menu-left { align-items: stretch; } .menu-right { justify-content: center; }
+
+    #resume-btn { width:100%; padding:12px; border:none; border-radius:12px; background:#2d3436; color:white; font-size:14px; font-weight:bold; cursor:pointer; box-shadow:0 3px 8px rgba(0,0,0,0.2); animation:pulse-border 2s infinite; margin-bottom:5px; flex-shrink:0; }
+    @keyframes pulse-border { 0% { box-shadow:0 0 0 0 rgba(45,52,54,0.4); } 70% { box-shadow:0 0 0 4px rgba(45,52,54,0); } 100% { box-shadow:0 0 0 0 rgba(45,52,54,0); } }
+
+    .menu-box { background:white; border-radius:12px; padding:10px 15px; box-shadow:0 3px 10px rgba(0,0,0,0.08); margin-bottom:0; border:1px solid #eee; display:flex; flex-direction:column; justify-content:center; }
+    .sec-title { font-size:12px; font-weight:900; color:#b2bec3; margin:0 0 5px 2px; text-transform:uppercase; letter-spacing:1px; flex-shrink:0; }
+    
+    .grade-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; flex:1; }
+    .radio-card-input { display:none; }
+    .radio-card-label { display:flex; flex-direction:column; justify-content:center; align-items:center; padding:0 2px; border:2px solid #cfd8dc; border-radius:8px; cursor:pointer; background:#fff; transition:0.2s; height:100%; min-height:40px; color:#2d3436; }
+    .g-name { font-size:14px; font-weight:900; color:#2d3436; text-align:center; }
+    .g-desc { font-size:9px; color:#636e72; margin-top:0; text-align:center; font-weight:bold; }
+    .radio-card-input:checked+label { border-color:transparent; color:white; transform:scale(1.02); box-shadow:0 3px 6px rgba(0,0,0,0.2); }
+    .radio-card-input:checked+label .g-name, .radio-card-input:checked+label .g-desc { color:white; }
+    #lv_elem_34:checked+label{background:#ff9800} #lv_elem_5:checked+label{background:#8bc34a} #lv_elem_6:checked+label{background:#00bcd4}
+    #lv_jh1:checked+label{background:#009688} #lv_jh2:checked+label{background:#3f51b5} #lv_jh3:checked+label{background:#e91e63} 
+    #lv_jh_all:checked+label{background:#673ab7} #lv_all:checked+label{background:#9c27b0}
+
+    .settings-compact { display:flex; flex-direction:column; gap:6px; }
+    .st-row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .st-label { font-size:12px; font-weight:bold; color:#2d3436; white-space:nowrap; }
+    .mini-seg { display:flex; background:#dfe6e9; padding:3px; border-radius:8px; flex:1; width:100%; }
+    .mini-opt { flex:1; position:relative; } .mini-opt input { display:none; }
+    .mini-opt label { display:block; text-align:center; padding:8px 0; font-size:12px; border-radius:6px; color:#636e72; font-weight:bold; cursor:pointer; transition:0.2s; white-space:nowrap; }
+    .mini-opt input:checked+label { background:white; color:var(--main-color); box-shadow:0 2px 4px rgba(0,0,0,0.1); }
+    .mini-opt input:disabled+label { color:#b2bec3; cursor:not-allowed; text-decoration:line-through; opacity:0.6; }
+    .mini-toggle { display:flex; align-items:center; gap:5px; font-size:12px; color:#2d3436; font-weight:bold; cursor:pointer; }
+
+    .extra-actions { display:flex; flex-direction:column; gap:6px; margin-top:0; flex:1; justify-content:center; }
+    .action-btn { padding:10px; border-radius:10px; border:none; font-weight:bold; font-size:14px; cursor:pointer; color:white; display:flex; flex-direction:row; align-items:center; justify-content:center; gap:8px; box-shadow:0 3px 5px rgba(0,0,0,0.1); width:100%; height:100%; max-height:50px; }
+    
+    .start-area { width: 100%; max-width: 500px; padding: 5px 10px; margin-top: auto; margin-bottom: 5px; flex-shrink:0; }
+    .big-start-btn { width:100%; padding:10px; border:none; border-radius:50px; background:var(--main-color); color:white; font-size:22px; font-weight:900; letter-spacing:1px; box-shadow:0 5px 12px rgba(0,0,0,0.15); cursor:pointer; transition:0.2s; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .big-start-btn:active { transform:scale(0.98); } .big-start-btn:disabled { background:#b2bec3; cursor:not-allowed; box-shadow:none; transform:none; }
+    .start-sub { font-size:10px; font-weight:normal; opacity:0.9; margin-top:1px; }
+    
+    .copyright-link { margin-top: 0; margin-bottom: 5px; font-size: 10px; color:#b2bec3; text-align: center; cursor: pointer; text-decoration: underline; flex-shrink:0; }
+    .copyright-link:hover { color: var(--main-color); font-weight:bold; }
+
+    /* Modal Styles Optimized */
+    .modal-overlay-info { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 24000; justify-content: center; align-items: center; }
+    /* Reduced max-height and ensured padding doesn't cut off */
+    .modal-box-info { background: #fff; width: 90%; max-width: 650px; max-height: 80vh; border-radius: 20px; border: 6px solid var(--howto-accent); padding: 25px; overflow-y: auto; text-align: left; position: relative; animation: popIn 0.4s; box-shadow: 0 10px 25px rgba(0,0,0,0.3); color: #444; margin-top: 20px; margin-bottom: 20px; }
+    .modal-box-info.concept-mode { border-color: var(--concept-accent); }
+    .modal-close-btn { position: absolute; top: 10px; right: 15px; font-size: 2rem; color: #ccc; cursor: pointer; line-height: 1; font-weight: bold; }
+    .modal-close-btn:hover { color: var(--main-color); }
+    @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 60% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+    
+    .howto-h2 { text-align: center; color: #00897b; border-bottom: 3px dashed #b2dfdb; padding-bottom: 10px; margin-top: 0; }
+    .concept-h2 { text-align: center; color: #c62828; border-bottom: 3px dashed #ffcdd2; padding-bottom: 5px; margin-top: 0; }
+    .howto-section { background: #e0f2f1; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+    .howto-section h3 { margin: 0 0 10px 0; color: #00695c; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
+    .howto-item { display: flex; align-items: start; gap: 10px; margin-bottom: 8px; font-size: 0.95rem; line-height: 1.5;}
+    .howto-icon { font-size: 1.3rem; width: 24px; text-align: center; flex-shrink: 0; }
+    .concept-list { font-size: 0.95rem; line-height: 1.6; color: #444; margin-left: 20px; padding-left: 0; }
+    .concept-list li { margin-bottom: 8px; }
+    .license-box { background: #fff8e1; padding: 10px; border-radius: 10px; text-align: center; margin-top: 15px; font-weight: bold; color: #ef6c00; border: 2px dashed #ffb74d; font-size: 0.9rem; }
+    .version-display { text-align: center; font-weight: bold; color: #7f8c8d; margin-bottom: 15px; font-size: 1.0rem; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+
+    /* Other lists */
+    .list-container { width:100%; max-width:600px; max-height:40vh; overflow-y:auto; background:white; border-radius:12px; border:1px solid #eee; margin:10px 0; }
+    table { width:100%; border-collapse:collapse; font-size:13px; table-layout:fixed; }
+    th { background:#f8f9fa; padding:10px 2px; text-align:center; position:sticky; top:0; color:#444; font-size:12px; font-weight:bold; }
+    td { padding:10px 2px; border-bottom:1px solid #f1f2f6; text-align:center; color:#2d3436; }
+    .row-correct { color:var(--success); font-weight:bold; } .row-wrong { color:var(--accent-color); text-decoration:line-through; margin-right:5px; font-size:11px; }
+    .del-btn { background:#ffeaa7; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px; color:#d63031; font-weight:bold; }
+    
+    .mybook-header-area { width:100%; max-width:600px; margin-bottom:10px; display:flex; flex-direction:column; align-items:center; }
+    /* Mode Grid 2x2 */
+    .mode-btn-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%; margin-bottom:10px; }
+    .mode-btn { padding:15px 2px; border:none; border-radius:15px; color:white; font-weight:bold; font-size:16px; cursor:pointer; box-shadow:0 4px 0 rgba(0,0,0,0.15); transition:transform 0.1s; display:flex; flex-direction:column; align-items:center; gap:2px; position:relative; }
+    .mode-btn:active { transform:translateY(2px); box-shadow:none; }
+    .mode-btn:disabled { opacity:0.5; cursor:not-allowed; box-shadow:none; }
+    .mode-sub { font-size:10px; font-weight:normal; opacity:0.9; }
+    .mode-badge-count { position:absolute; top:-5px; right:-5px; background:#d63031; color:white; font-size:10px; padding:2px 6px; border-radius:10px; box-shadow:0 2px 4px rgba(0,0,0,0.2); }
+    
+    /* List Badges */
+    .list-badge { display:inline-block; font-size:10px; padding:2px 6px; border-radius:4px; color:white; margin-right:5px; vertical-align:middle; }
+    .lb-norm { background:#0984e3; } .lb-list { background:#00b894; } .lb-type { background:#e67e22; } .lb-spell { background:#6c5ce7; }
+
+    .list-tabs { display:flex; gap:5px; width:100%; margin-bottom:5px; flex-wrap: wrap; justify-content: center; }
+    .tab-btn { flex:1; padding:8px; border:1px solid #bdc3c7; background:#f1f2f6; color:#636e72; font-size:11px; font-weight:bold; cursor:pointer; border-radius:8px; min-width: 50px; }
+    .tab-btn.active { background:var(--main-color); color:white; border-color:var(--main-color); }
+    .close-area { display:flex; justify-content:space-between; align-items:center; width:100%; border-top:1px solid #eee; padding-top:10px; margin-top:5px; }
+    .btns-row { display:flex; gap:8px; width:100%; }
+</style>
+</head>
+<body data-theme="jh_all">
+
+<div class="app-container" id="app-box">
+    <div class="progress-bar-bg"><div id="progress-fill" class="progress-fill"></div></div>
+    <div class="info-bar" id="game-header">
+        <div class="header-left"><button class="icon-btn" onclick="suspendGame()" title="中断 (Esc)">⏸</button><span class="mode-badge" id="mode-badge">通常</span></div>
+        <div class="header-right"><button class="icon-btn voice-btn" id="voice-btn-game" onclick="toggleVoiceGame()" title="音声ON/OFF">🔊</button><button class="icon-btn speed-btn" id="ingame-speed-btn" onclick="toggleSpeedLoop()">1.0x</button><div class="count-pill"><span id="progress-text">1 / 20</span></div><div class="score-pill">★ <span id="score-val">0</span></div><button class="icon-btn" onclick="toggleFullScreen()" title="全画面">⛶</button></div>
+    </div>
+    
+    <div class="game-area hidden" id="game-screen">
+        <div id="feedback-overlay"></div>
+        <div class="word-card">
+            <h2 id="q-text" class="word-display">Ready</h2>
+            <div id="sub-text" class="sub-text"></div>
+            <button id="speaker-btn" class="speaker-btn" onclick="speakCurrent()" title="Spaceキーで再生">🔊</button>
+            <div class="key-hint">(スペースキー)</div>
+            <div id="word-tag" style="margin-top:5px; color:var(--text-color); font-weight:bold; opacity:0; transition:0.3s; height:20px;">正解</div>
+        </div>
+        <div id="options-area" class="options-grid">
+            <button class="option-btn" id="opt-0" onclick="checkAnswer(0)"><span class="btn-text"></span></button>
+            <button class="option-btn" id="opt-1" onclick="checkAnswer(1)"><span class="btn-text"></span></button>
+            <button class="option-btn" id="opt-2" onclick="checkAnswer(2)"><span class="btn-text"></span></button>
+            <button class="option-btn" id="opt-3" onclick="checkAnswer(3)"><span class="btn-text"></span></button>
+        </div>
+        <div id="typing-area" class="typing-area hidden">
+            <input type="text" id="type-input" class="typing-input" placeholder="入力を待機中..." autocomplete="off">
+            <button class="typing-submit" onclick="checkTyping()">Go</button>
+        </div>
+    </div>
+
+    <div id="menu-screen" class="overlay-screen">
+        <div class="menu-root">
+            <div class="app-header">
+                <h1 class="app-title">英単語マスター</h1>
+            </div>
+            <button class="btn-howto-menu" onclick="openInfoModal('modal-howto')">📖 メニュー説明</button>
+            
+            <div class="menu-wrapper">
+                <div class="menu-left">
+                    <button id="resume-btn" onclick="resumeGame()" class="hidden">▶ 続きから遊ぶ (Resume)</button>
+                    <div class="menu-box" style="flex:1;">
+                        <div class="sec-title">コースを選ぶ</div>
+                        <div class="grade-grid">
+                            <div><input type="radio" name="grade" id="lv_elem_34" class="radio-card-input" value="elem_34" onchange="updateCounts(true)"><label for="lv_elem_34" class="radio-card-label"><span class="g-name">小３・４</span><span class="g-desc">はじめて</span></label></div>
+                            <div><input type="radio" name="grade" id="lv_elem_5" class="radio-card-input" value="elem_5" onchange="updateCounts(true)"><label for="lv_elem_5" class="radio-card-label"><span class="g-name">小５</span><span class="g-desc">基本の単語</span></label></div>
+                            <div><input type="radio" name="grade" id="lv_elem_6" class="radio-card-input" value="elem_6" onchange="updateCounts(true)"><label for="lv_elem_6" class="radio-card-label"><span class="g-name">小６</span><span class="g-desc">総復習</span></label></div>
+                            <div><input type="radio" name="grade" id="lv_jh1" class="radio-card-input" value="jh1" onchange="updateCounts(true)"><label for="lv_jh1" class="radio-card-label"><span class="g-name">中１</span><span class="g-desc">英検5級</span></label></div>
+                            <div><input type="radio" name="grade" id="lv_jh2" class="radio-card-input" value="jh2" onchange="updateCounts(true)"><label for="lv_jh2" class="radio-card-label"><span class="g-name">中２</span><span class="g-desc">英検4級</span></label></div>
+                            <div><input type="radio" name="grade" id="lv_jh3" class="radio-card-input" value="jh3" onchange="updateCounts(true)"><label for="lv_jh3" class="radio-card-label"><span class="g-name">中３</span><span class="g-desc">英検3級</span></label></div>
+                            <div style="grid-column:span 2; display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                                <div><input type="radio" name="grade" id="lv_jh_all" class="radio-card-input" value="jh_all" checked onchange="updateCounts(true)"><label for="lv_jh_all" class="radio-card-label"><span class="g-name">中学全範囲</span><span class="g-desc">総復習/テスト</span></label></div>
+                                <div><input type="radio" name="grade" id="lv_all" class="radio-card-input" value="all_grades" onchange="updateCounts(true)"><label for="lv_all" class="radio-card-label"><span class="g-name">全学年</span><span class="g-desc">完全マスター</span></label></div>
+                            </div>
+                        </div>
+                        <div style="text-align:right; font-size:11px; color:#999; margin-top:2px;">収録語数: <span id="count-disp">--</span></div>
+                    </div>
+                </div>
+
+                <div class="menu-right">
+                    <div class="menu-box settings-compact">
+                        <div class="sec-title">設定</div>
+                        <div class="st-row">
+                            <span class="st-label">モード</span>
+                            <div class="mini-seg">
+                                <div class="mini-opt"><input type="radio" name="style" id="st_norm" value="normal" checked onchange="resetResume()"><label for="st_norm">通常</label></div>
+                                <div class="mini-opt"><input type="radio" name="style" id="st_spell" value="spelling" onchange="resetResume()"><label for="st_spell">スペリング</label></div>
+                                <div class="mini-opt"><input type="radio" name="style" id="st_list" value="listening" onchange="resetResume()"><label for="st_list">リスニング</label></div>
+                            </div>
+                        </div>
+                        <div class="st-row">
+                            <span class="st-label">問題数</span>
+                            <div class="mini-seg"><div class="mini-opt"><input type="radio" name="qc" id="q20" value="20" checked onchange="resetResume()"><label for="q20">20</label></div><div class="mini-opt"><input type="radio" name="qc" id="q30" value="30" onchange="resetResume()"><label for="q30">30</label></div><div class="mini-opt"><input type="radio" name="qc" id="q50" value="50" onchange="resetResume()"><label for="q50">50</label></div><div class="mini-opt"><input type="radio" name="qc" id="q100" value="100" onchange="resetResume()"><label for="q100">100</label></div></div>
+                        </div>
+                        <div class="st-row" style="margin-top:2px;">
+                            <div class="mini-seg" style="width:120px; margin-right:auto;"><div class="mini-opt"><input type="radio" name="spd" id="sp_s" value="0.7" onchange="setSpeed(0.7)"><label for="sp_s">遅</label></div><div class="mini-opt"><input type="radio" name="spd" id="sp_n" value="1.0" checked onchange="setSpeed(1.0)"><label for="sp_n">普</label></div><div class="mini-opt"><input type="radio" name="spd" id="sp_f" value="1.2" onchange="setSpeed(1.2)"><label for="sp_f">速</label></div></div>
+                            <label class="mini-toggle"><input type="checkbox" id="se-toggle" checked style="margin-right:4px;">効果音</label>
+                            <label class="mini-toggle"><input type="checkbox" id="voice-toggle" checked onchange="toggleVoice(this.checked)" style="margin-right:4px;">音声</label>
+                        </div>
+                    </div>
+                    
+                    <div class="extra-actions">
+                        <button class="action-btn" style="background:#e67e22;" onclick="openTenseMaster()" style="--btn-color:#e67e22">
+    <div class="ab-icon">⌨️</div>
+    <div class="ab-text">時制単語特訓（現在・過去・未来形）</div>
+</button>
+                        <button class="action-btn" style="background:#546e7a;" onclick="openMyBook()"><span style="font-size:16px;">📖</span><span>My単語帳 (<span id="book-badge">0</span>)</span></button>
+                        <button class="action-btn" style="background:#f1c40f; color:#856404;" onclick="openRanking()"><span style="font-size:16px;">🏆</span><span>ランキング</span></button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="start-area">
+                <button id="start-btn-main" class="big-start-btn" onclick="startGame()">スタート<span class="start-sub">スペース / enter キーで開始</span></button>
+            </div>
+            
+            <div class="copyright-link" onclick="openInfoModal('modal-concept')">
+                © 2026 [A.K] (クリックで詳細)
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-howto" class="modal-overlay-info" onclick="closeInfoModal(event)">
+        <div class="modal-box-info">
+            <span class="modal-close-btn" onclick="closeInfoModalBtn('modal-howto')">×</span>
+            <h2 class="howto-h2">📖 メニュー説明</h2>
+            <div class="howto-section">
+                <h3>🏫 コースと学習</h3>
+                <div class="howto-item"><span class="howto-icon">📚</span><div><strong>コースを選ぶ</strong><br>自分の学年やレベルに合ったコース（小3〜中3、全範囲など）を選びます。</div></div>
+                <div class="howto-item"><span class="howto-icon">⚙️</span><div><strong>設定</strong><br><strong>モード</strong>を選んでプレイします。<br>・通常：見て答える（4択）<br>・スペリング：日本語を見て英単語を入力する（スペル練習）<br>・リスニング：聞いて答える（4択）<br><br><strong>問題数</strong>（20〜100問）、<strong>スピード</strong>、<strong>効果音・音声</strong>の有無も調整できます。</div></div>
+                <div class="howto-item"><span class="howto-icon">🔥</span><div><strong>時制単語特訓</strong><br>動詞の「現在・過去・未来形」だけを集中的に入力するスペシャルモードです。</div></div>
+            </div>
+            <div class="howto-section" style="background:#fffde7;">
+                <h3 style="color:#f57f17;">🏆 機能とゲームプレイ</h3>
+                <div class="howto-item"><span class="howto-icon">📖</span><div><strong>My単語帳</strong><br>間違えた問題はモードごとに自動保存され、後で復習できます。</div></div>
+                <div class="howto-item"><span class="howto-icon">🏆</span><div><strong>ランキング</strong><br>上位5位までのスコアが記録されます。</div></div>
+                <div class="howto-item"><span class="howto-icon">▶️</span><div><strong>続きから遊ぶ</strong><br>途中で中断しても、続きから再開できます。<br><span style="font-size:0.9em; color:#d63031;">※スペース/Enterキーでは「最初から」スタートします。</span></div></div>
+                <div class="howto-item"><span class="howto-icon">🎮</span><div><strong>ゲーム画面</strong><br><strong>Spaceキー</strong>で音声をもう一度聞くことができます（スペリングモードではヒント音声）。</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-concept" class="modal-overlay-info" onclick="closeInfoModal(event)">
+        <div class="modal-box-info concept-mode">
+            <span class="modal-close-btn" onclick="closeInfoModalBtn('modal-concept')">×</span>
+            <h2 class="concept-h2">💡 このツールについて</h2>
+            <div class="version-display">Ver.2.00</div>
+            <ul class="concept-list">
+                <li>
+                    <strong>🛠️ 技術仕様 (Tech Specs)</strong><br>
+                    <div style="font-size:0.9em; color:#666; margin-top:4px; line-height:1.6;">
+                        💻 言語: 標準 JavaScript (No Frameworks)<br>
+                        🔊 音声: Web Speech API (ブラウザ標準)
+                    </div>
+                </li>
+                <li><strong>🗣️ ネイティブな発音で学習</strong><br>小学校３年から、ネイティブな発音を聞きながら、効率的に英単語を習得できます。リスニング力と語彙力を同時に鍛えることができます。</li>
+                <li><strong>🎨 学年別テーマカラー</strong><br>選択した学年に合わせて画面の色が変わります。</li>
+                <li><strong>🏫 学校の端末に対応</strong><br>GIGAスクール構想の端末（Windows / Chromebook）のブラウザで動作します。</li>
+                <li><strong>🛜 ネット不要</strong><br>このHTMLファイルをダウンロードすれば、インターネットがない環境でも家庭や学校で学習できます。</li>
+                <li><strong>✨ 柔軟な学習モード</strong><br>「通常モード」「リスニングモード」「スペリング」「時制単語特訓（現在・過去・未来形）」など、目的に合わせた学習が可能です。</li>
+                <li><strong>🔄 豊富な問題とランダム出題</strong><br>各学年・カテゴリごとに多数の単語を収録。毎回ランダムに出題されるため、飽きずに繰り返し練習できます。</li>
+                <li><strong>🦄 シンプル・軽量設計</strong><br>外部の画像素材を使わず、軽量で動作が軽く、異なるデバイスやOS間でも高い互換性があり、ファイルの破損も起きにくい設計です。</li>
+                <li style="color:#d32f2f;"><strong>⚠️ 音声について</strong><br>ブラウザの音声合成機能を使用しています。端末の設定によっては音が鳴らない場合があります。</li>
+            </ul>
+            <div class="license-box">
+                商用利用は不可ですが、配布・利用・改変は自由です。<br>
+                (Non-commercial use only. Free to distribute, use, and modify)<br>
+                👨‍💻 Developed by [A.K]<br>
+                📜 © 2026 All Rights Reserved.<br>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="result-screen" class="overlay-screen hidden" style="justify-content:center;">
+        <h2 style="font-size:32px; color:var(--text-color); margin:10px 0;">FINISH!</h2>
+        <div style="font-size:50px; font-weight:900; color:var(--main-color); margin-bottom:5px;"><span id="res-score">0</span>pt</div>
+        <div style="color:#636e72; font-weight:bold; margin-bottom:15px;">正解: <span id="res-ok" style="color:var(--success); ">0</span> / ミス: <span id="res-ng" style="color:var(--accent-color);">0</span></div>
+        <div id="mistake-area" class="list-container hidden"><div style="background:#ff7675; color:white; padding:4px; text-align:center; font-weight:bold; font-size:11px;">My単語帳に保存しました</div><table id="mistake-table"></table></div>
+        <div class="btns-row" style="margin-top:10px;">
+            <button class="big-start-btn" style="background:var(--accent-color); font-size:16px; flex:1;" id="retry-btn" onclick="retryMistakes()">苦手を解き直す</button>
+        </div>
+        <button id="back-to-book-btn" class="big-start-btn hidden" style="background:#546e7a; margin-top:10px; font-size:16px;" onclick="openMyBook(true)">📖 My単語帳に戻る</button>
+        <button class="big-start-btn" style="background:#b2bec3; margin-top:10px; font-size:16px;" onclick="backToMenu()">メニューへ戻る</button>
+    </div>
+
+    <div id="mybook-screen" class="overlay-screen hidden" style="justify-content:flex-start;">
+        <h2 style="color:var(--text-color); margin:10px 0;">📖 My単語帳</h2>
+        <div class="mybook-header-area">
+            <div style="text-align:center; margin-bottom:10px; color:#636e72; font-size:12px; font-weight:bold;">挑戦するモードを選んでください</div>
+            <div class="mode-btn-grid">
+                <button class="mode-btn" id="bk-btn-normal" style="background:#0984e3;" onclick="startBookGame('normal')">通常<span class="mode-sub">見て答える</span><span id="badge-normal" class="mode-badge-count">0</span></button>
+                <button class="mode-btn" id="bk-btn-spelling" style="background:#6c5ce7;" onclick="startBookGame('spelling')">✍️ スペリング<span class="mode-sub">英単語を入力</span><span id="badge-spelling" class="mode-badge-count">0</span></button>
+                <button class="mode-btn" id="bk-btn-listening" style="background:#00b894;" onclick="startBookGame('listening')">🎧 リスニング<span class="mode-sub">音で答える</span><span id="badge-listening" class="mode-badge-count">0</span></button>
+                <button class="mode-btn" id="bk-btn-typing" style="background:#e67e22;" onclick="startBookGame('typing')">🔥 過去形<span class="mode-sub">入力する</span><span id="badge-typing" class="mode-badge-count">0</span></button>
+            </div>
+            <div class="list-tabs">
+                <button class="tab-btn active" id="tab-all" onclick="filterList('all')">全件</button>
+                <button class="tab-btn" id="tab-normal" onclick="filterList('normal')">通常</button>
+                <button class="tab-btn" id="tab-spelling" onclick="filterList('spelling')">スペリング</button>
+                <button class="tab-btn" id="tab-listening" onclick="filterList('listening')">リスニング</button>
+                <button class="tab-btn" id="tab-typing" onclick="filterList('typing')">過去形</button>
+            </div>
+        </div>
+        <div class="list-container" style="max-height:50vh; margin-top:0;"><table id="book-table"></table></div>
+        <p style="font-size:11px; color:#2d3436; background:#dfe6e9; padding:5px; border-radius:4px; margin-top:8px; text-align:center; font-weight:bold;">※リスト右の「覚えた」をクリックすると、その単語は削除されます</p>
+        <div class="close-area">
+            <button onclick="closeOverlay('mybook-screen')" style="background:#455a64; color:white; border:none; padding:10px 24px; border-radius:20px; font-weight:bold;">閉じる</button>
+            <button onclick="clearBook()" style="background:#b2bec3; color:white; border:none; padding:10px 20px; border-radius:20px; font-weight:bold; font-size:11px;">全て削除</button>
+        </div>
+    </div>
+
+    <div id="ranking-screen" class="overlay-screen hidden">
+        <h2 style="color:var(--text-color); margin:15px 0 5px 0;">🏆 ランキング</h2>
+        <div style="font-size:11px; color:#636e72; margin-bottom:15px;">上位5スコアのみ表示</div>
+        <div class="list-tabs" style="max-width:400px; margin-bottom:10px;">
+            <button class="tab-btn active" id="rk-tab-normal" onclick="renderRanking('normal')">通常</button>
+            <button class="tab-btn" id="rk-tab-listening" onclick="renderRanking('listening')">リスニング</button>
+            <button class="tab-btn" id="rk-tab-typing" onclick="renderRanking('typing')">過去形</button>
+        </div>
+        <div class="list-container" style="max-height:60vh;"><table id="rank-table"></table></div>
+        <button onclick="closeOverlay('ranking-screen')" style="background:#455a64; color:white; border:none; padding:12px 30px; border-radius:25px; font-weight:bold; margin-top:20px;">閉じる</button>
+    </div>
+
+</div>
+
+<script>
+// --- DATA DEFINITION ---
+const VOCAB_DATA = {
+    // 85 Irregular Verbs
+    verbs: [
+        {base:"go", past:"went"}, {base:"come", past:"came"}, {base:"run", past:"ran"},
+        {base:"swim", past:"swam"}, {base:"sing", past:"sang"}, {base:"write", past:"wrote"},
+    ],
+    // Expanded word lists
+    elem_34: [
+        {w:"apple", m:"りんご", p:"apple"}, {w:"ant", m:"アリ", p:"ant"}, {w:"bear", m:"クマ", p:"bear"},
+        {w:"bed", m:"ベッド", p:"bed"}, {w:"book", m:"本", p:"book"}, {w:"bus", m:"バス", p:"bus"},
+        {w:"cap", m:"ぼうし", p:"cap"}, {w:"cat", m:"ネコ", p:"cat"}, {w:"cup", m:"カップ", p:"cup"},
+        {w:"dog", m:"イヌ", p:"dog"}, {w:"egg", m:"たまご", p:"egg"}, {w:"fish", m:"サカナ", p:"fish"},
+        {w:"fox", m:"キツネ", p:"fox"}, {w:"jam", m:"ジャム", p:"jam"}, {w:"jet", m:"ジェット機", p:"jet"},
+        {w:"king", m:"王様", p:"king"}, {w:"lion", m:"ライオン", p:"lion"}, {w:"map", m:"地図", p:"map"},
+        {w:"milk", m:"牛乳", p:"milk"}, {w:"net", m:"あみ", p:"net"}, {w:"orange", m:"オレンジ", p:"orange"},
+        {w:"pen", m:"ペン", p:"pen"}, {w:"pig", m:"ブタ", p:"pig"}, {w:"queen", m:"女王", p:"queen"},
+        {w:"rabbit", m:"ウサギ", p:"rabbit"}, {w:"red", m:"赤", p:"red"}, {w:"blue", m:"青", p:"blue"},
+        {w:"yellow", m:"黄色", p:"yellow"}, {w:"green", m:"緑", p:"green"}, {w:"black", m:"黒", p:"black"},
+        {w:"white", m:"白", p:"white"}, {w:"one", m:"1", p:"one"}, {w:"two", m:"2", p:"two"},
+        {w:"three", m:"3", p:"three"}, {w:"ten", m:"10", p:"ten"},
+        {w:"bird", m:"鳥", p:"bird"}, {w:"cow", m:"牛", p:"cow"}, {w:"duck", m:"アヒル", p:"duck"},
+        {w:"desk", m:"机", p:"desk"}, {w:"door", m:"ドア", p:"door"}, {w:"hand", m:"手", p:"hand"},
+        {w:"head", m:"頭", p:"head"}, {w:"leg", m:"脚", p:"leg"}, {w:"nose", m:"鼻", p:"nose"},
+        {w:"ball", m:"ボール", p:"ball"}, {w:"box", m:"箱", p:"box"}, {w:"cake", m:"ケーキ", p:"cake"},
+        {w:"car", m:"車", p:"car"}, {w:"sun", m:"太陽", p:"sun"}, {w:"moon", m:"月", p:"moon"}
+    ],
+    elem_5: [
+        {w:"Sunday", m:"日曜日", p:"Sunday"}, {w:"Monday", m:"月曜日", p:"Monday"}, {w:"Tuesday", m:"火曜日", p:"Tuesday"},
+        {w:"Wednesday", m:"水曜日", p:"Wednesday"}, {w:"Thursday", m:"木曜日", p:"Thursday"}, {w:"Friday", m:"金曜日", p:"Friday"},
+        {w:"Saturday", m:"土曜日", p:"Saturday"}, {w:"January", m:"1月", p:"January"}, {w:"August", m:"8月", p:"August"},
+        {w:"spring", m:"春", p:"spring"}, {w:"summer", m:"夏", p:"summer"}, {w:"fall", m:"秋", p:"fall"},
+        {w:"winter", m:"冬", p:"winter"}, {w:"sport", m:"スポーツ", p:"sport"}, {w:"baseball", m:"野球", p:"baseball"},
+        {w:"soccer", m:"サッカー", p:"soccer"}, {w:"tennis", m:"テニス", p:"tennis"}, {w:"math", m:"算数/数学", p:"math"},
+        {w:"science", m:"理科/科学", p:"science"}, {w:"English", m:"英語", p:"English"}, {w:"music", m:"音楽", p:"music"},
+        {w:"friend", m:"友達", p:"friend"}, {w:"teacher", m:"先生", p:"teacher"}, {w:"school", m:"学校", p:"school"},
+        {w:"pencil", m:"えんぴつ", p:"pencil"}, {w:"eraser", m:"消しゴム", p:"eraser"}, {w:"desk", m:"机", p:"desk"},
+        {w:"chair", m:"イス", p:"chair"}, {w:"bag", m:"カバン", p:"bag"}, {w:"notebook", m:"ノート", p:"notebook"},
+        {w:"April", m:"4月", p:"April"}, {w:"December", m:"12月", p:"December"}, {w:"art", m:"美術", p:"art"},
+        {w:"PE", m:"体育", p:"PE"}, {w:"classroom", m:"教室", p:"classroom"}, {w:"library", m:"図書室", p:"library"},
+        {w:"gym", m:"体育館", p:"gym"}, {w:"fruit", m:"果物", p:"fruit"}, {w:"vegetable", m:"野菜", p:"vegetable"},
+        {w:"rice", m:"米/ご飯", p:"rice"}, {w:"bread", m:"パン", p:"bread"}, {w:"water", m:"水", p:"water"},
+        {w:"juice", m:"ジュース", p:"juice"}, {w:"coffee", m:"コーヒー", p:"coffee"}, {w:"tea", m:"お茶", p:"tea"}
+    ],
+    elem_6: [
+        {w:"breakfast", m:"朝食", p:"breakfast"}, {w:"lunch", m:"昼食", p:"lunch"}, {w:"dinner", m:"夕食", p:"dinner"},
+        {w:"cook", m:"料理する", p:"cook"}, {w:"eat", m:"食べる", p:"eat"}, {w:"drink", m:"飲む", p:"drink"},
+        {w:"read", m:"読む", p:"read"}, {w:"write", m:"書く", p:"write"}, {w:"speak", m:"話す", p:"speak"},
+        {w:"listen", m:"聞く", p:"listen"}, {w:"go", m:"行く", p:"go"}, {w:"come", m:"来る", p:"come"},
+        {w:"run", m:"走る", p:"run"}, {w:"swim", m:"泳ぐ", p:"swim"}, {w:"walk", m:"歩く", p:"walk"},
+        {w:"study", m:"勉強する", p:"study"}, {w:"play", m:"遊ぶ/する", p:"play"}, {w:"watch", m:"見る", p:"watch"},
+        {w:"like", m:"好き", p:"like"}, {w:"want", m:"欲しい", p:"want"}, {w:"have", m:"持っている", p:"have"},
+        {w:"father", m:"父", p:"father"}, {w:"mother", m:"母", p:"mother"}, {w:"brother", m:"兄/弟", p:"brother"},
+        {w:"sister", m:"姉/妹", p:"sister"}, {w:"family", m:"家族", p:"family"}, {w:"house", m:"家", p:"house"},
+        {w:"room", m:"部屋", p:"room"}, {w:"kitchen", m:"台所", p:"kitchen"}, {w:"park", m:"公園", p:"park"},
+        {w:"get up", m:"起きる", p:"get up"}, {w:"wash", m:"洗う", p:"wash"}, {w:"clean", m:"掃除する", p:"clean"},
+        {w:"sing", m:"歌う", p:"sing"}, {w:"dance", m:"踊る", p:"dance"}, {w:"jump", m:"跳ぶ", p:"jump"},
+        {w:"open", m:"開ける", p:"open"}, {w:"close", m:"閉める", p:"close"}, {w:"stop", m:"止まる", p:"stop"},
+        {w:"start", m:"始める", p:"start"}, {w:"country", m:"国", p:"country"}, {w:"city", m:"市", p:"city"},
+        {w:"picture", m:"写真/絵", p:"picture"}, {w:"flower", m:"花", p:"flower"}, {w:"tree", m:"木", p:"tree"},
+        {w:"animal", m:"動物", p:"animal"}, {w:"cat", m:"ネコ", p:"cat"}, {w:"dog", m:"イヌ", p:"dog"},
+        {w:"bird", m:"鳥", p:"bird"}, {w:"fish", m:"魚", p:"fish"}, {w:"horse", m:"馬", p:"horse"},
+        {w:"lion", m:"ライオン", p:"lion"}, {w:"rabbit", m:"ウサギ", p:"rabbit"}, {w:"bear", m:"クマ", p:"bear"},
+        {w:"big", m:"大きい", p:"big"}, {w:"small", m:"小さい", p:"small"}, {w:"new", m:"新しい", p:"new"},
+        {w:"old", m:"古い", p:"old"}, {w:"long", m:"長い", p:"long"}, {w:"short", m:"短い", p:"short"},
+        {w:"good", m:"良い", p:"good"}, {w:"bad", m:"悪い", p:"bad"}, {w:"hot", m:"暑い", p:"hot"},
+        {w:"cold", m:"寒い", p:"cold"}, {w:"happy", m:"幸せな", p:"happy"}, {w:"sad", m:"悲しい", p:"sad"}
+    ],
+    jh1: [
+        {w:"look", m:"見る", p:"look"}, {w:"live", m:"住む", p:"live"}, {w:"know", m:"知っている", p:"know"},
+        {w:"use", m:"使う", p:"use"}, {w:"work", m:"働く", p:"work"}, {w:"help", m:"助ける", p:"help"},
+        {w:"buy", m:"買う", p:"buy"}, {w:"get", m:"得る/着く", p:"get"}, {w:"make", m:"作る", p:"make"},
+        {w:"take", m:"取る/連れて行く", p:"take"}, {w:"meet", m:"会う", p:"meet"}, {w:"enjoy", m:"楽しむ", p:"enjoy"},
+        {w:"good", m:"良い", p:"good"}, {w:"new", m:"新しい", p:"new"}, {w:"old", m:"古い", p:"old"},
+        {w:"big", m:"大きい", p:"big"}, {w:"small", m:"小さい", p:"small"}, {w:"long", m:"長い", p:"long"},
+        {w:"short", m:"短い", p:"short"}, {w:"high", m:"高い", p:"high"}, {w:"many", m:"多くの", p:"many"},
+        {w:"much", m:"多量の", p:"much"}, {w:"very", m:"とても", p:"very"}, {w:"happy", m:"幸せな", p:"happy"},
+        {w:"sad", m:"悲しい", p:"sad"}, {w:"interesting", m:"面白い", p:"interesting"}, {w:"difficult", m:"難しい", p:"difficult"},
+        {w:"easy", m:"簡単な", p:"easy"}, {w:"favorite", m:"お気に入りの", p:"favorite"}, {w:"popular", m:"人気のある", p:"popular"},
+        {w:"ask", m:"尋ねる", p:"ask"}, {w:"answer", m:"答える", p:"answer"}, {w:"visit", m:"訪れる", p:"visit"},
+        {w:"talk", m:"話す", p:"talk"}, {w:"stay", m:"滞在する", p:"stay"}, {w:"wait", m:"待つ", p:"wait"},
+        {w:"smile", m:"微笑む", p:"smile"}, {w:"practice", m:"練習する", p:"practice"}, {w:"early", m:"早く", p:"early"},
+        {w:"late", m:"遅く", p:"late"}, {w:"kind", m:"親切な", p:"kind"}, {w:"busy", m:"忙しい", p:"busy"},
+        {w:"hot", m:"暑い", p:"hot"}, {w:"cold", m:"寒い", p:"cold"}, {w:"warm", m:"暖かい", p:"warm"},
+        {w:"cool", m:"涼しい", p:"cool"}, {w:"hungry", m:"空腹の", p:"hungry"}, {w:"ready", m:"準備ができて", p:"ready"},
+        {w:"right", m:"正しい/右", p:"right"}, {w:"wrong", m:"間違った", p:"wrong"}, {w:"who", m:"誰", p:"who"},
+        {w:"what", m:"何", p:"what"}, {w:"where", m:"どこ", p:"where"}, {w:"when", m:"いつ", p:"when"},
+        {w:"stand", m:"立つ", p:"stand"}, {w:"swim", m:"泳ぐ", p:"swim"}, {w:"teach", m:"教える", p:"teach"},
+        {w:"think", m:"考える", p:"think"}, {w:"try", m:"試す", p:"try"}, {w:"understand", m:"理解する", p:"understand"},
+        {w:"want", m:"欲しい", p:"want"}, {w:"wash", m:"洗う", p:"wash"}, {w:"watch", m:"見る", p:"watch"},
+        {w:"write", m:"書く", p:"write"}, {w:"fast", m:"速い", p:"fast"}, {w:"slow", m:"遅い", p:"slow"},
+        {w:"fine", m:"元気な", p:"fine"}, {w:"great", m:"すばらしい", p:"great"}, {w:"nice", m:"素敵な", p:"nice"},
+        {w:"beautiful", m:"美しい", p:"beautiful"}, {w:"famous", m:"有名な", p:"famous"}, {w:"dear", m:"親愛なる", p:"dear"},
+        {w:"same", m:"同じ", p:"same"}, {w:"different", m:"異なる", p:"different"}, {w:"rich", m:"裕福な", p:"rich"},
+        {w:"poor", m:"貧しい", p:"poor"}, {w:"young", m:"若い", p:"young"}, {w:"cute", m:"かわいい", p:"cute"}
+    ],
+    jh2: [
+        {w:"agree", m:"同意する", p:"agree"}, {w:"invite", m:"招待する", p:"invite"}, {w:"join", m:"参加する", p:"join"},
+        {w:"travel", m:"旅行する", p:"travel"}, {w:"show", m:"見せる", p:"show"}, {w:"tell", m:"話す/教える", p:"tell"},
+        {w:"give", m:"与える", p:"give"}, {w:"teach", m:"教える", p:"teach"}, {w:"learn", m:"学ぶ", p:"learn"},
+        {w:"finish", m:"終える", p:"finish"}, {w:"forget", m:"忘れる", p:"forget"}, {w:"remember", m:"覚えている", p:"remember"},
+        {w:"decide", m:"決める", p:"decide"}, {w:"plan", m:"計画する", p:"plan"}, {w:"need", m:"必要とする", p:"need"},
+        {w:"must", m:"～しなければならない", p:"must"}, {w:"should", m:"～すべきである", p:"should"}, {w:"will", m:"～だろう", p:"will"},
+        {w:"famous", m:"有名な", p:"famous"}, {w:"beautiful", m:"美しい", p:"beautiful"}, {w:"important", m:"重要な", p:"important"},
+        {w:"useful", m:"役に立つ", p:"useful"}, {w:"dangerous", m:"危険な", p:"dangerous"}, {w:"exciting", m:"興奮させる", p:"exciting"},
+        {w:"tired", m:"疲れた", p:"tired"}, {w:"hungry", m:"空腹の", p:"hungry"}, {w:"sick", m:"病気の", p:"sick"},
+        {w:"same", m:"同じ", p:"same"}, {w:"different", m:"異なる", p:"different"}, {w:"another", m:"もう一つの", p:"another"},
+        {w:"arrive", m:"到着する", p:"arrive"}, {w:"become", m:"～になる", p:"become"}, {w:"begin", m:"始まる", p:"begin"},
+        {w:"break", m:"壊す", p:"break"}, {w:"bring", m:"持ってくる", p:"bring"}, {w:"build", m:"建てる", p:"build"},
+        {w:"catch", m:"捕まえる", p:"catch"}, {w:"climb", m:"登る", p:"climb"}, {w:"collect", m:"集める", p:"collect"},
+        {w:"cut", m:"切る", p:"cut"}, {w:"die", m:"死ぬ", p:"die"}, {w:"draw", m:"描く", p:"draw"},
+        {w:"fall", m:"落ちる", p:"fall"}, {w:"feel", m:"感じる", p:"feel"}, {w:"find", m:"見つける", p:"find"},
+        {w:"fly", m:"飛ぶ", p:"fly"}, {w:"grow", m:"成長する", p:"grow"}, {w:"hear", m:"聞こえる", p:"hear"},
+        {w:"hit", m:"打つ", p:"hit"}, {w:"hold", m:"持つ", p:"hold"}, {w:"keep", m:"保つ", p:"keep"},
+        {w:"lose", m:"失う/負ける", p:"lose"}, {w:"mean", m:"意味する", p:"mean"}, {w:"pay", m:"支払う", p:"pay"},
+        {w:"put", m:"置く", p:"put"}, {w:"return", m:"戻る", p:"return"}, {w:"run", m:"走る/経営する", p:"run"},
+        {w:"say", m:"言う", p:"say"}, {w:"see", m:"見る/会う", p:"see"}, {w:"send", m:"送る", p:"send"},
+        {w:"set", m:"置く/設定する", p:"set"}, {w:"sit", m:"座る", p:"sit"}, {w:"sleep", m:"眠る", p:"sleep"},
+        {w:"sound", m:"～に聞こえる", p:"sound"}, {w:"spend", m:"費やす", p:"spend"}, {w:"start", m:"始める", p:"start"},
+        {w:"stop", m:"止める", p:"stop"}, {w:"study", m:"勉強する", p:"study"}, {w:"swim", m:"泳ぐ", p:"swim"},
+        {w:"talk", m:"話す", p:"talk"}, {w:"think", m:"考える", p:"think"}
+    ],
+    jh3: [
+        {w:"understand", m:"理解する", p:"understand"}, {w:"explain", m:"説明する", p:"explain"}, {w:"introduce", m:"紹介する", p:"introduce"},
+        {w:"produce", m:"生産する", p:"produce"}, {w:"protect", m:"保護する", p:"protect"}, {w:"create", m:"創造する", p:"create"},
+        {w:"believe", m:"信じる", p:"believe"}, {w:"express", m:"表現する", p:"express"}, {w:"imagine", m:"想像する", p:"imagine"},
+        {w:"realize", m:"気づく", p:"realize"}, {w:"wonder", m:"～かなと思う", p:"wonder"}, {w:"mean", m:"意味する", p:"mean"},
+        {w:"experience", m:"経験", p:"experience"}, {w:"tradition", m:"伝統", p:"tradition"}, {w:"culture", m:"文化", p:"culture"},
+        {w:"environment", m:"環境", p:"environment"}, {w:"technology", m:"科学技術", p:"technology"}, {w:"government", m:"政府", p:"government"},
+        {w:"international", m:"国際的な", p:"international"}, {w:"global", m:"地球規模の", p:"global"}, {w:"local", m:"地元の", p:"local"},
+        {w:"native", m:"生まれた土地の", p:"native"}, {w:"various", m:"様々な", p:"various"}, {w:"waste", m:"無駄にする", p:"waste"},
+        {w:"pollute", m:"汚染する", p:"pollute"}, {w:"increase", m:"増加する", p:"increase"}, {w:"decrease", m:"減少する", p:"decrease"},
+        {w:"appear", m:"現れる", p:"appear"}, {w:"disappear", m:"消える", p:"disappear"}, {w:"continue", m:"続ける", p:"continue"},
+        {w:"ability", m:"能力", p:"ability"}, {w:"advice", m:"助言", p:"advice"}, {w:"amount", m:"量", p:"amount"},
+        {w:"chance", m:"機会", p:"chance"}, {w:"community", m:"地域社会", p:"community"}, {w:"danger", m:"危険", p:"danger"},
+        {w:"effort", m:"努力", p:"effort"}, {w:"fact", m:"事実", p:"fact"}, {w:"freedom", m:"自由", p:"freedom"},
+        {w:"goal", m:"目標", p:"goal"}, {w:"habit", m:"習慣", p:"habit"}, {w:"health", m:"健康", p:"health"},
+        {w:"peace", m:"平和", p:"peace"}, {w:"problem", m:"問題", p:"problem"}, {w:"result", m:"結果", p:"result"},
+        {w:"sense", m:"感覚", p:"sense"}, {w:"shape", m:"形", p:"shape"}, {w:"situation", m:"状況", p:"situation"},
+        {w:"skill", m:"技能", p:"skill"}, {w:"subject", m:"話題/教科", p:"subject"}, {w:"topic", m:"話題", p:"topic"},
+        {w:"war", m:"戦争", p:"war"}, {w:"way", m:"方法/道", p:"way"}, {w:"accept", m:"受け入れる", p:"accept"},
+        {w:"add", m:"加える", p:"add"}, {w:"allow", m:"許す", p:"allow"}, {w:"cause", m:"引き起こす", p:"cause"},
+        {w:"change", m:"変える", p:"change"}, {w:"choose", m:"選ぶ", p:"choose"}, {w:"clean", m:"掃除する", p:"clean"},
+        {w:"cover", m:"覆う", p:"cover"}, {w:"depend", m:"依存する", p:"depend"}, {w:"develop", m:"発展させる", p:"develop"},
+        {w:"discover", m:"発見する", p:"discover"}, {w:"discuss", m:"議論する", p:"discuss"}, {w:"drop", m:"落とす", p:"drop"},
+        {w:"eat", m:"食べる", p:"eat"}, {w:"enter", m:"入る", p:"enter"}, {w:"expect", m:"期待する", p:"expect"},
+        {w:"follow", m:"従う", p:"follow"}, {w:"guess", m:"推測する", p:"guess"}, {w:"hide", m:"隠す", p:"hide"},
+        {w:"improve", m:"改善する", p:"improve"}, {w:"include", m:"含む", p:"include"}, {w:"invent", m:"発明する", p:"invent"}
+    ]
+};
+
+/* ▼▼▼ 時制単語特訓を開くための関数（自動実行版） ▼▼▼ */
+function openTenseMaster() {
+    const targetFileName = '時制単語特訓.html';
+
+    // 1. 新しいタブを開く
+    const newWin = window.open('', '_blank');
+    if (!newWin) {
+        alert('ウィンドウが開けませんでした。');
+        return;
+    }
+
+    // 2. 読み込み中の表示（一瞬表示されます）
+    newWin.document.write('<html><body style="display:flex;justify-content:center;align-items:center;height:100vh;"><h2>Loading...</h2></body></html>');
+
+    // 3. ファイルを開く処理
+    fetch(targetFileName, { method: 'HEAD' })
+        .then(response => {
+            if (response.ok) {
+                // ファイルが見つかった → 開く
+                newWin.location.href = targetFileName;
+            } else {
+                // ファイルがない(404) → アラートを出す
+                newWin.close();
+                alert('【エラー】\nファイルが見つかりません：\n' + targetFileName);
+            }
+        })
+        .catch(error => {
+            // パソコン上(file://)でチェックがブロックされた場合
+            // ★ここを変更：確認画面を出さず、すぐに移動します★
+            newWin.location.href = targetFileName;
+        });
+}
+/* ▲▲▲ ここまで ▲▲▲ */
+
+// --- SYSTEM VARIABLES ---
+let currentGrade = 'jh_all'; 
+let mode = 'normal';
+let qCount = 20;
+let speed = 1.0;
+let isVoiceOn = true;
+let isSEOn = true;
+let isGameRunning = false;
+let questions = [];
+let currentQIndex = 0;
+let score = 0;
+let correctCount = 0;
+let wrongCount = 0;
+let currentQ = null;
+let mistakes = []; 
+let bookGameMode = 'normal';
+let isMyBookSession = false;
+let nextTimer = null;
+let spellingMissCount = 0;
+
+const synth = window.speechSynthesis;
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+const audioCtx = new AudioContext();
+
+window.onload = () => {
+    updateCounts(); 
+    loadMyBook();
+    updateBookBadge();
+    loadRanking();
+    if(localStorage.getItem('em_resume')) $('resume-btn').classList.remove('hidden');
+    
+    document.addEventListener('keydown', (e) => {
+        if(e.key === 'Escape') {
+            if(!isGameRunning){
+                if($('modal-howto').style.display === 'flex') closeInfoModalBtn('modal-howto');
+                if($('modal-concept').style.display === 'flex') closeInfoModalBtn('modal-concept');
+                if(! $('mybook-screen').classList.contains('hidden')) closeOverlay('mybook-screen');
+                if(! $('ranking-screen').classList.contains('hidden')) closeOverlay('ranking-screen');
+            } else {
+                suspendGame();
+            }
+            return;
+        }
+        if(!isGameRunning){
+            if($('modal-howto').style.display === 'flex' || $('modal-concept').style.display === 'flex') return;
+            if((e.key==='Enter' || e.code==='Space') && !$('menu-screen').classList.contains('hidden')){
+                e.preventDefault(); 
+                if(!$('start-btn-main').disabled){ startGame(); }
+            }
+            return;
+        }
+        if(e.code==='Space' && isGameRunning){
+            let cMode = isMyBookSession ? (bookGameMode!=='original'?bookGameMode:currentQ.m) : mode;
+            if(cMode === 'spelling') { e.preventDefault(); speak(currentQ.w); return; } 
+            e.preventDefault(); speakCurrent();
+            const b=$('speaker-btn'); b.classList.add('pressed'); setTimeout(()=>b.classList.remove('pressed'),200); return;
+        }
+        let cMode = isMyBookSession ? (bookGameMode!=='original'?bookGameMode:currentQ.m) : mode;
+        if(cMode==='typing' || cMode==='spelling'){ if(e.key==='Enter')checkTyping(); return; }
+        if(['1','2','3','4'].includes(e.key)){ checkAnswer(parseInt(e.key)-1); }
+    });
+};
+
+function $(id){ return document.getElementById(id); }
+function openInfoModal(id) { const o=$(id); o.style.display='flex'; const c=o.querySelector('.modal-box-info'); c.style.animation='none'; c.offsetHeight; c.style.animation='popIn 0.4s'; }
+function closeInfoModal(e) { if(e.target.classList.contains('modal-overlay-info')) e.target.style.display='none'; }
+function closeInfoModalBtn(id) { $(id).style.display='none'; }
+
+function updateCounts(reset){
+    const radios = document.getElementsByName('grade');
+    for(let r of radios) if(r.checked) currentGrade = r.value;
+    document.body.setAttribute('data-theme', currentGrade);
+    
+    let count = 0;
+    if(currentGrade === 'all_grades'){ ['elem_34','elem_5','elem_6','jh1','jh2','jh3'].forEach(g => count += VOCAB_DATA[g].length); }
+    else if(currentGrade === 'jh_all') { ['jh1','jh2','jh3'].forEach(g => count += VOCAB_DATA[g].length); }
+    else { count = VOCAB_DATA[currentGrade].length; }
+    $('count-disp').innerText = count;
+
+    const qRadios = document.getElementsByName('qc');
+    let valid = false;
+    for(let r of qRadios){
+        if(parseInt(r.value) > count){
+            r.disabled = true; r.parentElement.style.opacity='0.4'; r.parentElement.style.pointerEvents='none';
+        } else {
+            r.disabled = false; r.parentElement.style.opacity='1'; r.parentElement.style.pointerEvents='auto';
+            if(r.checked) valid = true;
+        }
+    }
+    if(!valid){ $('q20').checked = true; qCount = 20; }
+    else { for(let r of qRadios) if(r.checked) qCount = parseInt(r.value); }
+    
+    if(reset) resetResume();
+}
+
+function resetResume(){
+    localStorage.removeItem('em_resume');
+    $('resume-btn').classList.add('hidden');
+}
+
+function setSpeed(v){ speed = parseFloat(v); resetResume(); }
+function toggleVoice(f){ isVoiceOn = f; }
+function toggleVoiceGame(){ isVoiceOn = !isVoiceOn; $('voice-btn-game').classList.toggle('muted', !isVoiceOn); $('voice-toggle').checked = isVoiceOn; }
+function toggleSpeedLoop(){
+    if(speed === 0.7) speed=1.0; else if(speed === 1.0) speed=1.2; else speed=0.7;
+    $('ingame-speed-btn').innerText = speed + "x";
+    if(speed===0.7)$('sp_s').checked=true; else if(speed===1.2)$('sp_f').checked=true; else $('sp_n').checked=true;
+}
+function toggleFullScreen(){ if(!document.fullscreenElement){ document.documentElement.requestFullscreen(); } else { if(document.exitFullscreen) document.exitFullscreen(); } }
+
+function startGame(targetMode){
+    if(targetMode) mode = targetMode;
+    else { const ms = document.getElementsByName('style'); for(let m of ms) if(m.checked) mode = m.value; }
+    const qs = document.getElementsByName('qc'); for(let q of qs) if(q.checked) qCount = parseInt(q.value);
+    
+    isSEOn = $('se-toggle').checked;
+    isMyBookSession = false;
+    questions = []; let pool = [];
+    
+    if(mode === 'typing'){
+        document.body.setAttribute('data-theme', 'typing');
+        pool = [...VOCAB_DATA.verbs]; 
+    } else {
+        if(currentGrade === 'all_grades'){ ['elem_34','elem_5','elem_6','jh1','jh2','jh3'].forEach(g => pool = pool.concat(VOCAB_DATA[g])); }
+        else if(currentGrade === 'jh_all') { ['jh1','jh2','jh3'].forEach(g => pool = pool.concat(VOCAB_DATA[g])); }
+        else { pool = [...VOCAB_DATA[currentGrade]]; }
+    }
+    
+    for(let i=pool.length-1; i>0; i--){ const j = Math.floor(Math.random()*(i+1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+    questions = pool.slice(0, Math.min(qCount, pool.length));
+    
+    if(questions.length === 0) { alert("データがありません"); return; }
+    
+    currentQIndex = 0; score = 0; correctCount = 0; wrongCount = 0; mistakes = [];
+    isGameRunning = true;
+    $('menu-screen').classList.add('hidden'); $('result-screen').classList.add('hidden');
+    $('game-screen').classList.remove('hidden');
+    
+    let label = '通常';
+    if(mode==='listening') label='リスニング';
+    else if(mode==='spelling') label='スペリング';
+    else if(mode==='typing') label='過去形特訓';
+    
+    $('mode-badge').innerText = label;
+    $('score-val').innerText = '0';
+    $('voice-btn-game').classList.toggle('muted', !isVoiceOn);
+    $('ingame-speed-btn').innerText = speed + "x";
+    
+    nextQuestion();
+}
+
+function nextQuestion(){
+    if(!isGameRunning) return; 
+    if(currentQIndex >= questions.length){ finishGame(); return; }
+    
+    currentQ = questions[currentQIndex];
+    $('progress-text').innerText = (currentQIndex + 1) + " / " + questions.length;
+    $('progress-fill').style.width = ((currentQIndex) / questions.length * 100) + "%";
+    
+    $('word-tag').style.opacity = '0'; $('sub-text').innerText = ''; $('q-text').classList.remove('reveal');
+    $('q-text').classList.remove('blind-mode'); 
+    
+    let cMode = isMyBookSession ? (bookGameMode!=='original'?bookGameMode:currentQ.m) : mode;
+    
+    spellingMissCount = 0; 
+
+    if(cMode === 'typing'){
+        $('q-text').innerText = currentQ.base;
+        $('sub-text').innerText = "過去形を入力 (ミス2回まで)";
+        $('options-area').classList.add('hidden'); $('typing-area').classList.remove('hidden');
+        $('type-input').value = ''; $('type-input').focus(); $('type-input').placeholder = "過去形を入力";
+        $('speaker-btn').classList.remove('hidden'); 
+        if(isVoiceOn) speak(currentQ.base);
+    } 
+    else if(cMode === 'spelling'){
+        $('q-text').innerText = currentQ.m; 
+        $('sub-text').innerText = "英単語を入力 (Spaceで音声・ミス2回まで)";
+        $('options-area').classList.add('hidden'); $('typing-area').classList.remove('hidden');
+        $('type-input').value = ''; $('type-input').focus(); $('type-input').placeholder = "英単語を入力";
+        $('speaker-btn').classList.remove('hidden');
+    }
+    else {
+        $('typing-area').classList.add('hidden'); $('options-area').classList.remove('hidden'); $('speaker-btn').classList.remove('hidden');
+        if(cMode === 'listening'){
+            $('q-text').classList.add('blind-mode'); $('q-text').innerText = currentQ.w;
+            setTimeout(()=>{ if(isVoiceOn && isGameRunning) speakCurrent(); }, 500);
+        } else {
+            $('q-text').classList.remove('blind-mode'); $('q-text').innerText = currentQ.w;
+            if(isVoiceOn) speakCurrent();
+        }
+        generateOptions();
+    }
+}
+
+function generateOptions(){
+    let ansIndex = Math.floor(Math.random() * 4);
+    let options = [];
+    let source = [];
+    
+    if(isMyBookSession){
+         let book = JSON.parse(localStorage.getItem('em_mybook')) || [];
+         if(bookGameMode === 'typing') source = VOCAB_DATA.verbs; 
+         else {
+             let modeFiltered = book.filter(x => x.mode === bookGameMode);
+             if(modeFiltered.length >= 4) source = modeFiltered;
+             else source = VOCAB_DATA['jh1']; 
+         }
+    } else {
+         if(mode==='typing') source = VOCAB_DATA.verbs; 
+         else if(currentGrade==='all_grades') source = VOCAB_DATA['jh1'].concat(VOCAB_DATA['jh2']);
+         else if(currentGrade==='jh_all') source = VOCAB_DATA['jh1'].concat(VOCAB_DATA['jh2']);
+         else source = VOCAB_DATA[currentGrade];
+    }
+    
+    while(options.length < 3){
+        let r = source[Math.floor(Math.random() * source.length)];
+        let cMode = isMyBookSession ? bookGameMode : mode;
+        if(!r) continue;
+        
+        let content = (cMode==='typing') ? r.past : r.m; 
+        let correctContent = (cMode==='typing') ? currentQ.past : currentQ.m;
+        
+        if(content && content !== correctContent && !options.includes(content)) options.push(content);
+    }
+    options.splice(ansIndex, 0, (isMyBookSession && bookGameMode==='typing' ? currentQ.past : (isMyBookSession ? currentQ.m : (mode==='typing' ? currentQ.past : currentQ.m))));
+    
+    for(let i=0; i<4; i++){
+        let btn = $('opt-'+i); btn.onclick = () => checkAnswer(i);
+        btn.querySelector('.btn-text').innerText = options[i];
+        btn.className = 'option-btn'; btn.disabled = false;
+        if(i === ansIndex) btn.dataset.isCorrect = "true"; else btn.dataset.isCorrect = "false";
+    }
+}
+
+function checkAnswer(idx){ if(!isGameRunning) return; processResult(($('opt-'+idx).dataset.isCorrect === "true"), $('opt-'+idx)); }
+
+function checkTyping(){ 
+    if(!isGameRunning) return; 
+    let cMode = isMyBookSession ? (bookGameMode!=='original'?bookGameMode:currentQ.m) : mode;
+    
+    const input = $('type-input').value.trim().toLowerCase();
+    
+    if (cMode === 'spelling') {
+        const correct = currentQ.w.toLowerCase();
+        if(input === correct) {
+            processResult(true, null);
+        } else {
+            spellingMissCount++;
+            const el = $('type-input');
+            el.style.borderColor = '#e74c3c';
+            el.style.animation = 'shake 0.3s';
+            showFeedback(false); 
+            if(spellingMissCount >= 2){
+                processResult(false, null); 
+            } else {
+                setTimeout(()=>{ el.style.animation=''; el.style.borderColor='#ccc'; }, 300);
+            }
+        }
+    } else {
+        const isCorrect = (input === currentQ.past.toLowerCase());
+        if(!isCorrect) {
+             const el = $('type-input');
+             el.style.borderColor = '#e74c3c';
+             el.style.animation = 'shake 0.3s';
+             setTimeout(()=>{ el.style.animation=''; el.style.borderColor='#ccc'; }, 300);
+        }
+        processResult(isCorrect, null); 
+    }
+}
+
+const styleSheet = document.createElement("style");
+styleSheet.innerText = `@keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); } }`;
+document.head.appendChild(styleSheet);
+
+function processResult(isCorrect, uiElement){
+    if(isSEOn) playSE(isCorrect);
+    showFeedback(isCorrect);
+    let cMode = isMyBookSession ? (bookGameMode!=='original'?bookGameMode:currentQ.m) : mode;
+
+    if(isCorrect){
+        score += (cMode==='typing'||cMode==='spelling' ? 20 : 10);
+        $('score-val').innerText = score; correctCount++;
+        if(uiElement) uiElement.classList.add('correct');
+        $('word-tag').innerText = "⭕ 正解!"; $('word-tag').style.color = "var(--success)";
+        
+        if(cMode==='listening'){ $('q-text').classList.remove('blind-mode'); $('sub-text').innerText = currentQ.m; }
+        else if(cMode==='typing'){ $('sub-text').innerText = currentQ.past + " (正解)"; }
+        else if(cMode==='spelling'){ $('sub-text').innerText = currentQ.w + " (正解)"; speak(currentQ.w); }
+        else { $('sub-text').innerText = currentQ.m; }
+    } else {
+        wrongCount++;
+        if(uiElement) uiElement.classList.add('wrong');
+        if(cMode !== 'typing' && cMode !== 'spelling') for(let i=0; i<4; i++) if($('opt-'+i).dataset.isCorrect === "true") $('opt-'+i).classList.add('correct');
+        
+        if(cMode==='typing') $('word-tag').innerText = "❌ " + currentQ.past;
+        else if(cMode==='spelling') { $('word-tag').innerText = "❌ " + currentQ.w; speak(currentQ.w); }
+        else $('word-tag').innerText = "❌ " + currentQ.m;
+        
+        $('word-tag').style.color = "var(--accent-color)";
+        if(cMode==='listening') $('q-text').classList.remove('blind-mode');
+        
+        const isTyping = (cMode === 'typing');
+        const alreadyExists = mistakes.find(x => isTyping ? (x.base === currentQ.base) : (x.w === currentQ.w && x.m === currentQ.m));
+        
+        if(!alreadyExists){
+            let qData = {...currentQ};
+            if(isTyping){ qData.m = "過去形: " + qData.past; qData.w = qData.base; qData.mode = 'typing'; }
+            else if(cMode === 'spelling'){ qData.mode = 'spelling'; } 
+            else { qData.mode = cMode; }
+            mistakes.push(qData);
+        }
+    }
+    
+    $('word-tag').style.opacity = '1';
+    if(cMode !== 'typing' && cMode !== 'spelling') for(let i=0; i<4; i++) $('opt-'+i).disabled = true;
+    
+    if(!isMyBookSession) saveResumeState(); 
+    
+    if(nextTimer) clearTimeout(nextTimer);
+    nextTimer = setTimeout(() => { currentQIndex++; nextQuestion(); }, (isCorrect ? 1000 : 2500));
+}
+
+function showFeedback(isOk){
+    const el = $('feedback-overlay'); el.innerText = isOk ? "〇" : "×"; el.className = isOk ? "fb-o pop" : "fb-x pop";
+    setTimeout(() => { el.classList.remove('pop'); }, 500);
+}
+function speakCurrent(){
+    let cMode = isMyBookSession ? (bookGameMode!=='original'?bookGameMode:currentQ.m) : mode;
+    if(cMode === 'typing') speak(currentQ.base); else speak(currentQ.w);
+}
+function speak(text){
+    if(!isVoiceOn) return;
+    synth.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = speed;
+    $('speaker-btn').classList.add('playing'); u.onend = () => $('speaker-btn').classList.remove('playing');
+    synth.speak(u);
+}
+function playSE(isCorrect){
+    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    if(isCorrect){
+        osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+    } else {
+        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+    }
+}
+
+function finishGame(){
+    isGameRunning = false; if(nextTimer) clearTimeout(nextTimer);
+    $('game-screen').classList.add('hidden'); $('result-screen').classList.remove('hidden');
+    $('resume-btn').classList.add('hidden'); localStorage.removeItem('em_resume');
+    $('res-score').innerText = score; $('res-ok').innerText = correctCount; $('res-ng').innerText = wrongCount;
+    if(!isMyBookSession) saveScore(score);
+    
+    if(mistakes.length > 0){
+        $('mistake-area').classList.remove('hidden'); const tb = $('mistake-table');
+        tb.innerHTML = "<tr><th>単語</th><th>意味</th></tr>";
+        mistakes.forEach(m => {
+            let row = tb.insertRow(); row.insertCell().innerText = m.w; row.insertCell().innerText = m.m;
+            addToMyBook(m);
+        });
+    } else { $('mistake-area').classList.add('hidden'); }
+    
+    if(isMyBookSession){ $('retry-btn').classList.add('hidden'); $('back-to-book-btn').classList.remove('hidden'); }
+    else { $('retry-btn').classList.remove('hidden'); $('back-to-book-btn').classList.add('hidden'); }
+}
+function retryMistakes(){
+    if(mistakes.length === 0) return;
+    questions = mistakes.map(m => { 
+        if(m.mode === 'typing') return { base:m.w, past:m.m.replace('過去形: ','') }; 
+        return { w:m.w, m:m.m, p:m.w }; 
+    });
+    
+    mode = mistakes[0].mode;
+    if(!['normal','listening','typing','spelling'].includes(mode)) mode = 'normal';
+
+    if(mode==='typing') document.body.setAttribute('data-theme', 'typing');
+    score = 0; correctCount = 0; wrongCount = 0; currentQIndex = 0; mistakes = []; 
+    isGameRunning = true;
+    $('result-screen').classList.add('hidden'); $('game-screen').classList.remove('hidden');
+    
+    let label = '通常';
+    if(mode==='listening') label='リスニング';
+    else if(mode==='spelling') label='スペリング';
+    else if(mode==='typing') label='過去形特訓';
+    $('mode-badge').innerText = label;
+    
+    nextQuestion();
+}
+function backToMenu(){ isGameRunning = false; if(nextTimer) clearTimeout(nextTimer); synth.cancel(); $('result-screen').classList.add('hidden'); $('menu-screen').classList.remove('hidden'); updateCounts(); if(document.activeElement)document.activeElement.blur(); }
+
+function suspendGame(){ 
+    isGameRunning = false; if(nextTimer) clearTimeout(nextTimer); synth.cancel(); 
+    if(mistakes.length > 0) mistakes.forEach(m => addToMyBook(m));
+    $('game-screen').classList.add('hidden'); 
+    
+    if(isMyBookSession){
+        $('mybook-screen').classList.remove('hidden');
+        const activeTab = document.querySelector('.tab-btn.active').id.replace('tab-','');
+        filterList(activeTab); 
+    } else {
+        $('menu-screen').classList.remove('hidden'); $('resume-btn').classList.remove('hidden'); 
+        saveResumeState();
+    }
+    if(document.activeElement)document.activeElement.blur(); 
+}
+function saveResumeState(){ const s={q:questions,idx:currentQIndex,sc:score,ok:correctCount,ng:wrongCount,mis:mistakes,mod:mode,gr:currentGrade,bk:isMyBookSession}; localStorage.setItem('em_resume',JSON.stringify(s)); }
+function resumeGame(){ const s=JSON.parse(localStorage.getItem('em_resume')); if(!s)return; questions=s.q;currentQIndex=s.idx;score=s.sc;correctCount=s.ok;wrongCount=s.ng;mistakes=s.mis;mode=s.mod;currentGrade=s.gr;isMyBookSession=s.bk; document.body.setAttribute('data-theme',(mode==='typing'?'typing':currentGrade)); isGameRunning=true; $('menu-screen').classList.add('hidden'); $('game-screen').classList.remove('hidden'); 
+    let label = '通常';
+    if(mode==='listening') label='リスニング';
+    else if(mode==='spelling') label='スペリング';
+    else if(mode==='typing') label='過去形特訓';
+    $('mode-badge').innerText=label;
+    $('score-val').innerText=score; nextQuestion(); 
+}
+
+// --- MY BOOK ---
+function addToMyBook(item){
+    let book = JSON.parse(localStorage.getItem('em_mybook')) || [];
+    let isDupe = false;
+    if(item.mode === 'typing'){ 
+        const checkBase = item.base || item.w; 
+        isDupe = book.find(x => x.mode === 'typing' && x.w === checkBase); 
+    } else { 
+        isDupe = book.find(x => x.mode === item.mode && x.w === item.w && x.m === item.m); 
+    }
+    
+    if(!isDupe){
+        let cleanItem = { w:item.w, m:item.m, p:item.w, added:Date.now(), mode:(item.mode||'normal') };
+        if(item.mode === 'typing'){ cleanItem.w = item.base || item.w; cleanItem.past = item.past || item.m.replace('過去形: ',''); cleanItem.m = "過去形: " + cleanItem.past; }
+        book.push(cleanItem); localStorage.setItem('em_mybook', JSON.stringify(book)); updateBookBadge();
+    }
+}
+function loadMyBook(){ updateBookBadge(); }
+function updateBookBadge(){
+    let book = JSON.parse(localStorage.getItem('em_mybook')) || [];
+    $('book-badge').innerText = book.length;
+    $('badge-normal').innerText = book.filter(x => x.mode==='normal').length;
+    $('badge-listening').innerText = book.filter(x => x.mode==='listening').length;
+    $('badge-typing').innerText = book.filter(x => x.mode==='typing').length;
+    $('badge-spelling').innerText = book.filter(x => x.mode==='spelling').length; 
+}
+function openMyBook(force){ if(!force && $('book-badge').innerText === '0'){ alert("まだ登録された単語がありません"); return; } $('menu-screen').classList.add('hidden'); $('result-screen').classList.add('hidden'); $('mybook-screen').classList.remove('hidden'); filterList('all'); }
+function closeOverlay(id){ $(id).classList.add('hidden'); if(!isGameRunning) $('menu-screen').classList.remove('hidden'); else $('game-screen').classList.remove('hidden'); }
+function filterList(type){ 
+    ['all','normal','spelling','listening','typing'].forEach(t => $('tab-'+t).classList.remove('active')); $('tab-'+type).classList.add('active'); 
+    let book = JSON.parse(localStorage.getItem('em_mybook')) || []; 
+    let list = []; 
+    if(type === 'all') list = book; 
+    else list = book.filter(x => x.mode === type);
+    renderBookTable(list); 
+}
+function renderBookTable(list){ 
+    const tb = $('book-table'); tb.innerHTML = "<tr><th width='40%'>単語</th><th width='40%'>意味</th><th width='20%'>操作</th></tr>"; 
+    list.forEach((item, idx) => { 
+        let row = tb.insertRow(); 
+        let badge = '';
+        if(item.mode==='typing') badge = '<span class="list-badge lb-type">過去形</span>';
+        else if(item.mode==='listening') badge = '<span class="list-badge lb-list">リス</span>';
+        else if(item.mode==='spelling') badge = '<span class="list-badge lb-spell">スペル</span>';
+        else badge = '<span class="list-badge lb-norm">通常</span>';
+        
+        row.insertCell().innerHTML = `${badge}<b>${item.w}</b>`; 
+        row.insertCell().innerText = item.m; 
+        let btn = document.createElement('button'); btn.className = 'del-btn'; btn.innerText = "覚えた"; btn.onclick = () => removeFromBook(item); row.insertCell().appendChild(btn); 
+    }); 
+}
+function removeFromBook(item){ 
+    let book = JSON.parse(localStorage.getItem('em_mybook')) || []; 
+    book = book.filter(x => !(x.w === item.w && x.m === item.m && x.mode === item.mode)); 
+    localStorage.setItem('em_mybook', JSON.stringify(book)); updateBookBadge(); const activeTab = document.querySelector('.tab-btn.active').id.replace('tab-',''); filterList(activeTab); 
+}
+function clearBook(){ if(confirm("全ての単語帳データを削除しますか？")){ localStorage.removeItem('em_mybook'); updateBookBadge(); filterList('all'); } }
+
+function startBookGame(modeStr){ 
+    bookGameMode = modeStr; isMyBookSession = true; 
+    let book = JSON.parse(localStorage.getItem('em_mybook')) || []; 
+    let target = []; 
+    
+    if(modeStr === 'typing'){ target = book.filter(x => x.mode === 'typing').map(x => ({ base:x.w, past:x.past, m:x.m, w:x.w })); } 
+    else { target = book.filter(x => x.mode === modeStr); }
+    
+    if(target.length === 0){ alert("このモードの登録単語がありません"); return; } 
+    questions = target; for(let i=questions.length-1; i>0; i--){ const j = Math.floor(Math.random()*(i+1)); [questions[i], questions[j]] = [questions[j], questions[i]]; } 
+    mode = modeStr; qCount = questions.length; currentQIndex = 0; score = 0; correctCount=0; wrongCount=0; mistakes=[]; isGameRunning = true; 
+    $('mybook-screen').classList.add('hidden'); $('game-screen').classList.remove('hidden'); 
+    
+    let label = '通常';
+    if(mode==='listening') label='リスニング';
+    else if(mode==='spelling') label='スペリング';
+    else if(mode==='typing') label='過去形特訓';
+    $('mode-badge').innerText = "My単語帳: " + label; 
+    
+    nextQuestion(); 
+}
+function saveScore(pts){ let ranks = JSON.parse(localStorage.getItem('em_ranking')) || {normal:[], listening:[], typing:[]}; let key = (mode === 'listening') ? 'listening' : (mode === 'typing' ? 'typing' : 'normal'); ranks[key].push({pts:pts, date:new Date().toLocaleDateString()}); ranks[key].sort((a,b) => b.pts - a.pts); ranks[key] = ranks[key].slice(0, 5); localStorage.setItem('em_ranking', JSON.stringify(ranks)); }
+function openRanking(){ $('menu-screen').classList.add('hidden'); $('ranking-screen').classList.remove('hidden'); renderRanking('normal'); }
+function loadRanking(){ if(!localStorage.getItem('em_ranking')){ localStorage.setItem('em_ranking', JSON.stringify({normal:[], listening:[], typing:[]})); } }
+function renderRanking(key){ ['normal','listening','typing'].forEach(k => $('rk-tab-'+k).classList.remove('active')); $('rk-tab-'+key).classList.add('active'); let ranks = JSON.parse(localStorage.getItem('em_ranking')) || {normal:[], listening:[], typing:[]}; let list = ranks[key]; const tb = $('rank-table'); tb.innerHTML = "<tr><th>順位</th><th>スコア</th><th>日付</th></tr>"; if(list.length === 0){ let row = tb.insertRow(); row.insertCell().innerText = "-"; row.insertCell().innerText = "No Data"; row.insertCell().innerText = "-"; return; } list.forEach((r, i) => { let row = tb.insertRow(); row.insertCell().innerHTML = (i===0 ? "🥇" : (i===1 ? "🥈" : (i===2 ? "🥉" : (i+1)))); row.insertCell().innerText = r.pts; row.insertCell().innerText = r.date; if(i===0) row.style.fontWeight = "bold"; }); }
+</script>
+</body>
+</html>
