@@ -467,6 +467,47 @@
             }
         }
 
+/* --- スマホ向けレイアウト調整（画面幅600px以下で適用） --- */
+        @media (max-width: 600px) {
+            /* ドロワー全体の左右の余白を減らして広く使う */
+            .control-drawer {
+                padding: 15px 15px 25px 15px;
+            }
+
+            /* チェックボックスの行（予鈴やアラーム設定）の調整 */
+            .checkbox-row {
+                font-size: 0.85rem;      /* 全体の文字サイズを少し小さく */
+                gap: 5px;                /* 要素間の隙間を詰める */
+                padding: 0 8px;
+                white-space: nowrap;     /* 【重要】テキストの途中での改行を禁止する */
+            }
+
+            /* 小さいスピンボタン（▲▼）のサイズ調整 */
+            .spin-btn-small {
+                padding: 5px 8px;        /* ボタンの横幅を詰める */
+                margin: 0 3px;
+                font-size: 12px;
+            }
+
+            /* % や 秒 の入力欄の幅を詰める */
+            #preAlarmPercent, #alarmDurationIn {
+                width: 35px !important;
+                font-size: 1rem !important;
+            }
+
+            /* 予鈴の時間表示 (@ 03:00) のサイズ調整 */
+            #preAlarmTimeDisplay {
+                font-size: 0.9em !important;
+                margin-left: 0;
+            }
+
+            /* アラーム音のプルダウンを画面幅に合わせる */
+            #soundSelect {
+                width: 100%;
+                max-width: 240px;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -634,9 +675,10 @@
      * Ver 1.29: 停止（ポーズ）中であることが視覚的にわかるよう、停止ボタンが点滅する機能を追加。
      * Ver 1.30: アラーム鳴動中の設定変更許可、入力欄でのEnterキー開始、初期状態でのSpaceキー開始に対応。
      * Ver 1.31: スマートフォンの画面表示とスリープ防止に対応。
+     * Ver 1.32: スマートフォン(最大600px)で設定画面のスタイル定義と表示バランスを調整。
      */
 
-    const APP_VERSION = "1.31";
+    const APP_VERSION = "1.32";
     
     let timerInterval = null;
     let alarmLoopInterval = null;
