@@ -678,7 +678,7 @@
      * Ver 1.32: スマートフォン(最大600px)で設定画面のスタイル定義と表示バランスを調整。
      */
 
-    const APP_VERSION = "1.32";
+    const APP_VERSION = "2026 [A.K] Ver. 1.32";
     
     let timerInterval = null;
     let alarmLoopInterval = null;
@@ -760,7 +760,7 @@
 
     window.onload = () => {
         document.title = "Countdown Timer";
-        document.getElementById('versionDisplay').textContent = `Ver ${APP_VERSION}`;
+        document.getElementById('versionDisplay').textContent = `${APP_VERSION}`;
         loadSettings(); 
         if (presetSelect.value !== 'custom') applyPresetValueOnly();
         resizeCanvas();
