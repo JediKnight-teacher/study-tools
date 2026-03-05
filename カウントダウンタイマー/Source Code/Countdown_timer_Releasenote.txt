@@ -1,4 +1,5 @@
 * カウントダウンタイマー アプリケーション
+* Copyright (c) 2026 A.K JediKnight-teacher
 * [バージョン履歴]
 * Ver 1.01: 初回リリース
 * Ver 1.02: 高解像度対応、UI改善
