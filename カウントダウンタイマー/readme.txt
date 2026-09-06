@@ -85,3 +85,7 @@
 ・アプリ名称    : Countdown Timer 
 ・最新バージョン: Ver.1.32
 ・主要動作環境  : 各種モダンWebブラウザ（Chrome, Edge, Safari, Firefox、スマートフォンブラウザ対応） 
+
+商用利用は不可ですが、配布・利用・改変は自由です。
+(Non-commercial use only. Free to distribute, use, and modify)
+
