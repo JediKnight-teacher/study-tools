@@ -19,3 +19,4 @@
 	画面上のキーボード（ソフトウェアキーボード）には対応していません。
 
 ★★★★ 商用利用は不可ですが、配布・利用・改変は自由です。 ★★★★
+★★★★ (Non-commercial use only. Free to distribute, use, and modify) ★★★★
