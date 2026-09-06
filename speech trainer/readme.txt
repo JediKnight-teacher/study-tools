@@ -26,5 +26,5 @@
     Enter : 判定結果ダイアログを閉じる
     Esc : モーダルを閉じる / 練習・再生の中断
 
-商用利用は不可ですが、配布・利用・改変は自由です。
-(Non-commercial use only. Free to distribute, use, and modify)
+★★★★ 商用利用は不可ですが、配布・利用・改変は自由です。 ★★★★
+★★★★ (Non-commercial use only. Free to distribute, use, and modify) ★★★★
