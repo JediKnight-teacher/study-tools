@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>English Speech & Pronunciation Trainer Ver.1.2</title>
+  <title>English Speech & Pronunciation Trainer Ver.2.6</title>
 
   <style>
   body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f7f6; color: #333; max-width: 820px; margin: 0 auto; padding: 20px; }
@@ -12,7 +12,6 @@
   .copyright { margin-left: 15px; font-weight: normal; color: #3498db; cursor: pointer; text-decoration: underline; transition: color 0.2s; }
   .copyright:hover { color: #1abc9c; }
   
-  /* ウェルカム画面とメッセージ表示領域（長文折り返し対応） */
   #welcomeScreen { 
     display: none; 
     background-color: #fff; 
@@ -110,7 +109,6 @@
   .force-stop-btn { margin-top: 30px; padding: 12px 25px; font-size: 1.1rem; font-weight: bold; background-color: #e74c3c; color: white; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.2s; }
   .force-stop-btn:hover { transform: scale(1.05); }
 
-  /* モーダル（このツールについて） */
   .modal-overlay {
     display: none;
     position: fixed;
@@ -180,15 +178,13 @@
     <button class="force-stop-btn" onclick="forceStopFromPause()">⏹️ このまま終了する (Esc)</button>
   </div>
 
-  <!-- モーダル：このツールについて -->
   <div id="aboutModal" class="modal-overlay" onclick="handleAboutModalBgClick(event)">
     <div class="modal-content">
       <button class="modal-close-btn" onclick="closeAboutModal()" aria-label="閉じる">✕</button>
       
-      <!-- タイトル & バージョン表記 -->
       <div style="text-align: center; border-bottom: 2px solid #e0e0e0; padding-bottom: 12px; margin-bottom: 15px;">
         <h2 style="margin: 0; color: #2c3e50; font-size: 1.4rem;">💡 このツールについて</h2>
-        <div style="font-size: 0.95rem; font-weight: bold; color: #3498db; margin-top: 4px;">Ver.1.2</div>
+        <div style="font-size: 0.95rem; font-weight: bold; color: #3498db; margin-top: 4px;">Ver.2.6</div>
       </div>
 
       <div style="font-size: 0.9rem; line-height: 1.6; color: #333;">
@@ -196,20 +192,18 @@
           <strong>「English Speech & Pronunciation Trainer」</strong>は、Web Speech API（音声合成・音声認識）を活用し、ブラウザ上で効果的な英語の発音練習やスピーチトレーニングを行えるWebアプリケーションです。
         </p>
 
-        <!-- システム概要 -->
         <h3 style="font-size: 0.95rem; color: #2c3e50; margin: 15px 0 8px 0; border-left: 4px solid #34495e; padding-left: 8px;">⚙️ システム概要</h3>
         <div style="background: #f8f9fa; border-radius: 6px; padding: 10px 12px; border: 1px solid #e9ecef;">
           <div style="margin-bottom: 6px;">
             <strong style="color: #2c3e50;">🖥️ 対応環境:</strong><br>
-            <span style="font-size: 0.85rem; color: #555;">Google Chrome / Microsoft Edge（PC・モバイルブラウザ対応）<br><small style="color: #7f8c8d;">※マイク許可およびHTTPS環境（またはlocalhost）が必要です。</small></span>
+            <span style="font-size: 0.85rem; color: #555;">Google Chrome / Microsoft Edge（PC・モバイルブラウザ対応）<br><small style="color: #7f8c8d;">※マイク許可およびHTTPS環境（またはlocalhost / ローカルファイル）が必要です。</small></span>
           </div>
           <div>
             <strong style="color: #2c3e50;">🛠️ 使用技術:</strong><br>
-            <span style="font-size: 0.85rem; color: #555;">Web Speech API（音声合成 SpeechSynthesis / 音声認識 SpeechRecognition）、Web Audio API（マイク録音・Canvas波形描画）</span>
+            <span style="font-size: 0.85rem; color: #555;">Web Speech API（音声合成 SpeechSynthesis / 連続音声認識 SpeechRecognition）、Web Audio API（マイク録音・Canvas波形描画）</span>
           </div>
         </div>
 
-        <!-- 主な機能（カラフルカード表示） -->
         <h3 style="font-size: 0.95rem; color: #2c3e50; margin: 15px 0 8px 0; border-left: 4px solid #3498db; padding-left: 8px;">✨ 主な機能</h3>
         <div style="display: grid; gap: 8px;">
           <div style="background: #f0f7ff; border-radius: 6px; padding: 8px 12px; border: 1px solid #d0e3ff;">
@@ -222,7 +216,7 @@
           </div>
           <div style="background: #fdf5f2; border-radius: 6px; padding: 8px 12px; border: 1px solid #fbdcd3;">
             <strong style="color: #d35400;">🔥 通し稽古モード</strong><br>
-            <span style="font-size: 0.85rem; color: #555;">台本全体を止まらずに連続録音。無音時間（沈黙）による自動送りや手動進めに対応し、完走後に総合平均スコアを自動算出。</span>
+            <span style="font-size: 0.85rem; color: #555;">台本全体を止まらずに連続録音。「手動ストップ」のON/OFFに応じて手動送り（→キー）と自動送りを自在に切替可能。</span>
           </div>
           <div style="background: #fefcf0; border-radius: 6px; padding: 8px 12px; border: 1px solid #f3e9b5;">
             <strong style="color: #b7950b;">🔄 A/B 聞き比べ</strong><br>
@@ -234,7 +228,6 @@
           </div>
         </div>
 
-        <!-- ショートカット操作 -->
         <h3 style="font-size: 0.95rem; color: #2c3e50; margin: 15px 0 8px 0; border-left: 4px solid #9b59b6; padding-left: 8px;">⌨️ ショートカット操作</h3>
         <div style="background: #fafafa; border: 1px solid #eee; border-radius: 6px; padding: 10px; font-size: 0.85rem; line-height: 1.8;">
           <div><span class="kbd-key">Space</span> : 音声再生・通し稽古の一時停止 / 再開</div>
@@ -243,7 +236,6 @@
           <div><span class="kbd-key">Esc</span> : モーダルを閉じる / 練習・再生の中断</div>
         </div>
 
-        <!-- 最下部：ライセンス & 著作権情報ボックス -->
         <div style="margin-top: 20px; background-color: #f8f9fa; border: 1px solid #dcdfe6; border-radius: 8px; padding: 12px; text-align: center; font-size: 0.85rem; color: #444; line-height: 1.6;">
           商用利用は不可ですが、配布・利用・改変は自由です。<br>
           <span style="color: #7f8c8d; font-size: 0.78rem;">(Non-commercial use only. Free to distribute, use, and modify)</span><br>
@@ -257,12 +249,12 @@
   </div>
 
   <h1 id="appTitle">🎙️ English Speech & Pronunciation Trainer</h1>
-  <div class="subtitle" id="appSubtitle">英語スピーチ・発音練習・音読トレーナー <span class="copyright" onclick="openAboutModal()" title="このツールについてを表示">© 2026 [A.K]</span></div>
+  <div class="subtitle" id="appSubtitle">英語スピーチ・発音練習・音読トレーナー Ver.2.6 <span class="copyright" onclick="openAboutModal()" title="このツールについてを表示">© 2026 [A.K]</span></div>
 
   <div id="welcomeScreen">
     <h2>👋 ようこそ！</h2>
     <p class="welcome-message">台本ファイル（.json）を読み込んで練習を始めましょう。（『📝 台本インポート・作成ツール』の『📁 台本ファイルを読み込む』から script-en-jp.json を指定）</p>
-    <p style="color: #7f8c8d; font-size: 0.9rem;">実用的なサンプル台本を使ってすぐに発声練習を始めることもできます。</p>
+    <p style="color: #7f8c8d; font-size: 0.9rem;">実用的な英会話サンプル（6文）を使って、すぐに発声練習を始めることもできます。</p>
     <button class="btn play-btn" style="padding: 10px 20px; font-size: 1rem;" onclick="loadSampleDataAndStart()">✨ サンプル台本で始める</button>
   </div>
 
@@ -325,7 +317,7 @@
         </div>
         <div class="settings-item" style="background-color: #fdedec; padding: 4px 8px; border-radius: 5px;">
           <label for="manualStopToggle">🖐️ 手動ｽﾄｯﾌﾟ</label>
-          <input type="checkbox" id="manualStopToggle" checked>
+          <input type="checkbox" id="manualStopToggle">
         </div>
       </div>
 
@@ -393,20 +385,28 @@
   <script>
   const DEFAULT_SAMPLE_SCRIPT = [
     {
-      en: "Good morning, everyone. Today, I'd like to talk about the power of effective communication.",
-      jp: "皆さん、おはようございます。本日は、効果的なコミュニケーションの力についてお話ししたいと思います。"
+      en: "Hello, everyone. My name is Ken. Nice to meet you.",
+      jp: "皆さん、こんにちは。私の名前はケンです。はじめまして。"
     },
     {
-      en: "Learning a new language is not just about memorizing vocabulary and grammar rules.",
-      jp: "新しい言語を学ぶことは、単に単語や文法規則を記憶することだけではありません。"
+      en: "I play soccer with my friends every weekend.",
+      jp: "私は毎週週末に友達とサッカーをします。"
     },
     {
-      en: "It's about building connections and sharing your thoughts with confidence.",
-      jp: "大切なのは、人と人との繋がりを築き、自信を持って自分の考えを共有することです。"
+      en: "My favorite subject is English because it is fun.",
+      jp: "私の好きな教科は英語です。楽しいからです。"
     },
     {
-      en: "By practicing every single day, you will gradually improve your pronunciation and natural rhythm.",
-      jp: "毎日練習を続けることで、発音や自然なリズムは少しずつ確実に上達していきます。"
+      en: "I want to visit Australia in the future.",
+      jp: "私は将来、オーストラリアを訪れたいです。"
+    },
+    {
+      en: "Could you tell me the way to the station?",
+      jp: "駅への行き方を教えていただけますか？"
+    },
+    {
+      en: "Thank you for listening to my speech today.",
+      jp: "本日はスピーチを聞いてくださり、ありがとうございました。"
     }
   ];
 
@@ -417,13 +417,18 @@
   let currentTranscript = ""; 
   let isRehearsalMode = false;
   let totalRehearsalScore = 0;
-  let speechDebounceTimer;
-  let isRehearsalTransitioning = false;
+  let speechDebounceTimer = null;
   let isPaused = false; 
   let isFinishing = false;
+  let isProcessingTransition = false;
 
-  let currentAudioUrl = null;
+  // ホット状態維持とインデックスによる絶対セグメンテーションのためのオフセット変数
+  let rehearsalResultOffset = 0;
+  let lastObservedResultLength = 0;
+
+  let createdAudioUrls = {};
   let synthKeepAliveTimer = null;
+  let activeUtterance = null; 
 
   if (typeof speechSynthesis !== 'undefined') {
     speechSynthesis.onvoiceschanged = populateVoiceList;
@@ -434,6 +439,7 @@
   }
 
   function closeAboutModal() {
+    stopPopupAudio();
     document.getElementById('aboutModal').style.display = 'none';
   }
 
@@ -453,32 +459,32 @@
   window.addEventListener('pagehide', cleanupResources);
 
   function cleanupResources() {
-    stopSpeechKeepAlive();
+    stopPopupAudio();
     stopAudioRecording();
     stopVisualizer(true);
-    stopMicStream();
+    stopMicStream(true);
+    stopRecognitionSafely();
+    activeUtterance = null;
+    if (synthKeepAliveTimer) clearInterval(synthKeepAliveTimer);
     if (speechSynthesis) speechSynthesis.cancel();
-    if (currentAudioUrl) {
-      URL.revokeObjectURL(currentAudioUrl);
-      currentAudioUrl = null;
+    revokeAllAudioUrls();
+  }
+
+  function stopPopupAudio() {
+    const popupPlayer = document.getElementById('popupAudioPlayer');
+    if (popupPlayer) {
+      popupPlayer.pause();
+      popupPlayer.currentTime = 0;
     }
   }
 
-  function startSpeechKeepAlive() {
-    stopSpeechKeepAlive();
-    synthKeepAliveTimer = setInterval(() => {
-      if (window.speechSynthesis && window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
-        window.speechSynthesis.pause();
-        window.speechSynthesis.resume();
+  function revokeAllAudioUrls() {
+    Object.keys(createdAudioUrls).forEach(idx => {
+      if (createdAudioUrls[idx]) {
+        URL.revokeObjectURL(createdAudioUrls[idx]);
       }
-    }, 10000);
-  }
-
-  function stopSpeechKeepAlive() {
-    if (synthKeepAliveTimer) {
-      clearInterval(synthKeepAliveTimer);
-      synthKeepAliveTimer = null;
-    }
+    });
+    createdAudioUrls = {};
   }
 
   function populateVoiceList() {
@@ -520,21 +526,22 @@
     document.getElementById('welcomeScreen').style.display = 'none';
     document.getElementById('mainAppContent').style.display = 'block';
     initApp();
-    showToast("💡 実践スピーチ台本を読み込みました！");
+    showToast("💡 基本会話サンプル台本（6文）を読み込みました！");
   }
 
   function resetApp() {
+    stopPopupAudio();
     isEvaluating = false; isPlaying = false; isAutoPlaying = false;
-    isRehearsalMode = false; isRehearsalTransitioning = false; isPaused = false; isFinishing = false;
+    isRehearsalMode = false; isPaused = false; isFinishing = false;
+    isProcessingTransition = false;
+    rehearsalResultOffset = 0;
+    lastObservedResultLength = 0;
     clearTimeout(speechDebounceTimer);
-    stopSpeechKeepAlive();
+    activeUtterance = null;
+    if (synthKeepAliveTimer) { clearInterval(synthKeepAliveTimer); synthKeepAliveTimer = null; }
 
-    if (recognition) { 
-      recognition.onresult = null; recognition.onend = null; recognition.onerror = null;
-      try { recognition.abort(); } catch(e){} 
-      recognition = null;
-    }
-    stopAudioRecording(); stopVisualizer(true); stopMicStream();
+    stopRecognitionSafely();
+    stopAudioRecording(); stopVisualizer(true); stopMicStream(true);
     setButtonsState(false);
     document.getElementById('feedbackArea').style.display = 'none';
     document.getElementById('pauseOverlay').style.display = 'none';
@@ -543,10 +550,16 @@
     document.getElementById('pausePlayAllBtn').style.display = 'none';
     document.getElementById('startRehearsalBtn').style.display = 'inline-block';
     document.getElementById('stopRehearsalBtn').style.display = 'none';
-    document.getElementById('nextLineBtn').style.display = 'none'; 
+    
+    const nextBtn = document.getElementById('nextLineBtn');
+    if (nextBtn) {
+      nextBtn.style.display = 'none';
+      nextBtn.textContent = '⏭ 次へ (→キー)';
+    }
   }
 
   function initApp() {
+    revokeAllAudioUrls();
     resetApp();
     renderScript();
   }
@@ -685,31 +698,44 @@
       return;
     }
 
+    const aboutModal = document.getElementById('aboutModal');
+    const isModalOpen = aboutModal && aboutModal.style.display === 'flex';
+
+    if (event.key === 'Escape') {
+      if (isModalOpen) {
+        closeAboutModal();
+        return;
+      }
+      if (isPaused || isAutoPlaying || isRehearsalMode || isPlaying || isEvaluating) { 
+        event.preventDefault(); 
+        forceStopFromPause(); 
+      }
+      return;
+    }
+
+    if (isModalOpen) return;
+
     if (event.code === 'Space') {
       if (isAutoPlaying || isRehearsalMode || isPlaying) { 
         event.preventDefault(); 
         togglePause(); 
       }
     } else if (event.code === 'ArrowRight') {
-      if (isRehearsalMode && !isRehearsalTransitioning && !isPaused) { event.preventDefault(); forceNextLine(); }
+      if (isRehearsalMode && !isPaused && !isProcessingTransition) { event.preventDefault(); forceNextLine(); }
     } else if (event.key === 'Enter') {
       const feedbackArea = document.getElementById('feedbackArea');
-      if (feedbackArea.style.display === 'block') { feedbackArea.style.display = 'none'; }
-    } else if (event.key === 'Escape') {
-      const aboutModal = document.getElementById('aboutModal');
-      if (aboutModal && aboutModal.style.display === 'flex') {
-        closeAboutModal();
-        return;
-      }
-      if (isPaused || isAutoPlaying || isRehearsalMode || isPlaying) { 
-        event.preventDefault(); 
-        forceStopFromPause(); 
+      if (feedbackArea.style.display === 'block') { 
+        event.preventDefault();
+        stopPopupAudio();
+        feedbackArea.style.display = 'none'; 
       }
     }
   });
 
   function forceStopFromPause() {
-    stopSpeechKeepAlive();
+    stopPopupAudio();
+    activeUtterance = null;
+    if (synthKeepAliveTimer) { clearInterval(synthKeepAliveTimer); synthKeepAliveTimer = null; }
     if (window.speechSynthesis) {
       window.speechSynthesis.resume();
       window.speechSynthesis.cancel();
@@ -746,9 +772,7 @@
       
       if (isAutoPlaying || isPlaying) { 
         window.speechSynthesis.pause(); 
-        stopSpeechKeepAlive();
       } else if (isRehearsalMode) {
-        if (recognition) { try { recognition.stop(); } catch(e){} }
         if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.pause();
         clearTimeout(speechDebounceTimer); stopVisualizer(false); 
       }
@@ -758,7 +782,6 @@
       
       if (isAutoPlaying || isPlaying) { 
         window.speechSynthesis.resume(); 
-        startSpeechKeepAlive();
       } else if (isRehearsalMode) {
         if (mediaRecorder && mediaRecorder.state === 'paused') {
           mediaRecorder.resume();
@@ -769,7 +792,9 @@
         isRecordingAudio = true;
         drawVisualizer();
 
-        if (!isRehearsalTransitioning) { setupRecognition(); try { recognition.start(); } catch(e){} }
+        if (recognition) { 
+          try { recognition.start(); } catch(e){} 
+        }
       }
     }
   }
@@ -778,6 +803,7 @@
     if (index < 0 || index >= currentScriptData.length) return;
     if (isEvaluating || isPlaying || isRehearsalMode || isAutoPlaying) return;
     
+    stopPopupAudio();
     isPlaying = true; isPaused = false;
     setButtonsState(true); 
     
@@ -791,7 +817,6 @@
     
     executeSpeech(index, function() { 
       isPlaying = false; isPaused = false;
-      stopSpeechKeepAlive();
       pauseBtn.style.display = 'none';
       setButtonsState(false); 
       clearHighlights(); 
@@ -807,6 +832,7 @@
 
   function startPlayAll() {
     if (isEvaluating || isPlaying || isRehearsalMode) return;
+    stopPopupAudio();
     isAutoPlaying = true; isPaused = false;
     document.getElementById('playAllBtn').style.display = 'none';
     document.getElementById('stopAllBtn').style.display = 'inline-block';
@@ -821,7 +847,8 @@
 
   function stopPlayAll() {
     isAutoPlaying = false; isPlaying = false; isPaused = false;
-    stopSpeechKeepAlive();
+    activeUtterance = null;
+    if (synthKeepAliveTimer) { clearInterval(synthKeepAliveTimer); synthKeepAliveTimer = null; }
     if (window.speechSynthesis) {
       window.speechSynthesis.resume(); 
       window.speechSynthesis.cancel();
@@ -857,6 +884,7 @@
     }
 
     const utterance = new SpeechSynthesisUtterance(speechText);
+    activeUtterance = utterance;
     utterance.lang = 'en-US'; 
     utterance.pitch = pitchVal; 
     utterance.rate = speedVal; 
@@ -883,27 +911,51 @@
       utterance.voice = selectedVoice;
       utterance.lang = selectedVoice.lang;
     }
+
+    if (synthKeepAliveTimer) clearInterval(synthKeepAliveTimer);
+    synthKeepAliveTimer = setInterval(() => {
+      if (window.speechSynthesis && window.speechSynthesis.speaking) {
+        window.speechSynthesis.pause();
+        window.speechSynthesis.resume();
+      } else {
+        clearInterval(synthKeepAliveTimer);
+        synthKeepAliveTimer = null;
+      }
+    }, 10000);
     
     const handleEnd = () => {
-      stopSpeechKeepAlive();
+      if (synthKeepAliveTimer) { clearInterval(synthKeepAliveTimer); synthKeepAliveTimer = null; }
+      activeUtterance = null;
       if (onEndCallback) onEndCallback();
     };
 
     utterance.onend = handleEnd; 
     utterance.onerror = handleEnd;
 
-    startSpeechKeepAlive();
     window.speechSynthesis.speak(utterance);
   }
 
   let recognition = null;
 
-  function setupRecognition() {
+  function stopRecognitionSafely() {
     if (recognition) {
-      recognition.onresult = null; recognition.onend = null; recognition.onerror = null;
+      recognition.onresult = null; 
+      recognition.onend = null; 
+      recognition.onerror = null; 
+      recognition.onstart = null;
       try { recognition.abort(); } catch(e) {}
       recognition = null;
     }
+  }
+
+  function setupRecognition() {
+    // ホット状態維持：通し稽古中に既に起動中の認識インスタンスがあれば再生成しない
+    if (recognition && isRehearsalMode) {
+      return;
+    }
+
+    stopRecognitionSafely();
+
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRec) { showToast("⚠️ お使いのブラウザは音声認識に対応していません。ChromeまたはEdgeをご利用ください。"); return; }
     
@@ -913,73 +965,114 @@
     recognition.maxAlternatives = 1;
     recognition.continuous = true;
 
-    recognition.onresult = function(event) {
-      if (isRehearsalTransitioning || isPaused || isFinishing) return; 
-      let tempTranscript = "";
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        tempTranscript += event.results[i][0].transcript + " ";
-      }
-      currentTranscript = tempTranscript;
+    recognition.onstart = function() {
+      // 認識エンジン稼働状態
+    };
 
-      const isManualStop = document.getElementById('manualStopToggle').checked;
-      if (!isManualStop || isRehearsalMode) {
-        clearTimeout(speechDebounceTimer);
-        const waitTimeSec = parseFloat(document.getElementById('intervalSlider').value);
-        speechDebounceTimer = setTimeout(() => {
-          if (isRehearsalMode) { forceNextLine(); } else { finishSingleEvaluation(); }
-        }, waitTimeSec * 1000);
+    recognition.onresult = function(event) {
+      lastObservedResultLength = event.results.length;
+
+      if (isPaused || isFinishing) return; 
+
+      let sessionText = "";
+      if (isRehearsalMode) {
+        // オフセット基準の絶対セグメンテーション（入力ガード排除により0ms目の音声も漏らさず捕捉）
+        for (let i = rehearsalResultOffset; i < event.results.length; i++) {
+          if (event.results[i] && event.results[i][0]) {
+            sessionText += event.results[i][0].transcript + " ";
+          }
+        }
+      } else {
+        for (let i = 0; i < event.results.length; i++) {
+          if (event.results[i] && event.results[i][0]) {
+            sessionText += event.results[i][0].transcript + " ";
+          }
+        }
+      }
+
+      const cleanText = sessionText.trim();
+      if (cleanText.length > 0) {
+        currentTranscript = cleanText;
+
+        const isManualStop = document.getElementById('manualStopToggle').checked;
+
+        if (!isManualStop) {
+          clearTimeout(speechDebounceTimer);
+          const waitTimeSec = parseFloat(document.getElementById('intervalSlider').value);
+          speechDebounceTimer = setTimeout(() => {
+            if (isRehearsalMode && !isPaused && !isProcessingTransition) { 
+              forceNextLine(); 
+            } else if (isEvaluating) { 
+              finishSingleEvaluation(); 
+            }
+          }, waitTimeSec * 1000);
+        }
       }
     };
 
     recognition.onend = function() {
-      if (isRehearsalMode) {
-        if (activeRecordIndex < currentScriptData.length && !isRehearsalTransitioning && !isPaused && !isFinishing) { 
+      if (!isPaused && recognition) {
+        if ((isRehearsalMode || isEvaluating) && !isFinishing) {
           setTimeout(() => {
-            if (recognition && isRehearsalMode && !isPaused && !isFinishing) {
+            if (recognition && (isRehearsalMode || isEvaluating) && !isPaused && !isFinishing) {
               try { recognition.start(); } catch(e){} 
             }
-          }, 200);
+          }, 100);
         }
-      } else if (isEvaluating && !isFinishing && !isPaused) { 
-        setTimeout(() => {
-          if (recognition && isEvaluating && !isFinishing && !isPaused) {
-            try { recognition.start(); } catch(e){}
-          }
-        }, 200);
       }
     };
 
     recognition.onerror = function(event) {
-      if (event.error === 'no-speech') {
-        if ((isRehearsalMode || isEvaluating) && !isPaused && !isFinishing) {
-          try { recognition.start(); } catch(e){}
-          return;
-        }
+      if (event.error === 'no-speech' || event.error === 'aborted') {
+        return;
       }
 
       let errorMsg = "";
+      let isFatal = false;
+
       switch(event.error) {
-        case 'not-allowed': errorMsg = "🎤 マイクの使用がブロックされています。ブラウザの設定をご確認ください。"; break;
-        case 'network': errorMsg = "🌐 インターネット接続が不安定です。音声認識にはネットワークが必要です。"; break;
-        case 'no-speech': return;
-        case 'aborted': return;
-        default: errorMsg = "⚠️ マイクの音声が認識できませんでした。(エラー: " + event.error + ")";
+        case 'not-allowed': 
+        case 'service-not-allowed':
+          errorMsg = "🎤 マイクの使用がブロックされています。ブラウザの設定をご確認ください。"; 
+          isFatal = true;
+          break;
+        case 'audio-capture':
+          errorMsg = "🎤 マイクが見つかりません。マイクが接続されているか確認してください。";
+          isFatal = true;
+          break;
+        case 'network': 
+          errorMsg = "🌐 インターネット接続が不安定です。音声認識にはネットワークが必要です。"; 
+          break;
+        default: 
+          errorMsg = "⚠️ マイクの音声が認識できませんでした。(エラー: " + event.error + ")";
       }
+
+      if (isFatal) {
+        showToast(errorMsg);
+        if (isRehearsalMode) {
+          stopRehearsal();
+        } else {
+          resetEvaluationState();
+        }
+        return;
+      }
+
       if (errorMsg && !isRehearsalMode) { showToast(errorMsg); resetEvaluationState(); }
     };
   }
 
   async function startEvaluation(index) {
     if (isPlaying || isAutoPlaying || isRehearsalMode) return;
+    stopPopupAudio();
     const btn = document.getElementById(`recBtn-${index}`);
     
     if (isEvaluating && activeRecordIndex === index) { clearTimeout(speechDebounceTimer); finishSingleEvaluation(); return; }
     
     activeRecordIndex = index; currentTranscript = ""; isFinishing = false;
+    
     window.speechSynthesis.resume(); window.speechSynthesis.cancel();
     isEvaluating = true; setButtonsState(true); clearHighlights();
     
-    setupRecognition(); 
     const lineContainer = document.getElementById(`line-${index}`);
     lineContainer.classList.add('highlight-line');
     const y = lineContainer.getBoundingClientRect().top + window.pageYOffset - 100;
@@ -993,79 +1086,118 @@
     document.getElementById('compareBlock').style.display = 'none';
 
     await startVisualizerAndRecording(); 
-    try { recognition.start(); } catch (e) { resetEvaluationState(); }
+    setupRecognition(); 
+    try { recognition.start(); } catch (e) {}
   }
 
-  function finishSingleEvaluation() {
+  async function finishSingleEvaluation() {
     if (!isEvaluating || isFinishing) return;
     isFinishing = true;
-    try { recognition.stop(); } catch(e) {}
+
+    const isManualStop = document.getElementById('manualStopToggle').checked;
+    if (isManualStop) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+
+    stopRecognitionSafely();
     
+    const currentIndex = activeRecordIndex;
     stopAudioRecording((audioUrl) => {
-      evaluateSpeech(currentScriptData[activeRecordIndex].en, currentTranscript, audioUrl);
+      evaluateSpeech(currentScriptData[currentIndex].en, currentTranscript, audioUrl);
       resetEvaluationState();
     });
   }
 
   function resetEvaluationState() {
     isEvaluating = false; isFinishing = false;
-    stopVisualizer(true); stopMicStream();
+    stopVisualizer(true); 
+    stopMicStream(false);
     document.querySelectorAll('.record-btn').forEach(b => { b.classList.remove('recording'); b.textContent = "🎤 判定"; });
     setButtonsState(false);
   }
 
-  function forceNextLine() {
-    if (!isRehearsalMode || isRehearsalTransitioning || isPaused || isFinishing) return;
-    isRehearsalTransitioning = true; isFinishing = true;
+  async function forceNextLine() {
+    if (!isRehearsalMode || isPaused || isProcessingTransition) return;
+    isProcessingTransition = true;
     clearTimeout(speechDebounceTimer);
-    
-    if (recognition) {
-      recognition.onresult = null; recognition.onend = null;
-      try { recognition.abort(); } catch(e) {}
-      recognition = null;
+
+    const isManualStop = document.getElementById('manualStopToggle').checked;
+    if (isManualStop) {
+      await new Promise(resolve => setTimeout(resolve, 200));
     }
 
+    const currentIndex = activeRecordIndex;
+    const spokenText = currentTranscript; 
+    currentTranscript = "";
+    
+    // 同期的アトミック更新（行切り替え時点のオフセット基準を更新）
+    rehearsalResultOffset = lastObservedResultLength;
+
     stopAudioRecording((audioUrl) => {
-      evaluateSpeech(currentScriptData[activeRecordIndex].en, currentTranscript, audioUrl);
+      evaluateSpeech(currentScriptData[currentIndex].en, spokenText, audioUrl);
       
-      const btn = document.getElementById(`recBtn-${activeRecordIndex}`);
+      const btn = document.getElementById(`recBtn-${currentIndex}`);
       if (btn) { btn.classList.remove('recording'); btn.textContent = "✅ 完了"; }
 
-      const nextIndex = activeRecordIndex + 1;
+      const nextIndex = currentIndex + 1;
       if (nextIndex < currentScriptData.length) {
-        setTimeout(() => { isFinishing = false; prepareRehearsalLine(nextIndex); }, 300);
+        prepareRehearsalLine(nextIndex);
       } else {
         setTimeout(() => {
-          isFinishing = false; stopRehearsal();
+          stopRehearsal();
           const avgScore = Math.round(totalRehearsalScore / currentScriptData.length);
           alert(`🎉 通し稽古完走お疲れ様でした！\n\nあなたの総合平均スコアは【 ${avgScore} 点 】です！`);
-        }, 500);
+        }, 300);
       }
+      isProcessingTransition = false;
     });
   }
 
   async function startRehearsal() {
     if (isEvaluating || isPlaying || isAutoPlaying) return;
+    stopPopupAudio();
+    revokeAllAudioUrls(); 
     isRehearsalMode = true; isPaused = false; totalRehearsalScore = 0; isFinishing = false;
+    isProcessingTransition = false;
+    rehearsalResultOffset = 0;
+    lastObservedResultLength = 0;
 
     document.querySelectorAll('.line-score, .line-analysis-result').forEach(el => el.remove());
     
     document.getElementById('startRehearsalBtn').style.display = 'none';
     document.getElementById('stopRehearsalBtn').style.display = 'inline-block';
-    document.getElementById('nextLineBtn').style.display = 'inline-block';
+    
+    const nextBtn = document.getElementById('nextLineBtn');
+    if (nextBtn) {
+      nextBtn.style.display = 'inline-block';
+      nextBtn.textContent = '⏭ 次へ (→キー)';
+    }
     
     const pauseBtn = document.getElementById('pausePlayAllBtn');
     pauseBtn.style.display = 'inline-block';
     pauseBtn.textContent = "⏸ 一時停止 (Space)";
     pauseBtn.style.backgroundColor = "#f39c12";
     
-    alert(`🔥 通し稽古（連続録音モード）を開始します！\n\n・読み終わった後、【→キー】を押すとすぐ次の文へ進めます。\n・【Spaceキー】で休憩（一時停止）ができます。`);
+    const isManualStop = document.getElementById('manualStopToggle').checked;
+    const guideMsg = isManualStop ? 
+      `🔥 通し稽古（手動送りモード）を開始します！\n\n・自分のペースで【→キー】を押して次のセリフに進みます。\n・【Spaceキー】でいつでも一時停止が可能です。` :
+      `🔥 通し稽古（自動送りモード）を開始します！\n\n・話した後の沈黙（設定秒数）で自動的に次のセリフに進みます。\n・任意タイミングで【→キー】を押して手動スキップも可能です。\n・【Spaceキー】でいつでも一時停止が可能です。`;
     
-    await prepareRehearsalLine(0);
+    alert(guideMsg);
+
+    // ホット状態運用の開始：マイクと認識エンジンを1度だけ起動
+    await startVisualizerAndRecording();
+    setupRecognition();
+    try { recognition.start(); } catch(e){}
+
+    prepareRehearsalLine(0);
   }
 
-  async function prepareRehearsalLine(index) {
-    activeRecordIndex = index; currentTranscript = ""; isRehearsalTransitioning = false; 
+  function prepareRehearsalLine(index) {
+    clearTimeout(speechDebounceTimer);
+    activeRecordIndex = index; 
+    currentTranscript = ""; 
+
     clearHighlights();
     const lineContainer = document.getElementById(`line-${index}`);
     if (lineContainer) {
@@ -1075,28 +1207,38 @@
     }
 
     const btn = document.getElementById(`recBtn-${index}`);
-    if (btn) { btn.classList.add('recording'); btn.textContent = "録期待機中..."; }
+    if (btn) { btn.classList.add('recording'); btn.textContent = "🎤 録音中..."; }
     document.getElementById('rehearsalStatus').textContent = `（通し稽古中： ${index + 1} / ${currentScriptData.length}）`;
-    
-    await startVisualizerAndRecording(); 
-    
-    setupRecognition();
-    try { recognition.start(); } catch (e) { stopRehearsal(); }
+
+    const nextBtn = document.getElementById('nextLineBtn');
+    if (nextBtn) {
+      if (index === currentScriptData.length - 1) {
+        nextBtn.textContent = '🏁 稽古完了 (→キー)';
+      } else {
+        nextBtn.textContent = '⏭ 次へ (→キー)';
+      }
+    }
+
+    startLineAudioRecording();
   }
 
   function stopRehearsal() {
-    isRehearsalMode = false; isRehearsalTransitioning = false; isPaused = false; isFinishing = false;
+    stopPopupAudio();
+    isRehearsalMode = false; isPaused = false; isFinishing = false;
+    isProcessingTransition = false;
     clearTimeout(speechDebounceTimer);
-    if (recognition) { 
-      recognition.onresult = null; recognition.onend = null;
-      try { recognition.abort(); } catch(e){} 
-      recognition = null;
-    }
-    stopAudioRecording(); stopVisualizer(true); stopMicStream();
+    stopRecognitionSafely();
+    stopAudioRecording(); stopVisualizer(true); stopMicStream(false);
 
     document.getElementById('startRehearsalBtn').style.display = 'inline-block';
     document.getElementById('stopRehearsalBtn').style.display = 'none';
-    document.getElementById('nextLineBtn').style.display = 'none'; 
+    
+    const nextBtn = document.getElementById('nextLineBtn');
+    if (nextBtn) {
+      nextBtn.style.display = 'none';
+      nextBtn.textContent = '⏭ 次へ (→キー)';
+    }
+
     document.getElementById('pausePlayAllBtn').style.display = 'none';
     document.getElementById('pauseOverlay').style.display = 'none';
     document.getElementById('rehearsalStatus').textContent = "";
@@ -1298,8 +1440,8 @@
     return '';
   }
 
-  function stopMicStream() {
-    if (globalStream && !isRehearsalMode) {
+  function stopMicStream(force = false) {
+    if (force && globalStream) {
       globalStream.getTracks().forEach(track => track.stop());
       globalStream = null;
     }
@@ -1313,34 +1455,38 @@
     volumeHistory = []; isRecordingAudio = true; audioChunks = [];
     
     try {
-      if (!globalStream || !globalStream.active) { 
+      const isStreamActive = globalStream && 
+                             globalStream.active && 
+                             globalStream.getAudioTracks().some(t => t.readyState === 'live');
+
+      let newStreamCreated = false;
+      if (!isStreamActive) { 
         globalStream = await navigator.mediaDevices.getUserMedia({ audio: true }); 
-        if (source) { try { source.disconnect(); } catch(e){} source = null; }
+        newStreamCreated = true;
       }
       
       if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audioCtx.createAnalyser(); analyser.fftSize = 256;
       }
-      
-      if (!source) {
-        source = audioCtx.createMediaStreamSource(globalStream); 
-        source.connect(analyser);
-      }
-      
+
       if (audioCtx.state === 'suspended') {
         await audioCtx.resume();
       }
 
-      if (mediaRecorder && mediaRecorder.state !== 'inactive') { mediaRecorder.stop(); }
+      if (!analyser) {
+        analyser = audioCtx.createAnalyser(); 
+        analyser.fftSize = 256;
+      }
       
-      const mimeType = getSupportedMimeType();
-      const options = mimeType ? { mimeType } : {};
-      mediaRecorder = new MediaRecorder(globalStream, options);
-      
-      mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
-      mediaRecorder.start();
+      if (!source || newStreamCreated) {
+        if (source) {
+          try { source.disconnect(); } catch(e){}
+        }
+        source = audioCtx.createMediaStreamSource(globalStream); 
+        source.connect(analyser);
+      }
 
+      startLineAudioRecording();
       drawVisualizer();
     } catch(e) { 
       console.error("マイクアクセスエラー", e); 
@@ -1349,18 +1495,43 @@
     } 
   }
 
+  function startLineAudioRecording() {
+    audioChunks = [];
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') { 
+      try { mediaRecorder.stop(); } catch(e){} 
+    }
+    
+    if (!globalStream) return;
+    
+    const mimeType = getSupportedMimeType();
+    const options = mimeType ? { mimeType } : {};
+    mediaRecorder = new MediaRecorder(globalStream, options);
+    
+    mediaRecorder.ondataavailable = e => { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
+    mediaRecorder.start(100);
+  }
+
   function stopAudioRecording(callback) {
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
       mediaRecorder.onstop = () => {
-        if (currentAudioUrl) {
-          URL.revokeObjectURL(currentAudioUrl);
-          currentAudioUrl = null;
+        const mimeType = mediaRecorder.mimeType || 'audio/webm';
+        const audioBlob = new Blob(audioChunks, { type: mimeType });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        
+        if (activeRecordIndex >= 0) {
+          if (createdAudioUrls[activeRecordIndex]) {
+            URL.revokeObjectURL(createdAudioUrls[activeRecordIndex]);
+          }
+          createdAudioUrls[activeRecordIndex] = audioUrl;
         }
-        const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
-        currentAudioUrl = URL.createObjectURL(audioBlob);
-        if (callback) callback(currentAudioUrl);
+        
+        if (callback) callback(audioUrl);
       };
-      mediaRecorder.stop();
+      try {
+        mediaRecorder.stop();
+      } catch(e) {
+        if (callback) callback(null);
+      }
     } else {
       if (callback) callback(null);
     }
@@ -1368,7 +1539,11 @@
 
   function stopVisualizer(clearHistory = false) {
     isRecordingAudio = false; 
-    cancelAnimationFrame(animationId);
+    
+    if (animationId) {
+      cancelAnimationFrame(animationId);
+      animationId = null;
+    }
     
     if (audioCtx && audioCtx.state === 'running') {
       audioCtx.suspend().catch(e => console.error(e));
@@ -1384,7 +1559,10 @@
 
   function drawVisualizer() {
     if (!isRecordingAudio) return;
+    
+    if (animationId) { cancelAnimationFrame(animationId); }
     animationId = requestAnimationFrame(drawVisualizer);
+    
     const bufferLength = analyser.frequencyBinCount; const dataArray = new Uint8Array(bufferLength);
     analyser.getByteFrequencyData(dataArray);
     canvasCtx.fillStyle = '#1a1a1a'; canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
