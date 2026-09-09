@@ -3,7 +3,7 @@
 <head>
  <meta charset="UTF-8">
  <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>ローマ字タイピング（1もじとっくん）Ver.1.8</title>
+ <title>ローマ字タイピング（1もじとっくん）Ver.1.9</title>
  <link rel="preconnect" href="https://fonts.googleapis.com">
  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
@@ -529,7 +529,7 @@ background: #fff; border-radius: 50%; height: 46px;
  <div class="modal-box concept-mode">
  <span class="modal-close" onclick="closeModalBtn()">×</span>
  <h2 class="concept-h2">💡 このツールについて</h2>
- <div style="text-align:center; font-weight:bold; color:#c2185b; margin-bottom:12px;">Ver.1.8</div>
+ <div style="text-align:center; font-weight:bold; color:#c2185b; margin-bottom:12px;">Ver.1.9</div>
  
 <ul class="concept-list">
  <li><strong>🏫 楽しく習得</strong><br>小学校低学年から遊び感覚でローマ字入力を学べます。タイムアタックやランキング表示などのゲーム要素を取り入れ、楽しく継続できるように設計しました。</li>
@@ -667,7 +667,7 @@ background: #fff; border-radius: 50%; height: 46px;
  </div>
  </div>
  
-<div class="copyright-link" onclick="showConcept()">© 2026 [A.K] Ver.1.8 (クリックで詳細)</div>
+<div class="copyright-link" onclick="showConcept()">© 2026 [A.K] Ver.1.9 (クリックで詳細)</div>
 
  <div id="result-content">
  <div id="result-message"></div>
@@ -1037,6 +1037,8 @@ void el.offsetWidth;
  function stopAllTimers() {
  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
  if (judgeTimer) { clearTimeout(judgeTimer); judgeTimer = null; }
+ const judgeEl = document.getElementById('judge-mark');
+ if (judgeEl) judgeEl.classList.remove('show'); // 判定マーク表示のリセット
  isPlaying = false;
  }
 
