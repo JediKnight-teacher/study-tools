@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>English Speech & Pronunciation Trainer Ver.3.0</title>
+  <title>English Speech & Pronunciation Trainer Ver.3.1</title>
 
   <style>
   body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f7f6; color: #333; max-width: 820px; margin: 0 auto; padding: 20px; box-sizing: border-box; }
@@ -104,13 +104,23 @@
     font-size: 0.85rem; 
     flex-wrap: wrap; 
   }
-  .settings-item label { 
+  .settings-item-full {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 5px;
+    font-size: 0.85rem;
+    width: 100%;
+  }
+  .settings-item label, .settings-item-full label { 
     font-weight: bold; 
     color: #2c3e50; 
     font-size: 0.82rem; 
+    word-break: break-word;
+  }
+  .settings-item label {
     flex: 1 1 auto; 
     min-width: 110px;
-    word-break: break-word;
   }
   .settings-item-control {
     display: flex;
@@ -120,6 +130,8 @@
   }
   select, input[type="range"], input[type="checkbox"] { vertical-align: middle; cursor: pointer; }
   select { padding: 4px 6px; border-radius: 4px; border: 1px solid #ccc; background-color: #fff; font-size: 0.82rem; max-width: 130px; }
+  .settings-item-full select { width: 100%; max-width: 100%; box-sizing: border-box; }
+  
   .reset-settings-btn {
     align-self: flex-end;
     background-color: #95a5a6;
@@ -301,7 +313,7 @@
       
       <div style="text-align: center; border-bottom: 2px solid #e0e0e0; padding-bottom: 12px; margin-bottom: 15px;">
         <h2 style="margin: 0; color: #2c3e50; font-size: 1.4rem;">💡 このツールについて</h2>
-        <div style="font-size: 0.95rem; font-weight: bold; color: #3498db; margin-top: 4px;">Ver.3.0</div>
+        <div style="font-size: 0.95rem; font-weight: bold; color: #3498db; margin-top: 4px;">Ver.3.1</div>
       </div>
 
       <div style="font-size: 0.9rem; line-height: 1.6; color: #333;">
@@ -382,7 +394,7 @@
   </div>
 
   <h1 id="appTitle">🎙️ English Speech & Pronunciation Trainer</h1>
-  <div class="subtitle" id="appSubtitle">英語スピーチ・発音練習・音読トレーナー Ver.3.0 <span class="copyright" onclick="openAboutModal()" title="このツールについてを表示">© 2026 [A.K]</span></div>
+  <div class="subtitle" id="appSubtitle">英語スピーチ・発音練習・音読トレーナー Ver.3.1 <span class="copyright" onclick="openAboutModal()" title="このツールについてを表示">© 2026 [A.K]</span></div>
 
   <div id="welcomeScreen">
     <h2>👋 ようこそ！</h2>
@@ -429,11 +441,9 @@
           <!-- グループ1: 音声・再生設定 -->
           <div class="settings-card">
             <div class="settings-card-title">🔊 音声・再生設定</div>
-            <div class="settings-item">
+            <div class="settings-item-full">
               <label for="voiceSelect">🗣️ 音声:</label>
-              <div class="settings-item-control">
-                <select id="voiceSelect" onchange="saveSettings()"><option value="">自動選択</option></select>
-              </div>
+              <select id="voiceSelect" onchange="saveSettings()"><option value="">自動選択</option></select>
             </div>
             <div class="settings-item">
               <label for="pitchSlider">🎵 声の高さ: <span id="pitchValue">1.0</span></label>
@@ -558,6 +568,8 @@
   </div>
 
   <script>
+  const CURRENT_SETTINGS_KEY = 'speech_trainer_settings_v3.1';
+
   const DEFAULT_SAMPLE_SCRIPT = [
     {
       en: "Hello, everyone. My name is Ken. Nice to meet you.",
@@ -657,17 +669,14 @@
     revokeAllAudioUrls();
   }
 
-  /* 設定の保存・読込・リセット機能 */
+  /* 設定の保存・読込・リセット機能 (同一バージョン限定) */
   function loadSettings() {
     try {
-      const saved = localStorage.getItem('speech_trainer_settings_v3.0') || 
-                    localStorage.getItem('speech_trainer_settings_v2.9') || 
-                    localStorage.getItem('speech_trainer_settings_v2.8') || 
-                    localStorage.getItem('speech_trainer_settings_v2.7');
+      const saved = localStorage.getItem(CURRENT_SETTINGS_KEY);
       const settings = saved ? Object.assign({}, DEFAULT_SETTINGS, JSON.parse(saved)) : DEFAULT_SETTINGS;
       
       const voiceSelect = document.getElementById('voiceSelect');
-      if (voiceSelect) voiceSelect.value = settings.voice;
+      if (voiceSelect) voiceSelect.value = settings.voice || "";
       
       document.getElementById('difficultySlider').value = settings.difficulty;
       document.getElementById('difficultyValue').textContent = settings.difficulty;
@@ -703,7 +712,7 @@
         manualStop: document.getElementById('manualStopToggle').checked,
         interval: document.getElementById('intervalSlider').value
       };
-      localStorage.setItem('speech_trainer_settings_v3.0', JSON.stringify(settings));
+      localStorage.setItem(CURRENT_SETTINGS_KEY, JSON.stringify(settings));
     } catch (e) {
       console.error("設定の保存中にエラーが発生しました:", e);
     }
@@ -711,10 +720,7 @@
 
   function resetSettings() {
     if (confirm("すべての設定を初期状態に戻しますか？")) {
-      localStorage.removeItem('speech_trainer_settings_v3.0');
-      localStorage.removeItem('speech_trainer_settings_v2.9');
-      localStorage.removeItem('speech_trainer_settings_v2.8');
-      localStorage.removeItem('speech_trainer_settings_v2.7');
+      localStorage.removeItem(CURRENT_SETTINGS_KEY);
       loadSettings();
       renderScript();
       toggleTranslation();
@@ -769,7 +775,7 @@
       v.lang && v.lang.toLowerCase().replace('_', '-').includes('en')
     );
     
-    const saved = localStorage.getItem('speech_trainer_settings_v3.0') || localStorage.getItem('speech_trainer_settings_v2.9');
+    const saved = localStorage.getItem(CURRENT_SETTINGS_KEY);
     const savedVoice = saved ? JSON.parse(saved).voice : "";
 
     voiceSelect.innerHTML = '<option value="">自動選択 (英語)</option>';
