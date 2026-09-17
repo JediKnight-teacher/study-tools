@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>English Speech & Pronunciation Trainer Ver.2.6</title>
+  <title>English Speech & Pronunciation Trainer Ver.3.0</title>
 
   <style>
-  body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f7f6; color: #333; max-width: 820px; margin: 0 auto; padding: 20px; }
+  body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f7f6; color: #333; max-width: 820px; margin: 0 auto; padding: 20px; box-sizing: border-box; }
   h1 { text-align: center; font-size: 1.5rem; color: #2c3e50; margin-bottom: 5px; }
   .subtitle { text-align: center; color: #7f8c8d; font-size: 0.9rem; margin-bottom: 20px; }
   .copyright { margin-left: 15px; font-weight: normal; color: #3498db; cursor: pointer; text-decoration: underline; transition: color 0.2s; }
@@ -43,20 +43,123 @@
   @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
   @keyframes fadeout { from { bottom: 30px; opacity: 1; } to { bottom: 0; opacity: 0; } }
 
-  .settings-panel { background-color: #fff; border-radius: 8px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #e0e0e0; display: flex; flex-direction: column; gap: 15px; }
-  .settings-row { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px; }
-  .settings-item { display: flex; align-items: center; gap: 5px; }
-  .settings-panel label { font-weight: bold; color: #2c3e50; font-size: 0.88rem; }
+  /* 設定パネル・レイアウト */
+  .settings-container { margin-bottom: 20px; }
+  .toggle-settings-btn {
+    width: 100%;
+    background-color: #2c3e50;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: background-color 0.2s;
+  }
+  .toggle-settings-btn:hover { background-color: #34495e; }
+
+  .settings-panel { 
+    background-color: #fff; 
+    border-radius: 0 0 8px 8px; 
+    padding: 15px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+    border: 1px solid #e0e0e0; 
+    border-top: none;
+    display: none; 
+    flex-direction: column; 
+    gap: 15px; 
+  }
+  .settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .settings-card {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .settings-card-title {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 3px;
+    margin-bottom: 2px;
+  }
+  .settings-item { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    gap: 8px; 
+    font-size: 0.85rem; 
+    flex-wrap: wrap; 
+  }
+  .settings-item label { 
+    font-weight: bold; 
+    color: #2c3e50; 
+    font-size: 0.82rem; 
+    flex: 1 1 auto; 
+    min-width: 110px;
+    word-break: break-word;
+  }
+  .settings-item-control {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex: 0 0 auto;
+  }
   select, input[type="range"], input[type="checkbox"] { vertical-align: middle; cursor: pointer; }
-  select { padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; background-color: #fff; font-size: 0.85rem; }
-  
-  .action-row { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 12px; border-top: 1px solid #eee; padding-top: 15px; }
-  .action-group { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; padding: 12px 15px; border-radius: 8px; width: 100%; max-width: 680px; }
+  select { padding: 4px 6px; border-radius: 4px; border: 1px solid #ccc; background-color: #fff; font-size: 0.82rem; max-width: 130px; }
+  .reset-settings-btn {
+    align-self: flex-end;
+    background-color: #95a5a6;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  .reset-settings-btn:hover { background-color: #7f8c8d; }
+
+  /* アクションエリア（レイアウト調整） */
+  .action-row { 
+    width: 100%; 
+    display: flex; 
+    flex-direction: row; 
+    flex-wrap: wrap; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 15px; 
+    margin-top: 15px; 
+  }
+  .action-group { 
+    display: flex; 
+    flex-wrap: wrap; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 10px; 
+    padding: 10px 15px; 
+    border-radius: 10px; 
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    box-sizing: border-box; 
+  }
   .playback-group { background-color: #f8f9fa; border: 1px solid #e9ecef; }
   .rehearsal-group { background-color: #fdf2e9; border: 1px solid #fae5d3; }
-  .group-label { font-weight: bold; font-size: 0.95rem; margin-right: 5px; }
+  .group-label { font-weight: bold; font-size: 0.95rem; margin-right: 4px; }
   
-  .keyboard-guide { font-size: 0.78rem; color: #7f8c8d; text-align: center; margin-top: 4px; }
+  .keyboard-guide { font-size: 0.78rem; color: #7f8c8d; text-align: center; margin-top: 8px; width: 100%; word-break: break-word; }
 
   #feedbackArea { display: none; background-color: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; border: 2px solid #3498db; position: relative; }
   .feedback-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; color: #2c3e50; }
@@ -66,7 +169,7 @@
   .bad-point { background-color: #fdedec; border-left: 4px solid #e74c3c; line-height: 1.5; }
   .close-hint { text-align: right; font-size: 0.8rem; color: #95a5a6; margin-top: 10px; }
   #detailedFeedback { background-color: #f8f9f9; padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px dashed #bdc3c7; display: none; }
-  .analysis-word { font-size: 1.05rem; margin-right: 4px; display: inline-block; }
+  .analysis-word { font-size: 1.05rem; margin-right: 4px; display: inline-block; word-break: break-all; }
   .match { color: #27ae60; font-weight: bold; }
   .miss { color: #e74c3c; text-decoration: line-through; }
   .extra { color: #95a5a6; font-size: 0.9rem; }
@@ -75,25 +178,25 @@
   .compare-title { font-size: 0.88rem; font-weight: bold; color: #2980b9; margin-bottom: 8px; }
   .compare-buttons { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
-  .audio-player-container { margin-top: 8px; background-color: #fff; padding: 6px 10px; border-radius: 6px; display: flex; align-items: center; gap: 10px; border: 1px solid #d5dbdb; }
+  .audio-player-container { margin-top: 8px; background-color: #fff; padding: 6px 10px; border-radius: 6px; display: flex; align-items: center; gap: 10px; border: 1px solid #d5dbdb; flex-wrap: wrap; }
   .audio-player-container span { font-size: 0.82rem; font-weight: bold; color: #7f8c8d; }
-  audio { height: 30px; outline: none; flex-grow: 1; }
+  audio { height: 30px; outline: none; flex-grow: 1; min-width: 180px; }
   
   .script-box { background-color: #fff; border-radius: 12px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
   .line-container { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 15px; padding: 12px; border-radius: 8px; background-color: #fafafa; border-left: 4px solid #3498db; flex-wrap: wrap; position: relative; transition: background-color 0.3s; }
-  .text-group { flex-grow: 1; padding-right: 10px; width: 100%; }
-  .line-text { font-size: 1.05rem; line-height: 1.6; color: #2c3e50; font-weight: 500; }
-  .ja-text { font-size: 0.88rem; color: #7f8c8d; margin-top: 5px; display: block; line-height: 1.4; }
+  .text-group { flex-grow: 1; padding-right: 10px; width: 100%; box-sizing: border-box; }
+  .line-text { font-size: 1.05rem; line-height: 1.6; color: #2c3e50; font-weight: 500; word-break: break-word; }
+  .ja-text { font-size: 0.88rem; color: #7f8c8d; margin-top: 5px; display: block; line-height: 1.4; word-break: break-word; }
   .line-score { margin-left: 10px; padding: 2px 8px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); animation: popIn 0.3s ease-out; display: inline-block; }
   @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 80% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
-  .line-analysis-result { margin-top: 10px; padding: 10px; background-color: #fff; border-radius: 0 8px 8px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 0.95rem; width: 100%; box-sizing: border-box; animation: fadeIn 0.4s ease-out; }
+  .line-analysis-result { margin-top: 10px; padding: 10px; background-color: #fff; border-radius: 0 8px 8px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 0.95rem; width: 100%; box-sizing: border-box; animation: fadeIn 0.4s ease-out; word-break: break-word; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
   .highlight-line { background-color: #fff3cd !important; border-left-color: #f1c40f !important; }
   
   .stressed-word { font-weight: 800; color: #d35400; background-color: #fef9e7; padding: 0 2px; border-radius: 3px; }
 
-  .btn-group { display: flex; gap: 5px; flex-shrink: 0; align-items: flex-start; margin-top: 8px; margin-left: auto; }
-  .btn { border: none; padding: 6px 12px; font-size: 0.85rem; border-radius: 4px; cursor: pointer; color: white; transition: all 0.2s; font-weight: bold; }
+  .btn-group { display: flex; gap: 5px; flex-shrink: 0; align-items: flex-start; margin-top: 8px; margin-left: auto; flex-wrap: wrap; }
+  .btn { border: none; padding: 6px 12px; font-size: 0.85rem; border-radius: 4px; cursor: pointer; color: white; transition: all 0.2s; font-weight: bold; white-space: nowrap; }
   .btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .play-btn { background-color: #2ecc71; }
   .stop-btn { background-color: #95a5a6; display: none; }
@@ -104,8 +207,8 @@
   .next-btn { background-color: #3498db; }
   @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
   .practice-area { background-color: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 -5px 20px rgba(0,0,0,0.15); border: 2px solid #e0e0e0; position: sticky; bottom: 10px; z-index: 100; margin-top: 20px; }
-  canvas { width: 100%; height: 80px; background-color: #1a1a1a; border-radius: 8px; display: block; }
-  #pauseOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); color: white; font-size: 2rem; font-weight: bold; justify-content: center; align-items: center; z-index: 1000; flex-direction: column; }
+  canvas { width: 100%; height: 70px; background-color: #1a1a1a; border-radius: 8px; display: block; }
+  #pauseOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); color: white; font-size: 2rem; font-weight: bold; justify-content: center; align-items: center; z-index: 1000; flex-direction: column; text-align: center; padding: 20px; box-sizing: border-box; }
   .force-stop-btn { margin-top: 30px; padding: 12px 25px; font-size: 1.1rem; font-weight: bold; background-color: #e74c3c; color: white; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.2s; }
   .force-stop-btn:hover { transform: scale(1.05); }
 
@@ -120,19 +223,20 @@
     z-index: 2000;
     justify-content: center;
     align-items: center;
-    padding: 20px;
+    padding: 15px;
     box-sizing: border-box;
   }
   .modal-content {
     background-color: #fff;
     border-radius: 12px;
-    max-width: 580px;
+    max-width: 620px;
     width: 100%;
-    max-height: 85vh;
+    max-height: 88vh;
     overflow-y: auto;
-    padding: 25px;
+    padding: 22px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.3);
     position: relative;
+    box-sizing: border-box;
     animation: modalFadeIn 0.25s ease-out;
   }
   @keyframes modalFadeIn {
@@ -166,6 +270,19 @@
     font-size: 0.82rem;
     box-shadow: 0 1px 1px rgba(0,0,0,0.1);
   }
+
+  @media (max-width: 600px) {
+    body { padding: 10px; }
+    .action-group { width: 100%; justify-content: center; }
+    .btn-group { width: 100%; justify-content: flex-end; margin-top: 10px; }
+    .settings-item label { min-width: 100%; margin-bottom: 2px; }
+    .settings-item-control { width: 100%; justify-content: space-between; }
+  }
+  @media (max-height: 600px) {
+    .modal-content { max-height: 92vh; padding: 15px; }
+    canvas { height: 50px; }
+    .practice-area { padding: 8px; margin-top: 10px; }
+  }
   </style>
 </head>
 <body>
@@ -184,7 +301,7 @@
       
       <div style="text-align: center; border-bottom: 2px solid #e0e0e0; padding-bottom: 12px; margin-bottom: 15px;">
         <h2 style="margin: 0; color: #2c3e50; font-size: 1.4rem;">💡 このツールについて</h2>
-        <div style="font-size: 0.95rem; font-weight: bold; color: #3498db; margin-top: 4px;">Ver.2.6</div>
+        <div style="font-size: 0.95rem; font-weight: bold; color: #3498db; margin-top: 4px;">Ver.3.0</div>
       </div>
 
       <div style="font-size: 0.9rem; line-height: 1.6; color: #333;">
@@ -196,7 +313,7 @@
         <div style="background: #f8f9fa; border-radius: 6px; padding: 10px 12px; border: 1px solid #e9ecef;">
           <div style="margin-bottom: 6px;">
             <strong style="color: #2c3e50;">🖥️ 対応環境:</strong><br>
-            <span style="font-size: 0.85rem; color: #555;">Google Chrome / Microsoft Edge（PC・モバイルブラウザ対応）<br><small style="color: #7f8c8d;">※マイク許可およびHTTPS環境（またはlocalhost / ローカルファイル）が必要です。</small></span>
+            <span style="font-size: 0.85rem; color: #555;">Google Chrome / Microsoft Edge（Chromebook・Windows PC・モバイル対応）<br><small style="color: #7f8c8d;">※マイク許可およびHTTPS環境（またはlocalhost / ローカルファイル）が必要です。</small></span>
           </div>
           <div>
             <strong style="color: #2c3e50;">🛠️ 使用技術:</strong><br>
@@ -216,7 +333,7 @@
           </div>
           <div style="background: #fdf5f2; border-radius: 6px; padding: 8px 12px; border: 1px solid #fbdcd3;">
             <strong style="color: #d35400;">🔥 通し稽古モード</strong><br>
-            <span style="font-size: 0.85rem; color: #555;">台本全体を止まらずに連続録音。「手動ストップ」のON/OFFに応じて手動送り（→キー）と自動送りを自在に切替可能。</span>
+            <span style="font-size: 0.85rem; color: #555;">台本全体を止まらずに連続録音。「自分のペースで進める」の設定に応じてキー操作送り（→キー）と自動送りを自在に切替可能。</span>
           </div>
           <div style="background: #fefcf0; border-radius: 6px; padding: 8px 12px; border: 1px solid #f3e9b5;">
             <strong style="color: #b7950b;">🔄 A/B 聞き比べ</strong><br>
@@ -225,6 +342,22 @@
           <div style="background: #f5f0ff; border-radius: 6px; padding: 8px 12px; border: 1px solid #e1d2ff;">
             <strong style="color: #7d3c98;">📝 台本インポート・編集</strong><br>
             <span style="font-size: 0.85rem; color: #555;">英文・和文の直接作成や、JSON形式ファイル（.json）の保存・読み込み機能。</span>
+          </div>
+        </div>
+
+        <h3 style="font-size: 0.95rem; color: #2c3e50; margin: 15px 0 8px 0; border-left: 4px solid #27ae60; padding-left: 8px;">⚙️ 詳細設定の使い方</h3>
+        <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 10px 12px; font-size: 0.85rem; line-height: 1.6;">
+          <div style="margin-bottom: 6px;">
+            <strong style="color: #2c3e50;">🔊 音声・再生設定:</strong><br>
+            お気に入りのスピーカー音声を選択したり、声の高さ（ピッチ）や再生スピードを変更できます。「アクセント強調」をONにすると重要な単語がハイライトされ、ゆっくり・高く強調して再生されます。
+          </div>
+          <div style="margin-bottom: 6px;">
+            <strong style="color: #2c3e50;">🎤 判定・タイミング設定:</strong><br>
+            判定の厳しさを1〜5段階で変更できます。「沈黙の待ち時間」は話し終わってから判定に移るまでの秒数を設定します。「自分のペースで進める」をONにすると、自動で進まず手動で自分のリズムで練習できます。
+          </div>
+          <div>
+            <strong style="color: #2c3e50;">📱 表示・分析設定:</strong><br>
+            和訳の表示/非表示を切り替えたり、「単語チェック」をONにして発音の正誤（一致・ミス・余分な単語）を視覚的に確かめることができます。
           </div>
         </div>
 
@@ -249,7 +382,7 @@
   </div>
 
   <h1 id="appTitle">🎙️ English Speech & Pronunciation Trainer</h1>
-  <div class="subtitle" id="appSubtitle">英語スピーチ・発音練習・音読トレーナー Ver.2.6 <span class="copyright" onclick="openAboutModal()" title="このツールについてを表示">© 2026 [A.K]</span></div>
+  <div class="subtitle" id="appSubtitle">英語スピーチ・発音練習・音読トレーナー Ver.3.0 <span class="copyright" onclick="openAboutModal()" title="このツールについてを表示">© 2026 [A.K]</span></div>
 
   <div id="welcomeScreen">
     <h2>👋 ようこそ！</h2>
@@ -285,43 +418,89 @@
   </div>
 
   <div id="mainAppContent">
-    <div class="settings-panel">
-      <div class="settings-row">
-        <div class="settings-item">
-          <label for="voiceSelect">🗣️ 音声:</label>
-          <select id="voiceSelect"><option value="">自動選択</option></select>
+    <div class="settings-container">
+      <button class="toggle-settings-btn" id="toggleSettingsBtn" onclick="toggleSettingsPanel()">
+        <span>⚙️ 詳細設定（音声・判定・表示カスタマイズ）</span>
+        <span id="toggleSettingsIcon">▼ 表示する</span>
+      </button>
+
+      <div id="settingsPanel" class="settings-panel">
+        <div class="settings-grid">
+          <!-- グループ1: 音声・再生設定 -->
+          <div class="settings-card">
+            <div class="settings-card-title">🔊 音声・再生設定</div>
+            <div class="settings-item">
+              <label for="voiceSelect">🗣️ 音声:</label>
+              <div class="settings-item-control">
+                <select id="voiceSelect" onchange="saveSettings()"><option value="">自動選択</option></select>
+              </div>
+            </div>
+            <div class="settings-item">
+              <label for="pitchSlider">🎵 声の高さ: <span id="pitchValue">1.0</span></label>
+              <div class="settings-item-control">
+                <input type="range" id="pitchSlider" min="0.1" max="2.0" step="0.1" value="1.0" style="width: 70px;">
+              </div>
+            </div>
+            <div class="settings-item">
+              <label for="speedSlider">⏩ 速度: <span id="speedValue">1.0</span>倍</label>
+              <div class="settings-item-control">
+                <input type="range" id="speedSlider" min="0.1" max="2.0" step="0.1" value="1.0" style="width: 70px;">
+              </div>
+            </div>
+            <div class="settings-item">
+              <label for="accentEmphasisToggle">🎯 アクセント強調</label>
+              <div class="settings-item-control">
+                <input type="checkbox" id="accentEmphasisToggle" onchange="onAccentToggleChanged()">
+              </div>
+            </div>
+          </div>
+
+          <!-- グループ2: 判定・タイマー設定 -->
+          <div class="settings-card">
+            <div class="settings-card-title">🎤 判定・タイミング設定</div>
+            <div class="settings-item">
+              <label for="difficultySlider">🎯 判定の厳しさ: <span id="difficultyValue">3</span></label>
+              <div class="settings-item-control">
+                <input type="range" id="difficultySlider" min="1" max="5" step="1" value="3" style="width: 70px;">
+              </div>
+            </div>
+            <div class="settings-item">
+              <label for="intervalSlider">⏱️ 沈黙の待ち時間: <span id="intervalValue">1.5</span>秒</label>
+              <div class="settings-item-control">
+                <input type="range" id="intervalSlider" min="0.5" max="3.0" step="0.1" value="1.5" style="width: 70px;">
+              </div>
+            </div>
+            <div class="settings-item">
+              <label for="manualStopToggle">🖐️ 自分のペースで進める<br><span style="font-weight:normal; font-size:0.75rem; color:#666;">(手動で次の行へ切り替え)</span></label>
+              <div class="settings-item-control">
+                <input type="checkbox" id="manualStopToggle" onchange="saveSettings()">
+              </div>
+            </div>
+          </div>
+
+          <!-- グループ3: 表示・分析設定 -->
+          <div class="settings-card">
+            <div class="settings-card-title">📱 表示・分析設定</div>
+            <div class="settings-item">
+              <label for="translationToggle">🇯🇵 和訳を表示</label>
+              <div class="settings-item-control">
+                <input type="checkbox" id="translationToggle" onchange="onTranslationToggleChanged()" checked>
+              </div>
+            </div>
+            <div class="settings-item">
+              <label for="analysisModeToggle">🔍 単語チェック<br><span style="font-weight:normal; font-size:0.75rem; color:#666;">(詳細な発音分析を表示)</span></label>
+              <div class="settings-item-control">
+                <input type="checkbox" id="analysisModeToggle" onchange="saveSettings()" checked>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="settings-item">
-          <label for="difficultySlider">🎯 判定: <span id="difficultyValue">3</span></label>
-          <input type="range" id="difficultySlider" min="1" max="5" step="1" value="3" style="width: 55px;">
-        </div>
-        <div class="settings-item">
-          <label for="pitchSlider">🎵 高さ: <span id="pitchValue">1.0</span></label>
-          <input type="range" id="pitchSlider" min="0.1" max="2.0" step="0.1" value="1.0" style="width: 55px;">
-        </div>
-        <div class="settings-item">
-          <label for="speedSlider">⏩ 速度: <span id="speedValue">1.0</span>倍</label>
-          <input type="range" id="speedSlider" min="0.1" max="2.0" step="0.1" value="1.0" style="width: 55px;">
-        </div>
-        <div class="settings-item" style="background-color: #e1f5fe; padding: 4px 8px; border-radius: 5px;">
-          <label for="accentEmphasisToggle">🎯 アクセント強調</label>
-          <input type="checkbox" id="accentEmphasisToggle" onchange="renderScript()">
-        </div>
-        <div class="settings-item" style="background-color: #fff3cd; padding: 4px 8px; border-radius: 5px;">
-          <label for="translationToggle">🇯🇵 和訳</label>
-          <input type="checkbox" id="translationToggle" onchange="toggleTranslation()" checked>
-        </div>
-        <div class="settings-item" style="background-color: #e8f8f5; padding: 4px 8px; border-radius: 5px;">
-          <label for="analysisModeToggle">🔍 分析</label>
-          <input type="checkbox" id="analysisModeToggle" checked>
-        </div>
-        <div class="settings-item" style="background-color: #fdedec; padding: 4px 8px; border-radius: 5px;">
-          <label for="manualStopToggle">🖐️ 手動ｽﾄｯﾌﾟ</label>
-          <input type="checkbox" id="manualStopToggle">
-        </div>
+
+        <button class="reset-settings-btn" onclick="resetSettings()">🔄 設定を初期状態に戻す</button>
       </div>
 
       <div class="action-row">
+        <!-- お手本グループ -->
         <div class="action-group playback-group">
           <span class="group-label" style="color: #2c3e50;">🎧 お手本:</span>
           <button id="playAllBtn" class="btn play-btn" style="padding: 8px 15px;" onclick="startPlayAll()">▶️ すべて再生</button>
@@ -329,18 +508,14 @@
           <button id="stopAllBtn" class="btn stop-btn" style="padding: 8px 15px;" onclick="stopPlayAll()">⏹️ 再生停止</button>
         </div>
 
+        <!-- 録音練習グループ -->
         <div class="action-group rehearsal-group">
           <span class="group-label" style="color: #d35400;">🎤 録音練習:</span>
           <button id="startRehearsalBtn" class="btn rehearsal-btn" style="padding: 8px 15px;" onclick="startRehearsal()">🔥 通し稽古</button>
-          
-          <div class="settings-item" style="background-color: #fff; padding: 4px 8px; border-radius: 5px; border: 1px solid #e0e0e0; margin: 0 5px;">
-            <label for="intervalSlider" style="font-size: 0.85rem; color: #555;">⏱️ 沈黙: <span id="intervalValue">1.5</span>秒</label>
-            <input type="range" id="intervalSlider" min="0.5" max="3.0" step="0.1" value="1.5" style="width: 55px;">
-          </div>
-
           <button id="stopRehearsalBtn" class="btn rehearsal-stop-btn" style="padding: 8px 15px;" onclick="stopRehearsal()">⏹️ 稽古中断</button>
           <button id="nextLineBtn" class="btn next-btn" style="padding: 8px 15px; display: none;" onclick="forceNextLine()">⏭ 次へ (→キー)</button>
         </div>
+        
         <div class="keyboard-guide">💡 ショートカット操作: [Space] 一時停止/再開 | [→] 次の行へ | [Enter] 判定を閉じる | [Esc] 中断・モーダル閉じる</div>
       </div>
     </div>
@@ -410,6 +585,18 @@
     }
   ];
 
+  const DEFAULT_SETTINGS = {
+    voice: "",
+    difficulty: "3",
+    pitch: "1.0",
+    speed: "1.0",
+    accentEmphasis: false,
+    translation: true,
+    analysisMode: true,
+    manualStop: false,
+    interval: "1.5"
+  };
+
   let currentScriptData = [];
 
   let isEvaluating = false, isPlaying = false, isAutoPlaying = false;
@@ -422,7 +609,6 @@
   let isFinishing = false;
   let isProcessingTransition = false;
 
-  // ホット状態維持とインデックスによる絶対セグメンテーションのためのオフセット変数
   let rehearsalResultOffset = 0;
   let lastObservedResultLength = 0;
 
@@ -450,6 +636,7 @@
   }
 
   window.onload = function() {
+    loadSettings();
     populateVoiceList();
     setTimeout(populateVoiceList, 500);
     showWelcomeScreen();
@@ -468,6 +655,93 @@
     if (synthKeepAliveTimer) clearInterval(synthKeepAliveTimer);
     if (speechSynthesis) speechSynthesis.cancel();
     revokeAllAudioUrls();
+  }
+
+  /* 設定の保存・読込・リセット機能 */
+  function loadSettings() {
+    try {
+      const saved = localStorage.getItem('speech_trainer_settings_v3.0') || 
+                    localStorage.getItem('speech_trainer_settings_v2.9') || 
+                    localStorage.getItem('speech_trainer_settings_v2.8') || 
+                    localStorage.getItem('speech_trainer_settings_v2.7');
+      const settings = saved ? Object.assign({}, DEFAULT_SETTINGS, JSON.parse(saved)) : DEFAULT_SETTINGS;
+      
+      const voiceSelect = document.getElementById('voiceSelect');
+      if (voiceSelect) voiceSelect.value = settings.voice;
+      
+      document.getElementById('difficultySlider').value = settings.difficulty;
+      document.getElementById('difficultyValue').textContent = settings.difficulty;
+      
+      document.getElementById('pitchSlider').value = settings.pitch;
+      document.getElementById('pitchValue').textContent = parseFloat(settings.pitch).toFixed(1);
+      
+      document.getElementById('speedSlider').value = settings.speed;
+      document.getElementById('speedValue').textContent = parseFloat(settings.speed).toFixed(1);
+      
+      document.getElementById('accentEmphasisToggle').checked = settings.accentEmphasis;
+      document.getElementById('translationToggle').checked = settings.translation;
+      document.getElementById('analysisModeToggle').checked = settings.analysisMode;
+      document.getElementById('manualStopToggle').checked = settings.manualStop;
+      
+      document.getElementById('intervalSlider').value = settings.interval;
+      document.getElementById('intervalValue').textContent = parseFloat(settings.interval).toFixed(1);
+    } catch (e) {
+      console.error("設定の読み込み中にエラーが発生しました:", e);
+    }
+  }
+
+  function saveSettings() {
+    try {
+      const settings = {
+        voice: document.getElementById('voiceSelect').value,
+        difficulty: document.getElementById('difficultySlider').value,
+        pitch: document.getElementById('pitchSlider').value,
+        speed: document.getElementById('speedSlider').value,
+        accentEmphasis: document.getElementById('accentEmphasisToggle').checked,
+        translation: document.getElementById('translationToggle').checked,
+        analysisMode: document.getElementById('analysisModeToggle').checked,
+        manualStop: document.getElementById('manualStopToggle').checked,
+        interval: document.getElementById('intervalSlider').value
+      };
+      localStorage.setItem('speech_trainer_settings_v3.0', JSON.stringify(settings));
+    } catch (e) {
+      console.error("設定の保存中にエラーが発生しました:", e);
+    }
+  }
+
+  function resetSettings() {
+    if (confirm("すべての設定を初期状態に戻しますか？")) {
+      localStorage.removeItem('speech_trainer_settings_v3.0');
+      localStorage.removeItem('speech_trainer_settings_v2.9');
+      localStorage.removeItem('speech_trainer_settings_v2.8');
+      localStorage.removeItem('speech_trainer_settings_v2.7');
+      loadSettings();
+      renderScript();
+      toggleTranslation();
+      showToast("⚙️ 設定を初期状態に戻しました！");
+    }
+  }
+
+  function toggleSettingsPanel() {
+    const panel = document.getElementById('settingsPanel');
+    const icon = document.getElementById('toggleSettingsIcon');
+    if (panel.style.display === 'flex' || panel.style.display === 'block') {
+      panel.style.display = 'none';
+      icon.textContent = '▼ 表示する';
+    } else {
+      panel.style.display = 'flex';
+      icon.textContent = '▲ 隠す';
+    }
+  }
+
+  function onAccentToggleChanged() {
+    saveSettings();
+    renderScript();
+  }
+
+  function onTranslationToggleChanged() {
+    saveSettings();
+    toggleTranslation();
   }
 
   function stopPopupAudio() {
@@ -495,7 +769,9 @@
       v.lang && v.lang.toLowerCase().replace('_', '-').includes('en')
     );
     
-    const selectedVal = voiceSelect.value;
+    const saved = localStorage.getItem('speech_trainer_settings_v3.0') || localStorage.getItem('speech_trainer_settings_v2.9');
+    const savedVoice = saved ? JSON.parse(saved).voice : "";
+
     voiceSelect.innerHTML = '<option value="">自動選択 (英語)</option>';
     
     voices.forEach(voice => {
@@ -506,7 +782,7 @@
       voiceSelect.appendChild(option);
     });
 
-    if (selectedVal) voiceSelect.value = selectedVal;
+    if (savedVoice) voiceSelect.value = savedVoice;
   }
 
   function showWelcomeScreen() {
@@ -682,10 +958,23 @@
     URL.revokeObjectURL(a.href);
   }
 
-  document.getElementById('difficultySlider').addEventListener('input', function() { document.getElementById('difficultyValue').textContent = this.value; });
-  document.getElementById('pitchSlider').addEventListener('input', function() { document.getElementById('pitchValue').textContent = parseFloat(this.value).toFixed(1); });
-  document.getElementById('speedSlider').addEventListener('input', function() { document.getElementById('speedValue').textContent = parseFloat(this.value).toFixed(1); });
-  document.getElementById('intervalSlider').addEventListener('input', function() { document.getElementById('intervalValue').textContent = parseFloat(this.value).toFixed(1); });
+  /* 設定変更イベント */
+  document.getElementById('difficultySlider').addEventListener('input', function() { 
+    document.getElementById('difficultyValue').textContent = this.value; 
+    saveSettings();
+  });
+  document.getElementById('pitchSlider').addEventListener('input', function() { 
+    document.getElementById('pitchValue').textContent = parseFloat(this.value).toFixed(1); 
+    saveSettings();
+  });
+  document.getElementById('speedSlider').addEventListener('input', function() { 
+    document.getElementById('speedValue').textContent = parseFloat(this.value).toFixed(1); 
+    saveSettings();
+  });
+  document.getElementById('intervalSlider').addEventListener('input', function() { 
+    document.getElementById('intervalValue').textContent = parseFloat(this.value).toFixed(1); 
+    saveSettings();
+  });
 
   function toggleTranslation() {
     const isChecked = document.getElementById('translationToggle').checked;
@@ -949,7 +1238,6 @@
   }
 
   function setupRecognition() {
-    // ホット状態維持：通し稽古中に既に起動中の認識インスタンスがあれば再生成しない
     if (recognition && isRehearsalMode) {
       return;
     }
@@ -965,9 +1253,7 @@
     recognition.maxAlternatives = 1;
     recognition.continuous = true;
 
-    recognition.onstart = function() {
-      // 認識エンジン稼働状態
-    };
+    recognition.onstart = function() {};
 
     recognition.onresult = function(event) {
       lastObservedResultLength = event.results.length;
@@ -975,18 +1261,11 @@
       if (isPaused || isFinishing) return; 
 
       let sessionText = "";
-      if (isRehearsalMode) {
-        // オフセット基準の絶対セグメンテーション（入力ガード排除により0ms目の音声も漏らさず捕捉）
-        for (let i = rehearsalResultOffset; i < event.results.length; i++) {
-          if (event.results[i] && event.results[i][0]) {
-            sessionText += event.results[i][0].transcript + " ";
-          }
-        }
-      } else {
-        for (let i = 0; i < event.results.length; i++) {
-          if (event.results[i] && event.results[i][0]) {
-            sessionText += event.results[i][0].transcript + " ";
-          }
+      const startIndex = isRehearsalMode ? rehearsalResultOffset : (event.resultIndex || 0);
+
+      for (let i = startIndex; i < event.results.length; i++) {
+        if (event.results[i] && event.results[i][0]) {
+          sessionText += event.results[i][0].transcript + " ";
         }
       }
 
@@ -1130,7 +1409,6 @@
     const spokenText = currentTranscript; 
     currentTranscript = "";
     
-    // 同期的アトミック更新（行切り替え時点のオフセット基準を更新）
     rehearsalResultOffset = lastObservedResultLength;
 
     stopAudioRecording((audioUrl) => {
@@ -1185,7 +1463,6 @@
     
     alert(guideMsg);
 
-    // ホット状態運用の開始：マイクと認識エンジンを1度だけ起動
     await startVisualizerAndRecording();
     setupRecognition();
     try { recognition.start(); } catch(e){}
@@ -1354,7 +1631,7 @@
       let heardText = spoken.trim() ? spoken.trim() : '<span style="color:#e74c3c;">(聞き取れませんでした)</span>';
       let contentHtml = `<div style="color: #444; margin-bottom: 5px;"><strong>🗣️ AIの聞き取り:</strong> ${heardText}</div>`;
 
-      if (isDetailedMode && spoken.trim()) { contentHtml += `<div style="margin-top: 8px; border-top: 1px dashed #ddd; padding-top: 8px;"><strong>🔍 発音分析:</strong><br>${detailedHtml}</div>`; }
+      if (isDetailedMode && spoken.trim()) { contentHtml += `<div style="margin-top: 8px; border-top: 1px dashed #ddd; padding-top: 8px;"><strong>🔍 単語チェック:</strong><br>${detailedHtml}</div>`; }
       
       if (audioUrl) { 
         contentHtml += `
@@ -1433,7 +1710,7 @@
   let globalStream = null; 
 
   function getSupportedMimeType() {
-    const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/aac'];
+    const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/aac', 'audio/ogg'];
     for (const type of types) {
       if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(type)) return type;
     }
@@ -1583,7 +1860,7 @@
     for (let i = 0; i < totalFrames; i++) {
       const barHeight = (volumeHistory[i] / 128) * canvas.height;
       canvasCtx.fillStyle = '#3498db'; 
-      canvasCtx.fillRect(i * barWidth, canvas.height - barHeight, Math.max(1, barWidth - 0.5), barHeight);
+      canvasCtx.fillRect(i * barWidth, canvas.height - barWidth, Math.max(1, barWidth - 0.5), barHeight);
     }
   }
 
