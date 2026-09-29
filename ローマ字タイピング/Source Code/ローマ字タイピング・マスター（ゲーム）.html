@@ -64,7 +64,7 @@
         #word-display { 
             font-size: 3.5rem; font-weight: bold; letter-spacing: 2px; color: #475569; 
             margin: 0 0 15px 0; background: #f8fafc; padding: 5px 30px; border-radius: 20px; 
-            min-height: 1.2em; display: inline-block; white-space: nowrap;
+            min-height: 1.2em; display: none; white-space: nowrap;
             border: 4px solid #e2e8f0; font-family: 'Courier New', monospace;
         }
 
@@ -380,6 +380,10 @@
                 <input type="checkbox" id="case-toggle">
                 <span class="toggle-label">ABC (おおもじ)</span>
             </label>
+            <label class="toggle-wrap" style="margin-left:10px;" title="ローマ字ガイドの表示/非表示">
+                <input type="checkbox" id="guide-toggle">
+                <span class="toggle-label">🔤 ガイド</span>
+            </label>
             <div class="toggle-wrap" style="margin-left:10px;">
                 <select id="speed-select" class="styled-select">
                     <option value="slow">🐢 のんびり</option>
@@ -461,7 +465,7 @@
             <h3 style="color:#f57f17;">せっていと ルール</h3>
             <div class="howto-item">
                 <span class="howto-icon">⚙️</span>
-                <div><strong>せってい</strong><br><strong>スピード</strong>（のんびり・ふつう・はやい・とてもはやい・かみわざ・あくま）、<strong>もじ</strong>（ABC・abc）、<strong>おと</strong>（なる・ならない）を かえられるよ。</div>
+                <div><strong>せってい</strong><br><strong>スピード</strong>（のんびり・ふつう・はやい・とてもはやい・かみわざ・あくま）、<strong>もじ</strong>（ABC・abc）、<strong>おと</strong>（なる・ならない）、<strong>ガイド</strong>（ローマ字のひょうじ・ひひょうじ）を かえられるよ。</div>
             </div>
             <div class="howto-item">
                 <span class="howto-icon">✨</span>
@@ -479,7 +483,7 @@
     <div class="modal-box-info concept-mode">
         <span class="modal-close-btn" onclick="closeInfoModalBtn('modal-concept')">×</span>
             <h2 class="concept-h2">💡 このツールについて</h2>
-            <div style="text-align:center; font-weight:bold; color:#c2185b; margin-bottom:10px;">Ver.1.2</div>
+            <div style="text-align:center; font-weight:bold; color:#c2185b; margin-bottom:10px;">Ver.1.3</div>
 
             <ul class="concept-list">
             <li><strong>🎮 ゲーム感覚で楽しく習得</strong><br>小学校低学年から、遊び感覚でローマ字入力を覚えられます。花火のエフェクトや効果音、スコアランキングなどのゲーム要素を取り入れ、楽しく継続できるように設計しました。</li>
@@ -672,6 +676,7 @@
     let isMuted = false;
     let isFocused = true;
     let seEnabled = true; 
+    let guideEnabled = false; // ローマ字ガイド表示（デフォルトOFF）
     let missCount = 0; 
     let isIgnoringBlur = false; 
     
@@ -718,7 +723,15 @@
         } else {
             seEnabled = true; // デフォルトON
         }
+        if(localStorage.getItem('typing_guide_enabled') !== null) {
+            guideEnabled = (localStorage.getItem('typing_guide_enabled') === 'true');
+        } else {
+            guideEnabled = false; // デフォルトOFF
+        }
+        
         document.getElementById('se-toggle').checked = seEnabled;
+        document.getElementById('guide-toggle').checked = guideEnabled;
+        applyGuideVisibility();
 
         document.getElementById('speed-select').addEventListener('change', (e)=>{
             currentSpeed = e.target.value;
@@ -734,6 +747,19 @@
             localStorage.setItem('typing_se_enabled', seEnabled);
             if(seEnabled) playKeySound();
         });
+        document.getElementById('guide-toggle').addEventListener('change', (e)=>{
+            guideEnabled = e.target.checked;
+            localStorage.setItem('typing_guide_enabled', guideEnabled);
+            applyGuideVisibility();
+            if(seEnabled) playSound(300, 'sine', 0.1);
+        });
+    }
+
+    function applyGuideVisibility() {
+        const wordDisplay = document.getElementById('word-display');
+        if(wordDisplay) {
+            wordDisplay.style.display = guideEnabled ? 'inline-block' : 'none';
+        }
     }
     
     function resetRankings() {
@@ -858,6 +884,7 @@
         missCount = 0; 
         timeLeft=100;
         
+        applyGuideVisibility();
         document.getElementById('start-screen').style.display='none';
         const container = document.getElementById('game-container');
         container.style.display = 'flex';

@@ -111,9 +111,9 @@
 
         /* 設定エリア */
         .settings-area {
-            display: flex; gap: 20px; margin-bottom: 15px; 
-            font-weight: bold; font-size: 1.1rem; color: #555; 
-            background: #fff; padding: 10px 30px; border-radius: 50px; 
+            display: flex; gap: 15px; margin-bottom: 15px; 
+            font-weight: bold; font-size: 1.05rem; color: #555; 
+            background: #fff; padding: 10px 24px; border-radius: 50px; 
             border: 2px solid #eee; box-shadow: 0 4px 0 #eee;
             align-items: center; justify-content: center; flex-wrap: wrap;
         }
@@ -123,8 +123,8 @@
 
         /* 大文字小文字スイッチ */
         .case-switch-group {
-            display: flex; align-items: center; gap: 10px; margin-left: 5px; 
-            border-left: 2px solid #eee; padding-left: 20px;
+            display: flex; align-items: center; gap: 8px; margin-left: 2px; 
+            border-left: 2px solid #eee; padding-left: 15px;
         }
         .case-label { 
             font-family: 'Courier New', monospace; font-weight: bold; 
@@ -145,7 +145,7 @@
 
         .reset-btn {
             background: transparent; border: none; border-left: 2px solid #eee;
-            padding-left: 15px; margin-left: 5px;
+            padding-left: 12px; margin-left: 2px;
             cursor: pointer; font-size: 1.4rem; color: #d32f2f;
             display: flex; align-items: center; justify-content: center;
             transition: 0.2s;
@@ -401,6 +401,14 @@
                     </div>
 
                     <div class="howto-item">
+                        <span class="howto-icon">👀</span>
+                        <div class="howto-text">
+                            <strong>ローマ字ガイド</strong><br>
+                            ON/OFFを 切り替えられるよ。OFF（デフォルト）にすると まんなかの ローマ字が きえて、かなと えもじだけで れんしゅうできるよ！
+                        </div>
+                    </div>
+
+                    <div class="howto-item">
                         <span class="howto-icon">🔤</span>
                         <div class="howto-text">
                             <strong>ひょうじ</strong><br>
@@ -413,14 +421,6 @@
                         <div class="howto-text">
                             <strong>きろくを けす</strong><br>
                             「ごみばこ」ボタンを おすと、すべての ランキングを けせるよ。
-                        </div>
-                    </div>
-
-                    <div class="howto-item">
-                        <span class="howto-icon">👀️</span>
-                        <div class="howto-text">
-                            <strong>ローマ字</strong><br>
-                            まんなかの もじを みて タイピングしよう。
                         </div>
                     </div>
 
@@ -440,7 +440,7 @@
             <div class="modal-box concept-mode">
                 <span class="modal-close" onclick="closeModalBtn()">×</span>
                 <h2 class="concept-h2">💡 このツールについて</h2>
-                <div style="text-align:center; font-weight:bold; color:#c2185b; margin-bottom:10px;">Ver.1.0</div>
+                <div style="text-align:center; font-weight:bold; color:#c2185b; margin-bottom:10px;">Ver.1.1</div>
 
                 <ul class="concept-list">
                     <li><strong>🏫 楽しく習得</strong><br>小学校低学年から、遊び感覚でローマ字入力を覚えられます。タイムアタックやランキング表示などのゲーム要素を取り入れ、楽しく継続できるように設計しました。</li>
@@ -488,6 +488,11 @@
                 <label class="toggle-wrap" title="打鍵音や正解音">
                     <input type="checkbox" id="se-toggle" checked>
                     <span class="toggle-label">🔊 おと</span>
+                </label>
+
+                <label class="toggle-wrap" title="画面中央のローマ字ガイドを表示するか">
+                    <input type="checkbox" id="guide-toggle">
+                    <span class="toggle-label">👀 ローマ字ガイド</span>
                 </label>
                 
                 <div class="case-switch-group">
@@ -563,7 +568,7 @@
             "ゔ":"VU","ー":"-","ぁ":"XA","ぃ":"XI","ぅ":"XU","ぇ":"XE","ぉ":"XO","っ":"XTU","ゃ":"XYA","ゅ":"XYU","ょ":"XYO"
         };
 
-const wordList = [
+        const wordList = [
             // --- 動物 (Animals) ---
             {k:"らいおん",e:"🦁"},{k:"とら",e:"🐯"},{k:"ぱんだ",e:"🐼"},{k:"うさぎ",e:"🐰"},{k:"ねこ",e:"🐱"},
             {k:"いぬ",e:"🐶"},{k:"きりん",e:"🦒"},{k:"ぞう",e:"🐘"},{k:"さる",e:"🐵"},{k:"くま",e:"🐻"},
@@ -646,6 +651,7 @@ const wordList = [
         let skipNextN=false; 
         let audioCtx=null;
         let seEnabled=true;
+        let showRomaGuide=false; // デフォルトOFF
         let isMuted=false;
         let missCount=0;
 
@@ -665,16 +671,24 @@ const wordList = [
         });
 
         function init() {
-            // 設定読み込み
+            // 設定読み込み (音)
             if(localStorage.getItem('typing_se_enabled') !== null) {
                 seEnabled = (localStorage.getItem('typing_se_enabled') === 'true');
             } else {
                 seEnabled = true; // デフォルトON
             }
             document.getElementById('se-toggle').checked = seEnabled;
+
+            // 設定読み込み (ローマ字ガイド: デフォルトOFF)
+            if(localStorage.getItem('typing_roma_guide') !== null) {
+                showRomaGuide = (localStorage.getItem('typing_roma_guide') === 'true');
+            } else {
+                showRomaGuide = false; // デフォルトOFF
+            }
+            document.getElementById('guide-toggle').checked = showRomaGuide;
             
             showRankings();
-            updateDisplay(); // abc/ABCラベルの初期化のため
+            updateDisplay(); // abc/ABCおよびガイド表示初期化
         }
 
         // SE切替
@@ -682,6 +696,14 @@ const wordList = [
             seEnabled = e.target.checked;
             localStorage.setItem('typing_se_enabled', seEnabled);
             if(seEnabled) playTone(800, 'square', 0.05);
+        });
+
+        // ローマ字ガイド切替
+        document.getElementById('guide-toggle').addEventListener('change', (e)=>{
+            showRomaGuide = e.target.checked;
+            localStorage.setItem('typing_roma_guide', showRomaGuide);
+            if(seEnabled) playTone(800, 'square', 0.05);
+            updateDisplay();
         });
 
         function showHowto() { document.getElementById('modal-howto-overlay').style.display = 'flex'; }
@@ -823,6 +845,12 @@ const wordList = [
                 const base = k.id.substring(4);
                 k.innerText = isUpper ? base : base.toLowerCase();
             });
+
+            // ローマ字ガイドの表示/非表示切り替え (visibilityを使用しレイアウト崩れを防止)
+            const romaElem = document.getElementById('target-roma');
+            if (romaElem) {
+                romaElem.style.visibility = showRomaGuide ? 'visible' : 'hidden';
+            }
 
             if(!isPlaying) return;
 
