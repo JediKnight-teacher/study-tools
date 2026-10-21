@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>English Speech & Pronunciation Trainer Ver.3.1</title>
+  <title>English Speech & Pronunciation Trainer Ver.3.4</title>
 
   <style>
   body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f7f6; color: #333; max-width: 820px; margin: 0 auto; padding: 20px; box-sizing: border-box; }
@@ -43,7 +43,6 @@
   @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
   @keyframes fadeout { from { bottom: 30px; opacity: 1; } to { bottom: 0; opacity: 0; } }
 
-  /* 設定パネル・レイアウト */
   .settings-container { margin-bottom: 20px; }
   .toggle-settings-btn {
     width: 100%;
@@ -145,7 +144,6 @@
   }
   .reset-settings-btn:hover { background-color: #7f8c8d; }
 
-  /* アクションエリア（レイアウト調整） */
   .action-row { 
     width: 100%; 
     display: flex; 
@@ -206,6 +204,7 @@
   .highlight-line { background-color: #fff3cd !important; border-left-color: #f1c40f !important; }
   
   .stressed-word { font-weight: 800; color: #d35400; background-color: #fef9e7; padding: 0 2px; border-radius: 3px; }
+  .speaker-prefix { font-weight: bold; color: #7f8c8d; margin-right: 4px; }
 
   .btn-group { display: flex; gap: 5px; flex-shrink: 0; align-items: flex-start; margin-top: 8px; margin-left: auto; flex-wrap: wrap; }
   .btn { border: none; padding: 6px 12px; font-size: 0.85rem; border-radius: 4px; cursor: pointer; color: white; transition: all 0.2s; font-weight: bold; white-space: nowrap; }
@@ -313,7 +312,7 @@
       
       <div style="text-align: center; border-bottom: 2px solid #e0e0e0; padding-bottom: 12px; margin-bottom: 15px;">
         <h2 style="margin: 0; color: #2c3e50; font-size: 1.4rem;">💡 このツールについて</h2>
-        <div style="font-size: 0.95rem; font-weight: bold; color: #3498db; margin-top: 4px;">Ver.3.1</div>
+        <div style="font-size: 0.95rem; font-weight: bold; color: #3498db; margin-top: 4px;">Ver.3.4</div>
       </div>
 
       <div style="font-size: 0.9rem; line-height: 1.6; color: #333;">
@@ -394,7 +393,7 @@
   </div>
 
   <h1 id="appTitle">🎙️ English Speech & Pronunciation Trainer</h1>
-  <div class="subtitle" id="appSubtitle">英語スピーチ・発音練習・音読トレーナー Ver.3.1 <span class="copyright" onclick="openAboutModal()" title="このツールについてを表示">© 2026 [A.K]</span></div>
+  <div class="subtitle" id="appSubtitle">英語スピーチ・発音練習・音読トレーナー Ver.3.4 <span class="copyright" onclick="openAboutModal()" title="このツールについてを表示">© 2026 [A.K]</span></div>
 
   <div id="welcomeScreen">
     <h2>👋 ようこそ！</h2>
@@ -438,7 +437,6 @@
 
       <div id="settingsPanel" class="settings-panel">
         <div class="settings-grid">
-          <!-- グループ1: 音声・再生設定 -->
           <div class="settings-card">
             <div class="settings-card-title">🔊 音声・再生設定</div>
             <div class="settings-item-full">
@@ -465,7 +463,6 @@
             </div>
           </div>
 
-          <!-- グループ2: 判定・タイマー設定 -->
           <div class="settings-card">
             <div class="settings-card-title">🎤 判定・タイミング設定</div>
             <div class="settings-item">
@@ -488,7 +485,6 @@
             </div>
           </div>
 
-          <!-- グループ3: 表示・分析設定 -->
           <div class="settings-card">
             <div class="settings-card-title">📱 表示・分析設定</div>
             <div class="settings-item">
@@ -510,7 +506,6 @@
       </div>
 
       <div class="action-row">
-        <!-- お手本グループ -->
         <div class="action-group playback-group">
           <span class="group-label" style="color: #2c3e50;">🎧 お手本:</span>
           <button id="playAllBtn" class="btn play-btn" style="padding: 8px 15px;" onclick="startPlayAll()">▶️ すべて再生</button>
@@ -518,7 +513,6 @@
           <button id="stopAllBtn" class="btn stop-btn" style="padding: 8px 15px;" onclick="stopPlayAll()">⏹️ 再生停止</button>
         </div>
 
-        <!-- 録音練習グループ -->
         <div class="action-group rehearsal-group">
           <span class="group-label" style="color: #d35400;">🎤 録音練習:</span>
           <button id="startRehearsalBtn" class="btn rehearsal-btn" style="padding: 8px 15px;" onclick="startRehearsal()">🔥 通し稽古</button>
@@ -568,32 +562,32 @@
   </div>
 
   <script>
-  const CURRENT_SETTINGS_KEY = 'speech_trainer_settings_v3.1';
+  const CURRENT_SETTINGS_KEY = 'speech_trainer_settings_v3.4';
 
   const DEFAULT_SAMPLE_SCRIPT = [
     {
-      en: "Hello, everyone. My name is Ken. Nice to meet you.",
-      jp: "皆さん、こんにちは。私の名前はケンです。はじめまして。"
+      en: "Kate: Hello, everyone. My name is Ken. Nice to meet you.",
+      jp: "ケイト: 皆さん、こんにちは。私の名前はケンです。はじめまして。"
     },
     {
-      en: "I play soccer with my friends every weekend.",
-      jp: "私は毎週週末に友達とサッカーをします。"
+      en: "Dinu: I play soccer with my friends every weekend.",
+      jp: "ディーヌ: 私は毎週週末に友達とサッカーをします。"
     },
     {
-      en: "My favorite subject is English because it is fun.",
-      jp: "私の好きな教科は英語です。楽しいからです。"
+      en: "Kate: My favorite subject is English because it is fun.",
+      jp: "ケイト: 私の好きな教科は英語です。楽しいからです。"
     },
     {
-      en: "I want to visit Australia in the future.",
-      jp: "私は将来、オーストラリアを訪れたいです。"
+      en: "Dinu: I want to visit Australia in the future.",
+      jp: "ディーヌ: 私は将来、オーストラリアを訪れたいです。"
     },
     {
-      en: "Could you tell me the way to the station?",
-      jp: "駅への行き方を教えていただけますか？"
+      en: "Kate: Could you tell me the way to the station?",
+      jp: "ケイト: 駅への行き方を教えていただけますか？"
     },
     {
-      en: "Thank you for listening to my speech today.",
-      jp: "本日はスピーチを聞いてくださり、ありがとうございました。"
+      en: "Dinu: Thank you for listening to my speech today.",
+      jp: "ディーヌ: 本日はスピーチを聞いてくださり、ありがとうございました。"
     }
   ];
 
@@ -669,7 +663,6 @@
     revokeAllAudioUrls();
   }
 
-  /* 設定の保存・読込・リセット機能 (同一バージョン限定) */
   function loadSettings() {
     try {
       const saved = localStorage.getItem(CURRENT_SETTINGS_KEY);
@@ -808,6 +801,7 @@
     document.getElementById('welcomeScreen').style.display = 'none';
     document.getElementById('mainAppContent').style.display = 'block';
     initApp();
+    syncScriptToTextareas();
     showToast("💡 基本会話サンプル台本（6文）を読み込みました！");
   }
 
@@ -846,19 +840,41 @@
     renderScript();
   }
 
+  /**
+   * 文頭の人物名（例: "Kate:", "Dinu:", "田中：" など）を取り除くユーティリティ関数
+   */
+  function stripSpeaker(text) {
+    if (!text) return "";
+    return text.replace(/^[^\n:：]+[:：]\s*/, '');
+  }
+
   function formatAccentText(text) {
+    let speakerPrefix = "";
+    let contentText = text;
+
+    // 文頭の話者名パターン（例: "Kate: "）を判定して分離
+    const speakerMatch = text.match(/^([^\n:：]+[:：]\s*)(.*)$/);
+    if (speakerMatch) {
+      speakerPrefix = `<span class="speaker-prefix">${speakerMatch[1]}</span>`;
+      contentText = speakerMatch[2];
+    }
+
     const isAccentEmphasized = document.getElementById('accentEmphasisToggle') ? document.getElementById('accentEmphasisToggle').checked : false;
-    if (!isAccentEmphasized) return text;
+    if (!isAccentEmphasized) {
+      return speakerPrefix + contentText;
+    }
 
     const weakWords = new Set(['a', 'an', 'the', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'and', 'or', 'but', 'is', 'are', 'was', 'were', 'be', 'been', 'it', 'its', 'you', 'your', 'my', 'his', 'her', 'their']);
     
-    return text.split(' ').map(word => {
+    const formattedContent = contentText.split(' ').map(word => {
       const cleanWord = word.toLowerCase().replace(/[^a-z]/g, '');
       if (cleanWord.length > 2 && !weakWords.has(cleanWord)) {
         return `<span class="stressed-word">${word}</span>`;
       }
       return word;
     }).join(' ');
+
+    return speakerPrefix + formattedContent;
   }
 
   function renderScript() {
@@ -884,9 +900,25 @@
     });
   }
 
+  function syncScriptToTextareas() {
+    if (!currentScriptData || currentScriptData.length === 0) return;
+    const enText = currentScriptData.map(item => item.en).join('\n');
+    const jpText = currentScriptData.map(item => item.jp).join('\n');
+    const importEn = document.getElementById('importEn');
+    const importJp = document.getElementById('importJp');
+    if (importEn) importEn.value = enText;
+    if (importJp) importJp.value = jpText;
+  }
+
   function toggleScriptManager() {
     const el = document.getElementById('scriptManager');
-    el.style.display = el.style.display === 'none' || el.style.display === '' ? 'block' : 'none';
+    const isHidden = el.style.display === 'none' || el.style.display === '';
+    if (isHidden) {
+      syncScriptToTextareas();
+      el.style.display = 'block';
+    } else {
+      el.style.display = 'none';
+    }
   }
 
   function insertSampleText() {
@@ -931,9 +963,9 @@
             jp: item.jp || item.jaText || ""
           }));
           initApp();
+          syncScriptToTextareas();
           document.getElementById('welcomeScreen').style.display = 'none';
           document.getElementById('mainAppContent').style.display = 'block';
-          toggleScriptManager();
           showToast("✅ 台本ファイル(.json)をインポートしました！");
         } else {
           showToast("⚠️ 有効な台本データ（配列形式）が見つかりませんでした。");
@@ -946,10 +978,40 @@
     event.target.value = '';
   }
 
-  function exportToJsonFile() {
+  /**
+   * 「名前をつけて保存」ダイアログに対応したJSON出力関数
+   */
+  async function exportToJsonFile() {
     if (currentScriptData.length === 0) { showToast("⚠️ 出力する台本がありません。"); return; }
     const jsonStr = JSON.stringify(currentScriptData, null, 2);
-    downloadFile("script-en-jp.json", jsonStr, "application/json");
+    const defaultFilename = "script-en-jp.json";
+
+    // File System Access API (showSaveFilePicker) に対応しているブラウザでの処理
+    if ('showSaveFilePicker' in window) {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: defaultFilename,
+          types: [{
+            description: 'JSON Files',
+            accept: { 'application/json': ['.json'] }
+          }]
+        });
+        const writable = await handle.createWritable();
+        await writable.write(jsonStr);
+        await writable.close();
+        showToast("📦 ファイルを保存しました！");
+        return;
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          // ユーザーが保存ダイアログでキャンセルした場合は中断
+          return;
+        }
+        console.warn("Save File Picker が使用できないためフォールバックします:", err);
+      }
+    }
+
+    // 非対応ブラウザ・フォールバック時のアンカータグ保存
+    downloadFile(defaultFilename, jsonStr, "application/json");
     showToast("📦 script-en-jp.json をダウンロードしました！");
   }
 
@@ -964,7 +1026,6 @@
     URL.revokeObjectURL(a.href);
   }
 
-  /* 設定変更イベント */
   document.getElementById('difficultySlider').addEventListener('input', function() { 
     document.getElementById('difficultyValue').textContent = this.value; 
     saveSettings();
@@ -1166,7 +1227,8 @@
 
   function executeSpeech(index, onEndCallback) {
     const line = currentScriptData[index]; 
-    let speechText = line.en;
+    // 【人物名除外】音声合成の読み上げ対象から「Kate:」などの話者名を除去
+    let speechText = stripSpeaker(line.en);
     
     let pitchVal = parseFloat(document.getElementById('pitchSlider').value);
     let speedVal = parseFloat(document.getElementById('speedSlider').value);
@@ -1401,6 +1463,9 @@
     setButtonsState(false);
   }
 
+  /**
+   * 通し稽古中の行遷移処理（アトミック更新＋絶対オフセット更新）
+   */
   async function forceNextLine() {
     if (!isRehearsalMode || isPaused || isProcessingTransition) return;
     isProcessingTransition = true;
@@ -1415,6 +1480,7 @@
     const spokenText = currentTranscript; 
     currentTranscript = "";
     
+    // 【アトミック更新】現在保持している最新認識配列長を次行の読み出しオフセットにセット
     rehearsalResultOffset = lastObservedResultLength;
 
     stopAudioRecording((audioUrl) => {
@@ -1593,7 +1659,10 @@
   }
 
   function evaluateSpeech(target, spoken, audioUrl) {
-    const expandedTarget = expandContractions(target);
+    // 【人物名除外】判定比較対象の英文テキストから「Kate:」などの話者名を除去
+    const targetTextWithoutSpeaker = stripSpeaker(target);
+
+    const expandedTarget = expandContractions(targetTextWithoutSpeaker);
     const expandedSpoken = expandContractions(spoken);
 
     const cleanTarget = expandedTarget.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w);
@@ -1661,7 +1730,7 @@
 
     if (!isRehearsalMode) {
       const feedbackArea = document.getElementById('feedbackArea');
-      document.getElementById('targetTextResult').innerHTML = `お題： ${target}`;
+      document.getElementById('targetTextResult').innerHTML = `お題： ${targetTextWithoutSpeaker}`;
       document.getElementById('recognizedText').innerHTML = `AIの聞き取り： "${spoken.trim()}"`;
       document.getElementById('scoreDisplay').innerHTML = `${score}点`;
 
